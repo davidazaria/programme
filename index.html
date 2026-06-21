@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Programme 💪">
+<title>Mon Programme 💪</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#0F0F1A;color:#F1F1F5;font-family:-apple-system,system-ui,sans-serif;padding-bottom:80px;min-height:100vh}
+button,input,textarea{font-family:inherit;cursor:pointer;outline:none}
+input[type=date]{color-scheme:dark}
+.hdr{background:linear-gradient(135deg,#1A1A2E,#16213E);padding:52px 20px 14px;border-bottom:1px solid #2D2D3F}
+.hdr-sub{font-size:9px;color:#6B7280;letter-spacing:.12em;text-transform:uppercase;margin-bottom:3px}
+.hdr h1{font-size:20px;font-weight:900;letter-spacing:-.02em}
+.hdr-desc{font-size:11px;color:#6B7280;margin-top:3px}
+.content{padding:14px 16px}
+.bnav{position:fixed;bottom:0;left:0;right:0;background:#0F0F1A;border-top:1px solid #2D2D3F;display:flex;padding:6px 8px env(safe-area-inset-bottom,14px)}
+.nbtn{flex:1;border:none;background:transparent;padding:6px 2px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.nem{font-size:18px;opacity:.35;transition:opacity .2s}
+.nlb{font-size:9px;font-weight:700;color:#6B7280}
+.nbtn.act .nem{opacity:1}
+.nbtn.act .nlb{color:#3B82F6}
+.tab{display:none}.tab.act{display:block}
+.card{background:#1E1E2E;border-radius:14px;padding:14px;border:1px solid #2D2D3F;margin-bottom:12px}
+.slbl{font-size:10px;color:#6B7280;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;display:inline-block}
+.pill-row{display:flex;gap:7px;margin-bottom:14px}
+.pill{flex:1;padding:10px 4px;border-radius:11px;border:1.5px solid #2D2D3F;background:#1E1E2E;text-align:center}
+.pill.act{border-color:#3B82F6;background:#1E3A5F}
+.pill .pe{font-size:16px;margin-bottom:2px}
+.pill .pl{font-size:10px;font-weight:700;color:#6B7280}
+.pill.act .pl{color:#93C5FD}
+.wbtn{width:34px;height:34px;border-radius:9px;border:none;font-weight:700;font-size:12px;background:#1E1E2E;color:#6B7280;position:relative}
+.wbtn.act{background:#3B82F6;color:#fff}
+.wbtn.decharge{border:1.5px solid #F59E0B!important;color:#F59E0B}
+.wbtn.vacances{border:1.5px solid #06B6D4!important;color:#06B6D4}
+.wbtn.vacances.act{background:#06B6D4;color:#fff}
+.fbadge{margin-top:10px;padding:8px 12px;border-radius:10px;background:#1E3A5F;border:1px solid #3B82F640;font-size:12px;color:#93C5FD}
+.fbadge.db{background:#2D1F00;border-color:#F59E0B40;color:#FCD34D}
+.fbadge.vb{background:#0F2B2B;border-color:#06B6D440;color:#67E8F9}
+.dbtn{flex:1;padding:7px 3px;border-radius:9px;border:1.5px solid #2D2D3F;background:transparent;position:relative}
+.dlbl{font-size:8px;font-weight:700;color:#6B7280;margin-bottom:3px}
+.ddot{position:absolute;top:2px;right:2px;width:6px;height:6px;border-radius:50%;background:#10B981}
+.exc{display:flex;align-items:center;gap:10px;padding:9px;background:#14141F;border-radius:9px;margin-bottom:7px}
+.esvg{min-width:44px;display:flex;justify-content:center}
+.enm{font-size:12px;font-weight:700;color:#F1F1F5}
+.emu{font-size:10px;color:#6B7280}
+.elo{text-align:right}
+.eset{font-size:11px;font-weight:700}
+.ekg{font-size:10px;color:#9CA3AF}
+.pb-wrap{margin-bottom:7px}
+.pb-lbl{display:flex;justify-content:space-between;margin-bottom:3px}
+.pb-bg{height:3px;background:#2D2D3F;border-radius:2px}
+.pb-fill{height:100%;border-radius:2px;transition:width .4s}
+.btn-p{width:100%;padding:11px;border-radius:10px;border:none;background:#3B82F6;color:#fff;font-size:13px;font-weight:700}
+.btn-s{width:100%;padding:11px;border-radius:10px;border:1px solid #2D2D3F;background:transparent;color:#6B7280;font-size:13px}
+.ybox{padding:9px 12px;border-radius:9px;background:#FEF3C720;border:1px solid #F59E0B50;font-size:11px;color:#FCD34D;line-height:1.5;margin-bottom:10px}
+.gbox{padding:9px 12px;border-radius:9px;background:#0F2B1F;border:1px solid #10B98130;font-size:11px;color:#A7F3D0;line-height:1.5;margin-top:12px}
+.cbox{padding:9px 12px;border-radius:9px;background:#2D1A00;border:1px solid #F59E0B40;font-size:11px;color:#FCD34D;margin-bottom:10px}
+.jinp{width:100%;padding:8px 10px;border-radius:8px;border:1px solid #2D2D3F;background:#14141F;color:#F1F1F5;font-size:12px}
+.rrow{display:flex;gap:6px;margin-bottom:10px}
+.rbtn{flex:1;padding:6px 4px;border-radius:8px;border:1px solid #2D2D3F;background:#14141F;color:#6B7280;font-size:10px;font-weight:600}
+.rbtn.act{border-color:#3B82F6;background:#1E3A5F;color:#93C5FD}
+.meal-card{background:#1E1E2E;border-radius:13px;border:1px solid #2D2D3F;overflow:hidden;margin-bottom:9px}
+.meal-hdr{padding:13px;display:flex;align-items:center;gap:10px}
+.meal-body{border-top:1px solid #2D2D3F}
+.meal-opt{padding:11px 13px;border-bottom:1px solid #1A1A2A}
+.meal-opt:last-child{border-bottom:none}
+.macbox{flex:1;background:#1E1E2E;border-radius:11px;padding:11px}
+.mval{font-size:18px;font-weight:800}
+.ebtn{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;border:1.5px solid #2D2D3F;background:#1E1E2E;text-align:left;width:100%;margin-bottom:8px}
+.ebtn.sel{border-color:#F59E0B;background:#2D1F00}
+.sbox{flex:1;background:#1E1E2E;border-radius:11px;padding:12px}
+.igrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+.icell{background:#14141F;border-radius:10px;padding:10px}
+.ival{font-size:16px;font-weight:800}
+.ilbl{font-size:9px;color:#6B7280;margin-bottom:3px;line-height:1.2}
+.itgt{font-size:8px;color:#4B5563;margin-top:2px}
+.igform{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px}
+.iflbl{font-size:9px;color:#6B7280;margin-bottom:3px}
+input[type=number],input[type=date]{background:#14141F;border:1px solid #2D2D3F;border-radius:8px;color:#F1F1F5;padding:8px 10px;font-size:12px;width:100%}
+textarea{background:#14141F;border:1px solid #2D2D3F;border-radius:8px;color:#F1F1F5;padding:8px 10px;font-size:12px;width:100%;resize:none}
+.ssup{display:inline-flex;align-items:center;gap:5px;border-radius:20px;padding:3px 11px;margin-bottom:9px;border:1.5px solid}
+.exk{background:#1E1E2E;border-radius:11px;padding:11px;border:1px solid #2D2D3F;margin-bottom:7px}
+.exk.open{border-color:var(--ec)}
+.edesc{margin-top:9px;padding-top:9px;border-top:1px solid #2D2D3F;font-size:11px;color:#A1A1B5;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="hdr-sub">David · Juin → Août 2026</div>
+  <h1>Mon Programme 💪</h1>
+  <div class="hdr-desc">86 kg · 1,85 m · Objectif −4 kg gras</div>
+</div>
+<div class="content">
+  <div id="t-semaine" class="tab act"></div>
+  <div id="t-nutrition" class="tab"></div>
+  <div id="t-ecarts" class="tab"></div>
+  <div id="t-tracker" class="tab"></div>
+  <div id="t-exercices" class="tab"></div>
+</div>
+<nav class="bnav">
+  <button class="nbtn act" onclick="nav('semaine',this)"><span class="nem">📅</span><span class="nlb">Semaine</span></button>
+  <button class="nbtn" onclick="nav('nutrition',this)"><span class="nem">🥗</span><span class="nlb">Nutrition</span></button>
+  <button class="nbtn" onclick="nav('ecarts',this)"><span class="nem">🍕</span><span class="nlb">Écarts</span></button>
+  <button class="nbtn" onclick="nav('tracker',this)"><span class="nem">📊</span><span class="nlb">Tracker</span></button>
+  <button class="nbtn" onclick="nav('exercices',this)"><span class="nem">🏋️</span><span class="nlb">Exercices</span></button>
+</nav>
+<script>
+// ─── STORAGE ──────────────────────────────────────────────────────────────────
+const S={get(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch{return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}};
+
+// ─── SVGs ─────────────────────────────────────────────────────────────────────
+const SVG={
+"Squat barre":`<svg viewBox="0 0 80 90" width="44" height="44"><rect x="5" y="18" width="70" height="5" rx="2" fill="#6B7280"/><rect x="2" y="15" width="9" height="11" rx="2" fill="#374151"/><rect x="69" y="15" width="9" height="11" rx="2" fill="#374151"/><circle cx="40" cy="10" r="7" fill="#FBBF24"/><rect x="36" y="20" width="8" height="18" rx="3" fill="#FBBF24"/><line x1="40" y1="38" x2="24" y2="62" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="40" y1="38" x2="56" y2="62" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="24" y1="62" x2="16" y2="76" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="56" y1="62" x2="64" y2="76" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="36" y1="24" x2="18" y2="20" stroke="#FBBF24" stroke-width="4" stroke-linecap="round"/><line x1="44" y1="24" x2="62" y2="20" stroke="#FBBF24" stroke-width="4" stroke-linecap="round"/></svg>`,
+"Curl barre":`<svg viewBox="0 0 80 90" width="44" height="44"><circle cx="40" cy="10" r="7" fill="#FBBF24"/><rect x="36" y="17" width="8" height="26" rx="3" fill="#FBBF24"/><line x1="36" y1="26" x2="18" y2="34" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="18" y1="34" x2="20" y2="52" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="44" y1="26" x2="62" y2="34" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="62" y1="34" x2="60" y2="52" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><rect x="14" y="49" width="52" height="5" rx="2" fill="#6B7280"/><rect x="8" y="46" width="8" height="11" rx="2" fill="#374151"/><rect x="64" y="46" width="8" height="11" rx="2" fill="#374151"/><line x1="38" y1="43" x2="30" y2="76" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="42" y1="43" x2="50" y2="76" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/></svg>`,
+"Soulevé de terre roumain":`<svg viewBox="0 0 80 90" width="44" height="44"><circle cx="24" cy="14" r="7" fill="#FBBF24"/><line x1="24" y1="21" x2="54" y2="42" stroke="#FBBF24" stroke-width="9" stroke-linecap="round"/><line x1="54" y1="42" x2="50" y2="76" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="54" y1="42" x2="62" y2="74" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="32" y1="28" x2="38" y2="56" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="42" y1="34" x2="48" y2="60" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><rect x="32" y="54" width="22" height="5" rx="2" fill="#374151"/></svg>`,
+"Rowing 1 bras":`<svg viewBox="0 0 80 90" width="44" height="44"><rect x="18" y="50" width="55" height="8" rx="3" fill="#9CA3AF"/><circle cx="20" cy="36" r="7" fill="#FBBF24"/><line x1="25" y1="40" x2="58" y2="40" stroke="#FBBF24" stroke-width="9" stroke-linecap="round"/><line x1="24" y1="44" x2="18" y2="50" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="48" y1="42" x2="50" y2="30" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><rect x="46" y="24" width="12" height="5" rx="2" fill="#374151"/><line x1="58" y1="40" x2="68" y2="74" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/></svg>`,
+"Leg curl machine":`<svg viewBox="0 0 80 90" width="44" height="44"><rect x="5" y="42" width="70" height="9" rx="3" fill="#9CA3AF"/><circle cx="12" cy="34" r="7" fill="#FBBF24"/><line x1="18" y1="36" x2="62" y2="36" stroke="#FBBF24" stroke-width="9" stroke-linecap="round"/><line x1="62" y1="36" x2="72" y2="36" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="72" y1="36" x2="76" y2="16" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><rect x="70" y="11" width="12" height="6" rx="3" fill="#374151"/></svg>`,
+"Tractions assistées":`<svg viewBox="0 0 80 90" width="44" height="44"><rect x="10" y="8" width="60" height="5" rx="2" fill="#6B7280"/><circle cx="40" cy="20" r="7" fill="#FBBF24"/><rect x="36" y="27" width="8" height="24" rx="3" fill="#FBBF24"/><line x1="36" y1="31" x2="18" y2="12" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="44" y1="31" x2="62" y2="12" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="38" y1="51" x2="30" y2="76" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="42" y1="51" x2="50" y2="76" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/></svg>`,
+"Développé couché":`<svg viewBox="0 0 80 90" width="44" height="44"><rect x="10" y="50" width="65" height="9" rx="3" fill="#9CA3AF"/><line x1="15" y1="44" x2="65" y2="44" stroke="#FBBF24" stroke-width="9" stroke-linecap="round"/><circle cx="10" cy="41" r="7" fill="#FBBF24"/><line x1="28" y1="40" x2="22" y2="26" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="54" y1="40" x2="58" y2="26" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><rect x="14" y="22" width="52" height="5" rx="2" fill="#6B7280"/><rect x="7" y="19" width="8" height="11" rx="2" fill="#374151"/><rect x="65" y="19" width="8" height="11" rx="2" fill="#374151"/></svg>`,
+"Rowing barre penché":`<svg viewBox="0 0 80 90" width="44" height="44"><circle cx="18" cy="18" r="7" fill="#FBBF24"/><line x1="18" y1="25" x2="52" y2="44" stroke="#FBBF24" stroke-width="9" stroke-linecap="round"/><line x1="52" y1="44" x2="46" y2="76" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="52" y1="44" x2="60" y2="74" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="28" y1="32" x2="26" y2="52" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="40" y1="38" x2="42" y2="56" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><rect x="18" y="50" width="32" height="5" rx="2" fill="#6B7280"/><rect x="11" y="47" width="8" height="11" rx="2" fill="#374151"/><rect x="48" y="47" width="8" height="11" rx="2" fill="#374151"/></svg>`,
+"Développé incliné haltères":`<svg viewBox="0 0 80 90" width="44" height="44"><rect x="14" y="38" width="55" height="8" rx="3" fill="#9CA3AF" transform="rotate(-25,41,52)"/><line x1="20" y1="58" x2="62" y2="38" stroke="#FBBF24" stroke-width="9" stroke-linecap="round"/><circle cx="67" cy="30" r="7" fill="#FBBF24"/><line x1="34" y1="52" x2="22" y2="34" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="50" y1="44" x2="52" y2="28" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><rect x="16" y="29" width="11" height="5" rx="2" fill="#374151"/><rect x="46" y="22" width="11" height="5" rx="2" fill="#374151"/></svg>`,
+"Pullover haltère":`<svg viewBox="0 0 80 90" width="44" height="44"><rect x="28" y="44" width="28" height="8" rx="3" fill="#9CA3AF"/><line x1="14" y1="40" x2="66" y2="40" stroke="#FBBF24" stroke-width="9" stroke-linecap="round"/><circle cx="8" cy="37" r="7" fill="#FBBF24"/><line x1="34" y1="36" x2="24" y2="18" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="46" y1="36" x2="46" y2="16" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><rect x="20" y="12" width="28" height="6" rx="3" fill="#374151"/></svg>`,
+"Dips":`<svg viewBox="0 0 80 90" width="44" height="44"><rect x="8" y="24" width="6" height="42" rx="2" fill="#6B7280"/><rect x="66" y="24" width="6" height="42" rx="2" fill="#6B7280"/><line x1="4" y1="24" x2="20" y2="24" stroke="#374151" stroke-width="4" stroke-linecap="round"/><line x1="60" y1="24" x2="76" y2="24" stroke="#374151" stroke-width="4" stroke-linecap="round"/><circle cx="40" cy="14" r="7" fill="#FBBF24"/><rect x="36" y="21" width="8" height="22" rx="3" fill="#FBBF24"/><line x1="36" y1="26" x2="14" y2="24" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="44" y1="26" x2="66" y2="24" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="38" y1="43" x2="32" y2="68" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="42" y1="43" x2="40" y2="68" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/></svg>`,
+"Planche":`<svg viewBox="0 0 80 90" width="44" height="44"><line x1="8" y1="46" x2="68" y2="46" stroke="#FBBF24" stroke-width="10" stroke-linecap="round"/><circle cx="74" cy="43" r="7" fill="#FBBF24"/><line x1="18" y1="50" x2="14" y2="64" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="34" y1="50" x2="30" y2="64" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="10" y1="32" x2="74" y2="32" stroke="#10B981" stroke-width="1.5" stroke-dasharray="4,3"/></svg>`,
+"Pompes":`<svg viewBox="0 0 80 90" width="44" height="44"><line x1="8" y1="44" x2="68" y2="44" stroke="#FBBF24" stroke-width="10" stroke-linecap="round"/><circle cx="74" cy="40" r="7" fill="#FBBF24"/><line x1="16" y1="48" x2="12" y2="62" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="30" y1="48" x2="26" y2="62" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/></svg>`,
+"Pompes prises larges":`<svg viewBox="0 0 80 90" width="44" height="44"><line x1="5" y1="44" x2="75" y2="44" stroke="#FBBF24" stroke-width="10" stroke-linecap="round"/><circle cx="76" cy="40" r="7" fill="#FBBF24"/><line x1="12" y1="48" x2="8" y2="62" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="36" y1="48" x2="32" y2="62" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/></svg>`,
+"Pompes diamant":`<svg viewBox="0 0 80 90" width="44" height="44"><line x1="20" y1="44" x2="60" y2="44" stroke="#FBBF24" stroke-width="10" stroke-linecap="round"/><circle cx="62" cy="40" r="7" fill="#FBBF24"/><line x1="28" y1="48" x2="24" y2="62" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="42" y1="48" x2="38" y2="62" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><polygon points="40,36 44,42 40,48 36,42" fill="none" stroke="#F59E0B" stroke-width="1.5"/></svg>`,
+"Dips chaise":`<svg viewBox="0 0 80 90" width="44" height="44"><rect x="55" y="52" width="20" height="5" rx="2" fill="#9CA3AF"/><rect x="58" y="57" width="4" height="20" rx="2" fill="#6B7280"/><rect x="68" y="57" width="4" height="20" rx="2" fill="#6B7280"/><circle cx="30" cy="22" r="7" fill="#FBBF24"/><line x1="30" y1="29" x2="30" y2="48" stroke="#FBBF24" stroke-width="8" stroke-linecap="round"/><line x1="26" y1="34" x2="14" y2="40" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="14" y1="40" x2="14" y2="52" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="34" y1="34" x2="54" y2="40" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="54" y1="40" x2="54" y2="52" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="26" y1="48" x2="18" y2="72" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="34" y1="48" x2="42" y2="72" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/></svg>`,
+"Tractions serviette":`<svg viewBox="0 0 80 90" width="44" height="44"><rect x="35" y="4" width="10" height="30" rx="3" fill="#9CA3AF"/><rect x="30" y="4" width="20" height="6" rx="3" fill="#6B7280"/><circle cx="40" cy="42" r="7" fill="#FBBF24"/><line x1="40" y1="49" x2="40" y2="65" stroke="#FBBF24" stroke-width="8" stroke-linecap="round"/><line x1="36" y1="53" x2="26" y2="34" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="44" y1="53" x2="54" y2="34" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="36" y1="65" x2="28" y2="82" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="44" y1="65" x2="52" y2="82" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/></svg>`,
+"Superman":`<svg viewBox="0 0 80 90" width="44" height="44"><line x1="8" y1="50" x2="72" y2="50" stroke="#FBBF24" stroke-width="10" stroke-linecap="round"/><circle cx="76" cy="47" r="7" fill="#FBBF24"/><line x1="8" y1="48" x2="8" y2="38" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="72" y1="48" x2="72" y2="38" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><path d="M 20 35 L 28 30 L 36 35" stroke="#F59E0B" stroke-width="2" fill="none"/><path d="M 60 35 L 68 30 L 76 35" stroke="#F59E0B" stroke-width="2" fill="none"/></svg>`,
+"Crunchs vélo":`<svg viewBox="0 0 80 90" width="44" height="44"><circle cx="40" cy="18" r="7" fill="#FBBF24"/><line x1="40" y1="25" x2="40" y2="48" stroke="#FBBF24" stroke-width="8" stroke-linecap="round"/><line x1="36" y1="30" x2="18" y2="28" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="44" y1="30" x2="62" y2="28" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="36" y1="48" x2="20" y2="68" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="44" y1="48" x2="60" y2="68" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="18" y1="28" x2="56" y2="66" stroke="#F59E0B" stroke-width="1.5" stroke-dasharray="3,2"/></svg>`,
+"Burpees":`<svg viewBox="0 0 80 90" width="44" height="44"><circle cx="60" cy="10" r="7" fill="#FBBF24"/><line x1="60" y1="17" x2="50" y2="30" stroke="#FBBF24" stroke-width="7" stroke-linecap="round"/><line x1="54" y1="22" x2="68" y2="26" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="50" y1="30" x2="40" y2="44" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="50" y1="30" x2="60" y2="44" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><path d="M 56 6 L 60 0 L 64 6" stroke="#F59E0B" stroke-width="2" fill="none"/></svg>`,
+"Gainage latéral":`<svg viewBox="0 0 80 90" width="44" height="44"><line x1="10" y1="56" x2="72" y2="38" stroke="#FBBF24" stroke-width="10" stroke-linecap="round"/><circle cx="74" cy="32" r="7" fill="#FBBF24"/><line x1="18" y1="58" x2="14" y2="72" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="10" y1="56" x2="10" y2="66" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/></svg>`,
+"Course fractionnée":`<svg viewBox="0 0 80 90" width="44" height="44"><circle cx="48" cy="10" r="7" fill="#FBBF24"/><line x1="48" y1="17" x2="38" y2="36" stroke="#FBBF24" stroke-width="9" stroke-linecap="round"/><line x1="38" y1="36" x2="20" y2="52" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="38" y1="36" x2="56" y2="56" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="20" y1="52" x2="14" y2="72" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="56" y1="56" x2="62" y2="76" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><path d="M 8 76 Q 20 70 32 74 Q 44 78 56 72 Q 68 66 74 70" stroke="#3B82F6" stroke-width="2" fill="none" stroke-dasharray="3,2"/></svg>`,
+"Course Bréguières":`<svg viewBox="0 0 80 90" width="44" height="44"><circle cx="48" cy="10" r="7" fill="#FBBF24"/><line x1="48" y1="17" x2="38" y2="36" stroke="#FBBF24" stroke-width="9" stroke-linecap="round"/><line x1="38" y1="36" x2="20" y2="52" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="38" y1="36" x2="56" y2="56" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="20" y1="52" x2="14" y2="72" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="56" y1="56" x2="62" y2="76" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><path d="M 5 76 Q 15 60 25 65 Q 35 70 45 50 Q 55 30 70 20" stroke="#10B981" stroke-width="2" fill="none" stroke-dasharray="3,2"/></svg>`,
+"Squats sautés":`<svg viewBox="0 0 80 90" width="44" height="44"><circle cx="40" cy="8" r="7" fill="#FBBF24"/><rect x="36" y="15" width="8" height="20" rx="3" fill="#FBBF24"/><line x1="40" y1="35" x2="24" y2="52" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="40" y1="35" x2="56" y2="52" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="24" y1="52" x2="18" y2="64" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="56" y1="52" x2="62" y2="64" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/></svg>`,
+"Fentes marchées":`<svg viewBox="0 0 80 90" width="44" height="44"><circle cx="32" cy="10" r="7" fill="#FBBF24"/><rect x="28" y="17" width="8" height="20" rx="3" fill="#FBBF24"/><line x1="30" y1="37" x2="16" y2="56" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="34" y1="37" x2="52" y2="52" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="16" y1="56" x2="14" y2="76" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="52" y1="52" x2="56" y2="66" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/></svg>`,
+};
+
+// ─── DATA ─────────────────────────────────────────────────────────────────────
+const WKL=["Dim. 21 juin","Lun. 30 juin","Lun. 7 juil","Lun. 14 juil","Lun. 21 juil","Lun. 28 juil","Lun. 4 août 🏖️","Lun. 11 août 🏖️","Lun. 18 août 🏖️","Lun. 25 août 🏖️"];
+const isDech=w=>w===4;
+const isVac=w=>w>=7;
+const PROGS=Array.from({length:10},(_,i)=>{
+  const w=i+1,d=isDech(w),v=isVac(w),b=x=>d?Math.round(x*.85/2.5)*2.5:x;
+  return{week:w,squat:b(50+Math.floor(i/2)*5),rdl:b(55+Math.floor(i/2)*5),bench:b(60+Math.floor(i/2)*2.5),row:b(22+Math.floor(i/2)*2),curl:b(30+Math.floor(i/2)*2.5),legCurl:b(30+Math.floor(i/2)*2.5),tractions:d?Math.round((40-Math.floor(i/2)*2.5)*1.15/2.5)*2.5:40-Math.floor(i/2)*2.5,
+  focus:d?"🔄 Décharge — charges −15%":v?"🏖️ Vacances — 2× Bréguières + 2× circuit 30 min":i<3?"Technique + prise de repères":i<6?"Progression charges":"Intensification",
+  date:WKL[i],decharge:d,vacances:v};
+});
+
+const LOAD=(p,n)=>({
+  "Squat barre":`${p.squat} kg`,"Curl barre":`${p.curl} kg`,"Soulevé de terre roumain":`${p.rdl} kg`,
+  "Rowing 1 bras":`${p.row} kg`,"Leg curl machine":`${p.legCurl} kg`,
+  "Tractions assistées":`contrepoids ${p.tractions} kg`,"Développé couché":`${p.bench} kg`,
+}[n]||null);
+
+const WEEK=[
+  {day:"Lun",fullDay:"Lundi",type:"salle",tag:"Séance A",c:"#3B82F6",emoji:"🏋️",exercises:[
+    {name:"Squat barre",sets:"4×8",load:"50 kg",muscles:"Quadri · Fessiers",desc:"Barre sur les trapèzes, pieds largeur épaules. Descends dos droit, genoux dans l'axe. Pousse dans le sol pour remonter."},
+    {name:"Curl barre",sets:"4×10",load:"30 kg",muscles:"Biceps · Avant-bras",desc:"Prise supination, paumes vers le haut. Fléchis les coudes, coudes collés au corps. Redescends lentement."},
+    {name:"Soulevé de terre roumain",sets:"3×8",load:"55 kg",muscles:"Ischio · Fessiers · Dos",desc:"Haltères devant cuisses, penche le buste dos plat jusqu'à mi-tibia. Reviens en contractant les fessiers."},
+    {name:"Rowing 1 bras",sets:"3×10",load:"22 kg",muscles:"Dorsal · Rhomboïdes",desc:"Un genou et une main sur le banc, dos horizontal. Tire l'haltère vers la hanche, coude près du corps."},
+    {name:"Leg curl machine",sets:"3×12",load:"30 kg",muscles:"Ischio-jambiers",desc:"Allongé sur le ventre. Fléchis les genoux pour ramener le coussin vers les fesses. Contrôle la descente."},
+    {name:"Tractions assistées",sets:"3×8",load:"contrepoids 40 kg",muscles:"Dorsal · Biceps",desc:"Contrepoids = plus il est lourd, plus c'est facile. Barre large, amène le menton au-dessus de la barre."},
+  ]},
+  {day:"Mar",fullDay:"Mardi",type:"repos",tag:"Repos",c:"#374151",emoji:"😴",exercises:[]},
+  {day:"Mer",fullDay:"Mercredi",type:"repos",tag:"Repos",c:"#374151",emoji:"😴",exercises:[]},
+  {day:"Jeu",fullDay:"Jeudi",type:"salle",tag:"Séance B",c:"#EF4444",emoji:"🏋️",exercises:[
+    {name:"Développé couché",sets:"4×8",load:"60 kg",muscles:"Pecto · Triceps · Épaules",desc:"Allongé sur le banc, pieds au sol. Descends la barre jusqu'à effleurer la poitrine, pousse en soufflant."},
+    {name:"Rowing barre penché",sets:"4×10",load:"50 kg",muscles:"Dorsal · Trapèzes",desc:"Buste penché à 45°, dos plat, prise pronation. Tire la barre vers le nombril. Genoux légèrement fléchis."},
+    {name:"Développé incliné haltères",sets:"3×10",load:"20 kg/main",muscles:"Pecto haut · Épaules",desc:"Banc incliné 30–45°. Pousse les deux haltères vers le haut, légèrement vers l'intérieur."},
+    {name:"Pullover haltère",sets:"3×12",load:"40 kg",muscles:"Dorsal · Pecto · Grand dentelé",desc:"Allongé perpendiculairement sur un banc, épaules sur le banc. Descends l'haltère derrière la tête, reviens."},
+    {name:"Dips",sets:"3×max",load:"poids corps",muscles:"Triceps · Pecto bas",desc:"Barres parallèles, bras tendus. Descends jusqu'à ~90° aux coudes. Buste légèrement penché vers l'avant."},
+    {name:"Planche",sets:"3×45s",load:"—",muscles:"Abdos · Gainage",desc:"Appui avant-bras et orteils, corps en ligne droite. Contracte abdos et fessiers. Respire normalement."},
+  ]},
+  {day:"Ven",fullDay:"Vendredi",type:"repos",tag:"Repos",c:"#374151",emoji:"🍫",exercises:[],note:"Soir : 4 fondants 🍫 (1 520 kcal) → mange léger le reste de la journée"},
+  {day:"Sam",fullDay:"Samedi",type:"repos",tag:"Repos",c:"#374151",emoji:"🥖",exercises:[],note:"Midi : 8 navettes thon 🥖 (1 680 kcal) → mange très léger le soir"},
+  {day:"Dim",fullDay:"Dimanche",type:"course",tag:"Course",c:"#10B981",emoji:"🏃",
+    exercises:[{name:"Course fractionnée",sets:"1h15",load:"voir format",muscles:"Cardio · Endurance",desc:"Échauffement 10 min + fractionné (5×8 min à 9,5 km/h / 2 min marche en S1-4, 6×6 min à 10 km/h / 90 sec en S5-6) + retour calme 15 min."}],
+    note:"Aujourd'hui c'est parti ! Semaine 1 commence ici 🚀"},
+];
+
+const WEEK_VAC=[
+  {day:"Lun",fullDay:"Lundi",type:"repos",tag:"Repos",c:"#374151",emoji:"😴",exercises:[]},
+  {day:"Mar",fullDay:"Mardi",type:"muscu",tag:"Circuit A",c:"#F59E0B",emoji:"💪",
+    note:"Circuit continu : enchaîne sans pause · 90 sec repos entre tours · 3 tours = 30 min",
+    exercises:[
+      {name:"Pompes",sets:"4×max",load:"poids corps",muscles:"Pecto · Triceps · Épaules",desc:"Corps droit, mains largeur épaules. Descends la poitrine vers le sol, remonte en soufflant. Si trop facile : pieds surélevés sur une chaise."},
+      {name:"Dips chaise",sets:"4×max",load:"poids corps",muscles:"Triceps · Pecto bas",desc:"Mains sur le bord d'une chaise derrière toi, jambes tendues. Descends jusqu'à 90° aux coudes, remonte en poussant."},
+      {name:"Tractions serviette",sets:"3×max",load:"poids corps",muscles:"Dorsal · Biceps",desc:"Passe une serviette sur une porte ouverte, tiens les deux bouts. Penche-toi en arrière bras tendus, tire le buste vers la porte."},
+      {name:"Planche",sets:"3×60s",load:"—",muscles:"Abdos · Gainage",desc:"Appui avant-bras et orteils, corps en ligne droite. Contracte abdos et fessiers. Respire normalement."},
+      {name:"Gainage latéral",sets:"3×45s",load:"chaque côté",muscles:"Obliques · Gainage latéral",desc:"Appui sur un avant-bras et le côté du pied. Corps en ligne droite, hanche ne touche pas le sol. 45 sec de chaque côté."},
+    ]},
+  {day:"Mer",fullDay:"Mercredi",type:"course",tag:"Bréguières",c:"#10B981",emoji:"🏃",
+    note:"🏔️ ~160m de dénivelé · allure naturelle à la montée · foulée légère en descente · vue sur la baie de Cannes",
+    exercises:[{name:"Course Bréguières",sets:"1h",load:"allure naturelle",muscles:"Cardio · Cuisses · Fessiers · Mollets",desc:"Route des Bréguières, Le Cannet. Montée progressive vers les hauteurs (~160m de dénivelé). La pente fait le boulot — pas besoin de forcer la cadence. Descente en foulée légère, protège les genoux."}]},
+  {day:"Jeu",fullDay:"Jeudi",type:"muscu",tag:"Circuit B",c:"#EF4444",emoji:"💪",
+    note:"Circuit continu : enchaîne sans pause · 90 sec repos entre tours · 3 tours = 30 min",
+    exercises:[
+      {name:"Pompes prises larges",sets:"4×max",load:"poids corps",muscles:"Pecto extérieur · Épaules",desc:"Mains plus larges que les épaules. Cible les pectoraux extérieurs. Descends lentement, remonte explosif."},
+      {name:"Pompes diamant",sets:"3×max",load:"poids corps",muscles:"Triceps · Pecto intérieur",desc:"Mains formant un triangle sous la poitrine. Très ciblé sur les triceps. Plus difficile que les pompes classiques."},
+      {name:"Superman",sets:"3×12",load:"poids corps",muscles:"Bas du dos · Fessiers · Ischio",desc:"Allongé sur le ventre, bras tendus devant. Soulève simultanément bras et jambes. Contracte tout le dos. Tiens 2 secondes en haut."},
+      {name:"Crunchs vélo",sets:"3×20",load:"poids corps",muscles:"Abdos · Obliques",desc:"Sur le dos, mains derrière la tête. Ramène le genou gauche vers le coude droit en tordant le buste, alterne. Mouvement lent et contrôlé."},
+      {name:"Burpees",sets:"3×10",load:"poids corps",muscles:"Full body · Cardio",desc:"Debout → accroupi → pompe → accroupi → saut bras en l'air. 10 répétitions = tu vas transpirer."},
+    ]},
+  {day:"Ven",fullDay:"Vendredi",type:"repos",tag:"Repos",c:"#374151",emoji:"🍫",exercises:[],note:"Soir : 4 fondants 🍫 (1 520 kcal) → mange léger le reste de la journée"},
+  {day:"Sam",fullDay:"Samedi",type:"repos",tag:"Repos",c:"#374151",emoji:"🥖",exercises:[],note:"Midi : 8 navettes thon 🥖 (1 680 kcal) → mange très léger le soir"},
+  {day:"Dim",fullDay:"Dimanche",type:"course",tag:"Bréguières",c:"#10B981",emoji:"🏃",
+    note:"🏔️ 2ème sortie · varie le parcours ou explore le sentier du Canal de la Siagne depuis la route",
+    exercises:[{name:"Course Bréguières",sets:"1h",load:"allure naturelle",muscles:"Cardio · Cuisses · Fessiers · Mollets",desc:"Même parcours que mercredi ou variante : depuis la route des Bréguières, rejoins le sentier du Canal de la Siagne pour explorer les hauteurs du Cannet. Vue panoramique sur Cannes garantie."}]},
+];
+
+const NUT={
+  normal:{label:"Lun–Jeu·Dim",meals:[
+    {id:"pdj",lbl:"Petit déjeuner",emoji:"☀️",time:"7h–8h",options:[
+      {n:"Œufs + Skyr",d:"3 œufs brouillés + skyr 150g + café",k:380,p:38,t:"⚡ Rapide"},
+      {n:"Fromage blanc bowl",d:"Fromage blanc 0% 200g + flocons avoine 40g + café",k:300,p:22,t:"🌾 Rassasiant"},
+      {n:"Pain + Saumon",d:"2 tranches pain complet + 150g saumon fumé + 2 œufs",k:420,p:45,t:"🐟 Riche prot"},
+    ]},
+    {id:"dej",lbl:"Déjeuner",emoji:"🍽️",time:"12h–13h",options:[
+      {n:"Poulet riz + yaourt + fruit",d:"200g poulet + 150g riz + légumes + yaourt 125g + 1 fruit",k:660,p:58,t:"🍗 Classique"},
+      {n:"Thon quinoa + yaourt + fruit",d:"Thon 140g + quinoa 100g + salade + yaourt 125g + 1 fruit",k:620,p:50,t:"🐟 Léger"},
+      {n:"Saumon patate + yaourt + fruit",d:"150g saumon + patate douce 200g + haricots + yaourt 125g + 1 fruit",k:650,p:46,t:"🍠 Complet"},
+    ]},
+    {id:"diner",lbl:"Dîner post-séance",emoji:"🌙",time:"20h–21h",options:[
+      {n:"Bœuf haché légumes + fruit",d:"200g bœuf 5%MG + légumes poêlés + 50g pâtes + 1 fruit",k:570,p:46,t:"🥩 Récup"},
+      {n:"Omelette géante + fruit",d:"4 œufs + fromage blanc + poivrons + champignons + 1 fruit",k:490,p:40,t:"🍳 Simple"},
+      {n:"Cabillaud lentilles + fruit",d:"150g cabillaud + lentilles 150g + brocolis + 1 fruit",k:510,p:42,t:"🐟 Léger"},
+    ]},
+  ]},
+  vendredi:{label:"Vendredi",note:"🍫 4 fondants le soir = 1 520 kcal. Mange léger toute la journée.",meals:[
+    {id:"pdj",lbl:"Petit déjeuner",emoji:"☀️",time:"7h–8h",options:[{n:"Maximum protéines",d:"4 œufs brouillés + fromage blanc 0% 200g + café noir",k:420,p:52,t:"💪 Prot max"}]},
+    {id:"dej",lbl:"Déjeuner",emoji:"🍽️",time:"12h–13h",options:[{n:"Poulet salade + yaourt + fruit",d:"200g poulet + salade + tomates + yaourt 125g + 1 fruit",k:430,p:52,t:"🥗 Léger"}]},
+    {id:"soir",lbl:"Soir 🍫",emoji:"🍫",time:"20h+",options:[{n:"4 fondants au chocolat",d:"C'est le deal. Enjoy sans culpabilité.",k:1520,p:24,t:"🎉 Cheat",cheat:true}]},
+  ]},
+  samedi:{label:"Samedi",note:"🥖 8 navettes à midi = 1 680 kcal. Mange très léger le reste.",meals:[
+    {id:"pdj",lbl:"Petit déjeuner",emoji:"☀️",time:"7h–8h",options:[{n:"Skyr + café",d:"Skyr 150g + café noir. Laisse de la place.",k:100,p:15,t:"🪶 Léger"}]},
+    {id:"midi",lbl:"Midi 🥖",emoji:"🥖",time:"12h–13h",options:[{n:"8 navettes au thon",d:"Tu cours le matin, tu te régales à midi.",k:1680,p:96,t:"🎉 Cheat",cheat:true}]},
+    {id:"diner",lbl:"Dîner",emoji:"🌙",time:"19h–20h",options:[{n:"Très léger + fruit",d:"Omelette 3 œufs + fromage blanc 0% 150g + salade + 1 fruit",k:370,p:42,t:"🥚 Récup"}]},
+  ]},
+};
+
+const ECARTS=[
+  {id:"pizza",lbl:"Pizza",emoji:"🍕",k:900,p:35,c:"Glucides rapides + graisses saturées. Demain : protéines à 180g, hydratation 2L min. Séance muscu si prévue — les glucides vont booster la perf. Évite les féculents au déjeuner suivant."},
+  {id:"pates",lbl:"Pâtes à la crème",emoji:"🍝",k:850,p:20,c:"Grosse charge glucidique. Demain matin : petit déj protéiné sans glucides (4 œufs, fromage blanc). Déjeuner : poulet + légumes, pas de féculents. Ajoute 20 min de marche rapide si pas de séance."},
+  {id:"poisson",lbl:"Repas complet poisson",emoji:"🐟",k:700,p:55,c:"Repas qualitatif — beaucoup de protéines, oméga-3. Zéro stress. Demain journée normale, légèrement réduite en féculents. C'est le meilleur écart possible."},
+  {id:"burger",lbl:"Burger / Fast food",emoji:"🍔",k:1100,p:40,c:"Sel, graisses trans, glucides rapides. Demain : 2,5L d'eau pour éliminer la rétention. Petit déj léger protéiné. Zéro grignotage. Séance de sport si possible — tu vas transpirer les toxines."},
+  {id:"alcool",lbl:"Soirée alcool",emoji:"🍷",k:600,p:5,c:"L'alcool bloque la synthèse protéique 24–48h. Priorité : réhydratation eau + électrolytes. Pas de séance salle demain. Course légère 30 min à la place si tu te sens ok. Protéines++ toute la journée."},
+  {id:"sucre",lbl:"Excès sucrés",emoji:"🍰",k:700,p:8,c:"Pic insulinique + glucides vides. Demain : petit déj sans sucre (œufs + fromage blanc, zéro fruit le matin). Évite le sucre toute la journée. Si séance prévue, parfait pour brûler le glycogène excédentaire."},
+  {id:"autre",lbl:"Autre",emoji:"🍽️",k:500,p:20,c:"Règle générale : pas de compensation excessive, ne saute pas de repas. Hydratation++, retour au programme dès le repas suivant. Un écart isolé ne change rien sur 10 semaines."},
+];
+
+const SEANCES={
+  A:[
+    {sup:"A — BARRE",c:"#3B82F6",pairs:[
+      {name:"Squat barre",sets:"4×8",load:"50 kg",muscles:"Quadriceps · Fessiers · Ischio",desc:"Barre sur les trapèzes, pieds largeur épaules. Descends dos droit, genoux dans l'axe. Pousse dans le sol pour remonter."},
+      {name:"Curl barre",sets:"4×10",load:"30 kg",muscles:"Biceps · Avant-bras",desc:"Prise supination, paumes vers le haut. Fléchis les coudes, coudes collés au corps. Redescends lentement."},
+    ]},
+    {sup:"B — HALTÈRE",c:"#10B981",pairs:[
+      {name:"Soulevé de terre roumain",sets:"3×8",load:"55 kg",muscles:"Ischio-jambiers · Fessiers · Dos",desc:"Haltères devant cuisses, penche le buste dos plat jusqu'à mi-tibia. Reviens en contractant les fessiers."},
+      {name:"Rowing 1 bras",sets:"3×10",load:"22 kg",muscles:"Grand dorsal · Rhomboïdes · Biceps",desc:"Un genou et une main sur le banc, dos horizontal. Tire l'haltère vers la hanche, coude près du corps."},
+    ]},
+    {sup:"C — MACHINE",c:"#8B5CF6",pairs:[
+      {name:"Leg curl machine",sets:"3×12",load:"30 kg",muscles:"Ischio-jambiers",desc:"Allongé sur le ventre. Fléchis les genoux pour ramener le coussin vers les fesses. Contrôle la descente, amplitude complète."},
+      {name:"Tractions assistées",sets:"3×8",load:"contrepoids 40 kg",muscles:"Grand dorsal · Biceps · Épaules",desc:"Contrepoids = plus il est lourd, plus c'est facile. Barre large, amène le menton au-dessus de la barre."},
+    ]},
+  ],
+  B:[
+    {sup:"A — BARRE",c:"#EF4444",pairs:[
+      {name:"Développé couché",sets:"4×8",load:"60 kg",muscles:"Pectoraux · Triceps · Épaules",desc:"Allongé sur le banc, pieds au sol. Descends la barre jusqu'à effleurer la poitrine, pousse en soufflant."},
+      {name:"Rowing barre penché",sets:"4×10",load:"50 kg",muscles:"Grand dorsal · Trapèzes · Biceps",desc:"Buste penché à 45°, dos plat, prise pronation. Tire la barre vers le nombril. Genoux légèrement fléchis."},
+    ]},
+    {sup:"B — HALTÈRE",c:"#F59E0B",pairs:[
+      {name:"Développé incliné haltères",sets:"3×10",load:"20 kg/main",muscles:"Pectoraux hauts · Épaules · Triceps",desc:"Banc incliné 30–45°. Pousse les deux haltères vers le haut et légèrement vers l'intérieur."},
+      {name:"Pullover haltère",sets:"3×12",load:"40 kg",muscles:"Grand dorsal · Grand pectoral",desc:"Allongé perpendiculairement sur un banc, épaules sur le banc. Descends l'haltère derrière la tête, reviens."},
+    ]},
+    {sup:"C — POIDS DE CORPS",c:"#6B7280",pairs:[
+      {name:"Dips",sets:"3×max",load:"poids de corps",muscles:"Triceps · Pectoraux bas · Épaules",desc:"Barres parallèles, bras tendus. Descends jusqu'à ~90° aux coudes. Buste légèrement penché vers l'avant."},
+      {name:"Planche",sets:"3×45s",load:"—",muscles:"Abdominaux · Transverse · Gainage",desc:"Appui avant-bras et orteils, corps en ligne droite. Contracte abdos, fessiers et cuisses. Respire normalement."},
+    ]},
+  ],
+  V:[
+    {sup:"CIRCUIT A — SOL",c:"#10B981",pairs:[
+      {name:"Pompes",sets:"4×max",load:"poids corps",muscles:"Pectoraux · Triceps · Épaules",desc:"Corps droit, mains largeur épaules. Descends la poitrine vers le sol, remonte en soufflant."},
+      {name:"Squats sautés",sets:"4×15",load:"poids corps",muscles:"Quadriceps · Fessiers · Cardio",desc:"Fais un squat, saute vers le haut en tendant les bras. Atterris en douceur et enchaîne."},
+    ]},
+    {sup:"CIRCUIT B — FONCTIONNEL",c:"#F59E0B",pairs:[
+      {name:"Fentes marchées",sets:"3×12",load:"poids corps",muscles:"Quadriceps · Fessiers · Équilibre",desc:"Grandes enjambées, genou avant à 90°, genou arrière qui frôle le sol. Alterne les jambes en marchant."},
+      {name:"Planche",sets:"3×60s",load:"—",muscles:"Abdos · Transverse · Gainage global",desc:"Appui avant-bras et orteils, corps en ligne droite. Contracte tout et respire normalement."},
+    ]},
+  ],
+};
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let ST={week:1,day:6,jshow:false,jinp:{},nutDay:'normal',nutMeal:null,ecSel:null,ecShow:false,trTab:'poids',exTab:'A',exOpen:null};
+
+// ─── NAV ─────────────────────────────────────────────────────────────────────
+function nav(t,btn){
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('act'));
+  document.querySelectorAll('.nbtn').forEach(x=>x.classList.remove('act'));
+  document.getElementById('t-'+t).classList.add('act');
+  btn.classList.add('act');
+  render(t);
+}
+
+// ─── SEMAINE ─────────────────────────────────────────────────────────────────
+function renderSem(){
+  const p=PROGS[ST.week-1];
+  const tmpl=p.vacances?WEEK_VAC:WEEK;
+  const j=S.get('journal')||{};
+  let h=`<div style="margin-bottom:14px"><div class="slbl">Semaine</div><div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px">`;
+  PROGS.forEach(wp=>{
+    const cls=['wbtn',wp.week===ST.week?'act':'',wp.decharge?'decharge':wp.vacances?'vacances':''].join(' ');
+    h+=`<button class="${cls}" onclick="selW(${wp.week})" style="position:relative">${wp.week}${wp.decharge?'<span style="position:absolute;top:-4px;right:-4px;font-size:8px">🔄</span>':wp.vacances?'<span style="position:absolute;top:-4px;right:-4px;font-size:8px">🏖️</span>':''}</button>`;
+  });
+  h+=`</div><div class="fbadge ${p.decharge?'db':p.vacances?'vb':''}"><b>S${p.week} · ${p.date} · </b>${p.focus}</div></div>`;
+  h+=`<div style="display:flex;gap:5px;margin-bottom:14px">`;
+  tmpl.forEach((d,i)=>{
+    const hl=j[`w${ST.week}-d${i}`];
+    h+=`<button class="dbtn ${ST.day===i?'act-d':''}" style="${ST.day===i?'border-color:'+d.c:'border-color:#2D2D3F'}" onclick="selD(${i})">
+      <div class="dlbl" style="${ST.day===i?'color:'+d.c:''}">${d.day}</div>
+      <div style="font-size:15px">${d.emoji}</div>
+      ${hl?'<span class="ddot"></span>':''}
+    </button>`;
+  });
+  h+=`</div>`;
+
+  if(ST.day!==null){
+    const day=tmpl[ST.day];
+    const canLog=day.type==='salle'||day.type==='course'||day.type==='muscu';
+    const logged=j[`w${ST.week}-d${ST.day}`];
+    h+=`<div class="card" style="border-color:${day.c}40;margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:18px">${day.emoji}</span>
+          <div>
+            <div style="font-weight:800;font-size:15px">${day.fullDay}</div>
+            <span class="tag" style="background:${day.c}22;color:${day.c};border:1px solid ${day.c}40">${day.tag}</span>
+          </div>
+        </div>
+        ${canLog?`<button onclick="togJ()" style="padding:6px 10px;border-radius:8px;border:none;background:${logged?.done?'#10B98122':'#3B82F622'};color:${logged?.done?'#10B981':'#3B82F6'};font-size:11px;font-weight:700">${logged?.done?'✓ Noté':'📝 Journal'}</button>`:''}
+      </div>`;
+    if(day.note)h+=`<div class="${day.type==='muscu'?'cbox':'ybox'}">${day.note}</div>`;
+
+    if(day.type==='salle'){
+      h+=`<div style="padding:7px 10px;border-radius:8px;margin-bottom:10px;background:#1A2A1A;border:1px solid #10B98130;font-size:11px;color:#6EE7B7">🔥 Échauffement : 5 min vélo/tapis + 1 série légère à 50%</div>`;
+      if(p.decharge)h+=`<div class="ybox">🔄 Décharge : charges −15%, 3 séries au lieu de 4 sur les principaux</div>`;
+      day.exercises.forEach(ex=>{
+        const ld=LOAD(p,ex.name)||ex.load||'—';
+        h+=`<div class="exc"><div class="esvg">${SVG[ex.name]||'💪'}</div><div style="flex:1"><div class="enm">${ex.name}</div><div class="emu">${ex.muscles}</div></div><div class="elo"><div class="eset" style="color:${day.c}">${ex.sets}</div><div class="ekg">${ld}</div></div></div>`;
+      });
+      h+=`<div style="text-align:center;padding:7px;font-size:10px;color:#6B7280">⏱ Supersets : A1→A2 sans pause · 60 sec entre paires</div>`;
+    } else if(day.type==='muscu'){
+      day.exercises.forEach(ex=>{
+        h+=`<div class="exc"><div class="esvg">${SVG[ex.name]||'💪'}</div><div style="flex:1"><div class="enm">${ex.name}</div><div class="emu">${ex.muscles}</div></div><div class="elo"><div class="eset" style="color:${day.c}">${ex.sets}</div><div class="ekg">${ex.load}</div></div></div>`;
+      });
+    } else if(day.type==='course'){
+      h+=`<div style="padding:10px;background:#0F2B1F;border-radius:10px;border:1px solid #10B98140">
+        <div style="font-size:11px;color:#6EE7B7;font-weight:700;margin-bottom:6px">${day.exercises[0]?.name||'Course'} · ${day.exercises[0]?.sets||''}</div>
+        <div style="font-size:11px;color:#A7F3D0;line-height:1.7">${day.exercises[0]?.desc||''}</div>
+      </div>`;
+    } else {
+      h+=`<div style="text-align:center;padding:16px;font-size:28px">😴<div style="font-size:11px;color:#6B7280;margin-top:6px">Récupération — marche, étirements</div></div>`;
+    }
+    h+=`</div>`;
+
+    if(ST.jshow&&canLog){
+      const day2=tmpl[ST.day];
+      const ex=j[`w${ST.week}-d${ST.day}`]||{};
+      h+=`<div class="card" style="border-color:#3B82F640;margin-bottom:12px">
+        <div style="font-weight:800;font-size:14px;margin-bottom:12px">📝 Journal — ${day2.fullDay} S${ST.week}</div>`;
+      day2.exercises.forEach(exc=>{
+        const sug=LOAD(p,exc.name)||exc.load||'—';
+        h+=`<div style="margin-bottom:10px"><div style="font-size:11px;color:#9CA3AF;margin-bottom:4px">${exc.name} <span style="color:#4B5563">· ${sug}</span></div>
+        <input class="jinp" value="${(ST.jinp[exc.name]||'').replace(/"/g,'&quot;')}" placeholder="Charge réelle... ex: ${sug}" onchange="setJI('${exc.name}',this.value)"></div>`;
+      });
+      h+=`<div style="font-size:11px;color:#9CA3AF;margin-bottom:6px">Ressenti</div><div class="rrow">`;
+      ['😴 Fatigué','😐 Normal','💪 En forme','🔥 Top'].forEach(r=>{
+        h+=`<button class="rbtn ${(ST.jinp.ressenti||ex.ressenti)===r?'act':''}" onclick="setRes('${r}')">${r}</button>`;
+      });
+      h+=`</div><div style="font-size:11px;color:#9CA3AF;margin-bottom:4px">Notes libres</div>
+      <textarea style="margin-bottom:12px;height:60px" placeholder="Douleurs, PR, remarques..." onchange="setJI('notes',this.value)">${ST.jinp.notes||ex.notes||''}</textarea>
+      <div style="display:flex;gap:8px">
+        <button class="btn-s" style="flex:1" onclick="ST.jshow=false;renderSem()">Annuler</button>
+        <button style="flex:2;padding:11px;border-radius:10px;border:none;background:#3B82F6;color:#fff;font-size:13px;font-weight:700" onclick="saveJ()">Enregistrer ✓</button>
+      </div></div>`;
+    }
+  }
+
+  // Charges
+  h+=`<div class="card"><div class="slbl">Charges semaine ${ST.week}${p.decharge?' 🔄':''}${p.vacances?' 🏖️':''}</div>`;
+  if(p.vacances){
+    h+=`<div style="font-size:12px;color:#67E8F9;padding:10px;background:#0F2B2B;border-radius:9px;line-height:1.6">Pas de charges cette semaine — circuit poids du corps + course vallonnée. La Bréguières remplace la salle jambes 🏔️</div>`;
+  } else {
+    [{n:"Squat",v:p.squat,m:80,c:"#3B82F6"},{n:"Roumain",v:p.rdl,m:90,c:"#10B981"},{n:"Développé",v:p.bench,m:80,c:"#EF4444"},{n:"Curl barre",v:p.curl,m:50,c:"#F59E0B"},{n:"Rowing 1 bras",v:p.row,m:35,c:"#8B5CF6"},{n:"Leg curl",v:p.legCurl,m:50,c:"#06B6D4"},{n:"Tractions (ctrpoids↓)",v:p.tractions,m:40,c:"#EC4899",inv:true}].forEach(it=>{
+      const pct=Math.min(it.inv?((40-it.val+25)/40)*100:(it.v/it.m)*100,100);
+      h+=`<div class="pb-wrap"><div class="pb-lbl"><span style="font-size:10px;color:#9CA3AF">${it.n}</span><span style="font-size:10px;font-weight:700;color:${it.c}">${it.v} kg${it.inv?' ↓':''}</span></div><div class="pb-bg"><div class="pb-fill" style="width:${pct}%;background:${it.c}"></div></div></div>`;
+    });
+  }
+  h+=`</div>`;
+  document.getElementById('t-semaine').innerHTML=h;
+}
+function selW(w){ST.week=w;ST.day=PROGS[w-1].vacances?1:6;ST.jshow=false;renderSem();}
+function selD(d){ST.day=ST.day===d?null:d;ST.jshow=false;renderSem();}
+function togJ(){
+  const j=S.get('journal')||{};
+  ST.jinp={...j[`w${ST.week}-d${ST.day}`]||{}};
+  ST.jshow=!ST.jshow;renderSem();
+}
+function setJI(k,v){ST.jinp[k]=v;}
+function setRes(r){ST.jinp.ressenti=r;renderSem();}
+function saveJ(){
+  const j=S.get('journal')||{};
+  j[`w${ST.week}-d${ST.day}`]={...ST.jinp,done:true};
+  S.set('journal',j);ST.jshow=false;renderSem();
+}
+
+// ─── NUTRITION ────────────────────────────────────────────────────────────────
+function renderNut(){
+  const data=NUT[ST.nutDay];
+  const tk=data.meals.reduce((s,m)=>s+m.options[0].k,0);
+  const tp=data.meals.reduce((s,m)=>s+m.options[0].p,0);
+  let h=`<div class="pill-row">`;
+  [{k:'normal',l:'Semaine',e:'📅'},{k:'vendredi',l:'Vendredi',e:'🍫'},{k:'samedi',l:'Samedi',e:'🥖'}].forEach(o=>{
+    h+=`<button class="pill ${ST.nutDay===o.k?'act':''}" onclick="setND('${o.k}')"><div class="pe">${o.e}</div><div class="pl">${o.l}</div></button>`;
+  });
+  h+=`</div>`;
+  if(data.note)h+=`<div class="ybox">${data.note}</div>`;
+  h+=`<div style="display:flex;gap:7px;margin-bottom:14px">`;
+  [{lbl:'Calories',v:tk,u:'kcal',t:2400,c:'#F59E0B'},{lbl:'Protéines',v:tp,u:'g',t:165,c:'#3B82F6'}].forEach(m=>{
+    h+=`<div class="macbox"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">${m.lbl}</div><div class="mval" style="color:${m.c}">~${m.v}</div><div style="font-size:9px;color:#6B7280;margin-bottom:5px">${m.u} · cible ${m.t}</div><div class="pb-bg"><div class="pb-fill" style="width:${Math.min((m.v/m.t)*100,100)}%;background:${m.c}"></div></div></div>`;
+  });
+  h+=`</div>`;
+  data.meals.forEach((meal,mi)=>{
+    const op=ST.nutMeal===mi;
+    h+=`<div class="meal-card" style="${op?'border-color:#3B82F640':''}">
+      <div class="meal-hdr" onclick="setNM(${op?-1:mi})">
+        <span style="font-size:18px">${meal.emoji}</span>
+        <div style="flex:1"><div style="font-weight:700;font-size:13px">${meal.lbl}</div><div style="font-size:10px;color:#6B7280">${meal.time}</div></div>
+        <div style="text-align:right;margin-right:6px"><div style="font-size:11px;font-weight:700;color:#F59E0B">${meal.options[0].k} kcal</div><div style="font-size:10px;color:#3B82F6">${meal.options[0].p}g prot</div></div>
+        <span style="color:#6B7280;font-size:14px;display:inline-block;transform:${op?'rotate(180deg)':'none'}">▾</span>
+      </div>`;
+    if(op){
+      h+=`<div class="meal-body">`;
+      meal.options.forEach(opt=>{
+        h+=`<div class="meal-opt" style="${opt.cheat?'background:#1A0E0E':''}">
+          <div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:4px">
+            <div><div style="font-size:12px;font-weight:700;color:${opt.cheat?'#FCA5A5':'#F1F1F5'}">${opt.n}</div><div style="font-size:10px;color:#6B7280;margin-top:2px">${opt.d}</div></div>
+            <span class="tag" style="background:${opt.cheat?'#EF444422':'#10B98122'};color:${opt.cheat?'#EF4444':'#10B981'};border:1px solid ${opt.cheat?'#EF444440':'#10B98140'};white-space:nowrap">${opt.t}</span>
+          </div>
+          <span style="font-size:10px;font-weight:700;color:#F59E0B;background:#F59E0B18;padding:2px 6px;border-radius:4px">${opt.k} kcal</span>
+          <span style="font-size:10px;font-weight:700;color:#3B82F6;background:#3B82F618;padding:2px 6px;border-radius:4px;margin-left:4px">${opt.p}g prot</span>
+        </div>`;
+      });
+      h+=`</div>`;
+    }
+    h+=`</div>`;
+  });
+  h+=`<div class="gbox">💡 Cible : 165g prot/jour. Si du mal, rajoute un shaker whey ou 100g fromage blanc.</div>`;
+  document.getElementById('t-nutrition').innerHTML=h;
+}
+function setND(d){ST.nutDay=d;ST.nutMeal=null;renderNut();}
+function setNM(i){ST.nutMeal=i<0?null:i;renderNut();}
+
+// ─── ÉCARTS ───────────────────────────────────────────────────────────────────
+function renderEc(){
+  let h=`<div style="font-size:13px;color:#9CA3AF;margin-bottom:14px;line-height:1.5">Tu as fait un écart ? Pas de drama. Sélectionne ce que t'as mangé, je te dis comment gérer les 24h suivantes.</div>`;
+  ECARTS.forEach(e=>{
+    h+=`<button class="ebtn ${ST.ecSel?.id===e.id?'sel':''}" onclick="selEc('${e.id}')">
+      <span style="font-size:22px">${e.emoji}</span>
+      <div style="flex:1"><div style="font-size:13px;font-weight:700;color:#F1F1F5">${e.lbl}</div><div style="font-size:10px;color:#6B7280">~${e.k} kcal · ${e.p}g prot</div></div>
+      ${ST.ecSel?.id===e.id?'<span style="color:#F59E0B;font-size:16px">✓</span>':''}
+    </button>`;
+  });
+  if(ST.ecSel)h+=`<button onclick="ST.ecShow=true;renderEc()" style="width:100%;padding:13px;border-radius:12px;border:none;background:linear-gradient(135deg,#F59E0B,#EF4444);color:#fff;font-size:14px;font-weight:800;margin-bottom:14px">Voir le plan pour les 24h ✦</button>`;
+  if(ST.ecShow&&ST.ecSel)h+=`<div class="card" style="border-color:#F59E0B40">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><span style="font-size:24px">${ST.ecSel.emoji}</span><div><div style="font-weight:800;font-size:15px">${ST.ecSel.lbl}</div><div style="font-size:10px;color:#F59E0B">Plan de rattrapage 24h</div></div></div>
+    <div style="font-size:12px;color:#D1D5DB;line-height:1.7;padding:12px;background:#14141F;border-radius:10px">${ST.ecSel.c}</div>
+    <div class="gbox">💚 Un écart isolé = zéro impact sur 10 semaines. Ce qui compte c'est la constance.</div>
+  </div>`;
+  document.getElementById('t-ecarts').innerHTML=h;
+}
+function selEc(id){ST.ecSel=ECARTS.find(e=>e.id===id);ST.ecShow=false;renderEc();}
+
+// ─── TRACKER ─────────────────────────────────────────────────────────────────
+function renderTr(){
+  const wl=S.get('wLog')||[];
+  const il=S.get('iLog')||[];
+  let h=`<div class="pill-row">`;
+  [{k:'poids',l:'Poids',e:'⚖️'},{k:'impedance',l:'Impédance',e:'📊'}].forEach(t=>{
+    h+=`<button class="pill ${ST.trTab===t.k?'act':''}" onclick="setTT('${t.k}')"><div class="pe">${t.e}</div><div class="pl">${t.l}</div></button>`;
+  });
+  h+=`</div>`;
+
+  if(ST.trTab==='poids'){
+    const last=wl.length?wl[wl.length-1]:null;
+    const first=wl.length>1?wl[0]:null;
+    const diff=last&&first?(last.p-first.p).toFixed(1):null;
+    h+=`<div style="display:flex;gap:7px;margin-bottom:14px">
+      <div class="sbox"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Poids actuel</div><div style="font-size:22px;font-weight:800">${last?last.p:'—'}<span style="font-size:12px;color:#6B7280"> kg</span></div></div>
+      <div class="sbox"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Variation</div><div style="font-size:22px;font-weight:800;color:${diff===null?'#6B7280':parseFloat(diff)<0?'#10B981':'#EF4444'}">${diff!==null?(parseFloat(diff)<0?diff:'+'+diff):'—'}<span style="font-size:12px;color:#6B7280"> kg</span></div></div>
+      <div class="sbox"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Objectif</div><div style="font-size:22px;font-weight:800;color:#3B82F6">−4<span style="font-size:12px;color:#6B7280"> kg</span></div></div>
+    </div>`;
+    if(wl.length>1){
+      const cMax=Math.max(...wl.map(w=>w.p))+1,cMin=Math.min(...wl.map(w=>w.p))-1;
+      const tgtY=((cMax-(last.p-4))/(cMax-cMin))*80+5;
+      const pts=wl.map((w,i)=>{const x=(i/(wl.length-1))*290+5,y=((cMax-w.p)/(cMax-cMin))*80+5;return x+','+y;}).join(' ');
+      h+=`<div class="card"><div class="slbl">Courbe de poids</div>
+        <svg width="100%" height="100" viewBox="0 0 300 100">
+          <line x1="0" y1="${tgtY}" x2="300" y2="${tgtY}" stroke="#10B98150" stroke-width="1" stroke-dasharray="4,3"/>
+          <polyline points="${pts}" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          ${wl.map((w,i)=>{const x=(i/(wl.length-1))*290+5,y=((cMax-w.p)/(cMax-cMin))*80+5;return`<circle cx="${x}" cy="${y}" r="4" fill="#3B82F6" stroke="#0F0F1A" stroke-width="2"/>`;}).join('')}
+        </svg>
+        <div style="display:flex;justify-content:space-between;margin-top:4px">
+          <span style="font-size:9px;color:#4B5563">${wl[0].d}</span><span style="font-size:9px;color:#10B981">— objectif</span><span style="font-size:9px;color:#4B5563">${wl[wl.length-1].d}</span>
+        </div></div>`;
+    }
+    h+=`<div class="card"><div class="slbl">Ajouter une mesure</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px"><input type="date" id="wd"><input type="number" id="wv" placeholder="kg" step="0.1" style="width:70px"></div>
+      <button class="btn-p" onclick="addW()">Ajouter ✓</button></div>`;
+    if(wl.length){
+      h+=`<div class="card"><div class="slbl">Historique</div>`;
+      [...wl].reverse().slice(0,8).forEach(w=>{h+=`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #2D2D3F"><span style="font-size:11px;color:#9CA3AF">${w.d}</span><span style="font-size:12px;font-weight:700">${w.p} kg</span></div>`;});
+      h+=`</div>`;
+    }
+  } else {
+    const last=il.length?il[il.length-1]:null;
+    if(last){
+      h+=`<div class="card"><div class="slbl">Dernière mesure · ${last.d}</div><div class="igrid">`;
+      [{l:"Masse grasse",v:last.mg,u:"%",c:"#EF4444",t:"10–20%"},{l:"Masse muscu",v:last.mm,u:"%",c:"#3B82F6",t:"40–50%"},{l:"Eau",v:last.eau,u:"%",c:"#06B6D4",t:"55–65%"},{l:"Masse osseuse",v:last.os,u:"kg",c:"#F59E0B",t:"3,5–4 kg"},{l:"IMC",v:last.imc,u:"",c:"#8B5CF6",t:"18,5–25"},{l:"Poids",v:last.p,u:"kg",c:"#10B981",t:"82 kg"}].forEach(m=>{
+        h+=`<div class="icell" style="border:1px solid ${m.c}30"><div class="ilbl">${m.l}</div><div class="ival" style="color:${m.c}">${m.v||'—'}<span style="font-size:9px">${m.u}</span></div><div class="itgt">Cible : ${m.t}</div></div>`;
+      });
+      h+=`</div></div>`;
+    }
+    h+=`<div class="card"><div style="font-size:11px;color:#F59E0B;font-weight:700;margin-bottom:10px">📖 Comment lire ta balance</div>`;
+    [{l:"Masse grasse %",i:"10–20%",d:"> 25% = surpoids",c:"#EF4444",t:"Fond en premier avec déficit + course."},{l:"Masse musculaire %",i:"40–50%",d:"< 35% = masse maigre faible",c:"#3B82F6",t:"Doit rester stable. Si ça baisse → plus de protéines."},{l:"Hydratation %",i:"55–65%",d:"< 50% = déshydraté",c:"#06B6D4",t:"Mesure toujours à jeun le matin, sans sport la veille."},{l:"Masse osseuse",i:"3,5–4 kg",d:"< 3 kg = attention",c:"#F59E0B",t:"Augmente avec squat et deadlift."}].forEach(it=>{
+      h+=`<div style="margin-bottom:10px;padding:10px;background:#14141F;border-radius:9px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:11px;font-weight:700;color:${it.c}">${it.l}</span><span style="font-size:10px;color:#10B981">${it.i}</span></div><div style="font-size:10px;color:#6B7280;margin-bottom:3px">${it.t}</div><div style="font-size:9px;color:#EF4444">⚠ ${it.d}</div></div>`;
+    });
+    h+=`</div><div class="card"><div class="slbl">Ajouter une mesure</div>
+      <div class="ybox">💡 Toujours le matin à jeun, après les toilettes, sans sport la veille.</div>
+      <input type="date" id="id" style="margin-bottom:7px">
+      <div class="igform">
+        <div><div class="iflbl">Poids (kg)</div><input type="number" id="ip" step="0.1" placeholder="86.0"></div>
+        <div><div class="iflbl">IMC</div><input type="number" id="ii" step="0.1" placeholder="25.1"></div>
+        <div><div class="iflbl">Masse grasse (%)</div><input type="number" id="img" step="0.1" placeholder="18.0"></div>
+        <div><div class="iflbl">Masse muscu (%)</div><input type="number" id="imm" step="0.1" placeholder="42.0"></div>
+        <div><div class="iflbl">Eau (%)</div><input type="number" id="ie" step="0.1" placeholder="58.0"></div>
+        <div><div class="iflbl">Masse osseuse (kg)</div><input type="number" id="io" step="0.1" placeholder="3.5"></div>
+      </div>
+      <button style="width:100%;padding:10px;border-radius:10px;border:none;background:#8B5CF6;color:#fff;font-size:12px;font-weight:700" onclick="addI()">Enregistrer la mesure ✓</button></div>`;
+    if(il.length>1){
+      const maxG=Math.max(...il.map(r=>parseFloat(r.mg)||0))+2,minG=Math.min(...il.map(r=>parseFloat(r.mg)||0))-2;
+      const maxM=Math.max(...il.map(r=>parseFloat(r.mm)||0))+2,minM=Math.min(...il.map(r=>parseFloat(r.mm)||0))-2;
+      const pG=il.map((r,i)=>{const x=(i/(il.length-1))*290+5,y=((maxG-(parseFloat(r.mg)||0))/(maxG-minG))*80+5;return x+','+y;}).join(' ');
+      const pM=il.map((r,i)=>{const x=(i/(il.length-1))*290+5,y=((maxM-(parseFloat(r.mm)||0))/(maxM-minM))*80+5;return x+','+y;}).join(' ');
+      h+=`<div class="card"><div class="slbl">Masse grasse vs musculaire</div>
+        <svg width="100%" height="90" viewBox="0 0 300 90">
+          <polyline points="${pG}" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <polyline points="${pM}" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div style="display:flex;gap:12px;margin-top:6px"><span style="font-size:9px;color:#EF4444">● Masse grasse</span><span style="font-size:9px;color:#3B82F6">● Masse musculaire</span></div>
+      </div>`;
+    }
+  }
+  document.getElementById('t-tracker').innerHTML=h;
+}
+function setTT(t){ST.trTab=t;renderTr();}
+function addW(){
+  const d=document.getElementById('wd').value,v=parseFloat(document.getElementById('wv').value);
+  if(!d||isNaN(v))return;
+  const l=(S.get('wLog')||[]);l.push({d,p:v});l.sort((a,b)=>a.d.localeCompare(b.d));S.set('wLog',l);renderTr();
+}
+function addI(){
+  const d=document.getElementById('id').value;if(!d)return;
+  const entry={d,p:document.getElementById('ip').value,imc:document.getElementById('ii').value,mg:document.getElementById('img').value,mm:document.getElementById('imm').value,eau:document.getElementById('ie').value,os:document.getElementById('io').value};
+  const l=(S.get('iLog')||[]);l.push(entry);l.sort((a,b)=>a.d.localeCompare(b.d));S.set('iLog',l);renderTr();
+}
+
+// ─── EXERCICES ───────────────────────────────────────────────────────────────
+function renderEx(){
+  let h=`<div style="display:flex;gap:7px;margin-bottom:14px">`;
+  [{k:'A',l:'Séance A',s:'Bas + Tirage',c:'#3B82F6'},{k:'B',l:'Séance B',s:'Haut + Poussée',c:'#EF4444'},{k:'V',l:'Vacances',s:'Poids corps',c:'#10B981'}].forEach(t=>{
+    h+=`<button onclick="setET('${t.k}')" style="flex:1;padding:9px 4px;border-radius:11px;border:1.5px solid ${ST.exTab===t.k?t.c:'#2D2D3F'};background:${ST.exTab===t.k?t.c+'22':'#1E1E2E'};text-align:center"><div style="font-size:11px;font-weight:700;color:${ST.exTab===t.k?t.c:'#9CA3AF'}">${t.l}</div><div style="font-size:9px;color:#6B7280">${t.s}</div></button>`;
+  });
+  h+=`</div>`;
+  SEANCES[ST.exTab].forEach((group,gi)=>{
+    h+=`<div style="margin-bottom:14px"><div class="ssup" style="background:${group.c}18;border-color:${group.c}"><div style="width:6px;height:6px;border-radius:50%;background:${group.c}"></div><span style="font-size:9px;font-weight:800;color:${group.c};letter-spacing:.05em;text-transform:uppercase">Superset ${group.sup}</span></div>`;
+    group.pairs.forEach((ex,ei)=>{
+      const key=`${gi}-${ei}`,open=ST.exOpen===key;
+      h+=`<div class="exk ${open?'open':''}" style="--ec:${group.c};margin-bottom:7px" onclick="togEx('${key}')">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="background:#14141F;border-radius:7px;padding:5px;min-width:48px;display:flex;justify-content:center">${SVG[ex.name]||'💪'}</div>
+          <div style="flex:1"><div style="font-weight:700;font-size:12px;color:#F1F1F5">${ex.name}</div><div style="font-size:9px;color:#6B7280">${ex.muscles}</div></div>
+          <div style="text-align:right"><div style="font-size:10px;font-weight:700;color:${group.c}">${ex.sets}</div><div style="font-size:9px;color:#9CA3AF">${ex.load}</div></div>
+        </div>
+        ${open?`<div class="edesc">${ex.desc}</div>`:''}
+      </div>`;
+    });
+    if(gi<SEANCES[ST.exTab].length-1)h+=`<div style="text-align:center;padding:7px;font-size:10px;color:#4B5563">⏱ 60 sec de repos → puis superset suivant</div>`;
+    h+=`</div>`;
+  });
+  document.getElementById('t-exercices').innerHTML=h;
+}
+function setET(t){ST.exTab=t;ST.exOpen=null;renderEx();}
+function togEx(k){ST.exOpen=ST.exOpen===k?null:k;renderEx();}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+function render(t){
+  if(t==='semaine')renderSem();
+  else if(t==='nutrition')renderNut();
+  else if(t==='ecarts')renderEc();
+  else if(t==='tracker')renderTr();
+  else if(t==='exercices')renderEx();
+}
+renderSem();
+</script>
+</body>
+</html>
