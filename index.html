@@ -10,8 +10,8 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{background:#0F0F1A;color:#F1F1F5;font-family:-apple-system,system-ui,sans-serif;padding-bottom:80px;min-height:100vh}
-button,input,textarea{font-family:inherit;cursor:pointer;outline:none}
-input[type=date]{color-scheme:dark}
+button,input,textarea,select{font-family:inherit;cursor:pointer;outline:none}
+input[type=date],select{color-scheme:dark}
 .hdr{background:linear-gradient(135deg,#1A1A2E,#16213E);padding:52px 20px 14px;border-bottom:1px solid #2D2D3F}
 .hdr-sub{font-size:9px;color:#6B7280;letter-spacing:.12em;text-transform:uppercase;margin-bottom:3px}
 .hdr h1{font-size:20px;font-weight:900;letter-spacing:-.02em}
@@ -19,7 +19,7 @@ input[type=date]{color-scheme:dark}
 .content{padding:14px 16px}
 .bnav{position:fixed;bottom:0;left:0;right:0;background:#0F0F1A;border-top:1px solid #2D2D3F;display:flex;padding:6px 8px env(safe-area-inset-bottom,14px)}
 .nbtn{flex:1;border:none;background:transparent;padding:6px 2px;display:flex;flex-direction:column;align-items:center;gap:2px}
-.nem{font-size:18px;opacity:.35;transition:opacity .2s}
+.nem{font-size:18px;opacity:.35}
 .nlb{font-size:9px;font-weight:700;color:#6B7280}
 .nbtn.act .nem{opacity:1}.nbtn.act .nlb{color:#3B82F6}
 .tab{display:none}.tab.act{display:block}
@@ -27,7 +27,7 @@ input[type=date]{color-scheme:dark}
 .slbl{font-size:10px;color:#6B7280;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
 .tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;display:inline-block}
 .pill-row{display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap}
-.pill{flex:1;min-width:70px;padding:10px 4px;border-radius:11px;border:1.5px solid #2D2D3F;background:#1E1E2E;text-align:center}
+.pill{flex:1;min-width:60px;padding:10px 4px;border-radius:11px;border:1.5px solid #2D2D3F;background:#1E1E2E;text-align:center}
 .pill.act{border-color:#3B82F6;background:#1E3A5F}
 .pill .pe{font-size:16px;margin-bottom:2px}
 .pill .pl{font-size:10px;font-weight:700;color:#6B7280}
@@ -55,6 +55,7 @@ input[type=date]{color-scheme:dark}
 .pb-bg{height:3px;background:#2D2D3F;border-radius:2px}
 .pb-fill{height:100%;border-radius:2px;transition:width .4s}
 .btn-p{width:100%;padding:11px;border-radius:10px;border:none;background:#3B82F6;color:#fff;font-size:13px;font-weight:700}
+.btn-g{width:100%;padding:11px;border-radius:10px;border:none;background:#10B981;color:#fff;font-size:13px;font-weight:700}
 .btn-s{width:100%;padding:11px;border-radius:10px;border:1px solid #2D2D3F;background:transparent;color:#6B7280;font-size:13px}
 .ybox{padding:9px 12px;border-radius:9px;background:#FEF3C720;border:1px solid #F59E0B50;font-size:11px;color:#FCD34D;line-height:1.5;margin-bottom:10px}
 .gbox{padding:9px 12px;border-radius:9px;background:#0F2B1F;border:1px solid #10B98130;font-size:11px;color:#A7F3D0;line-height:1.5;margin-top:12px}
@@ -65,9 +66,7 @@ input[type=date]{color-scheme:dark}
 .rbtn.act{border-color:#3B82F6;background:#1E3A5F;color:#93C5FD}
 .meal-card{background:#1E1E2E;border-radius:13px;border:1px solid #2D2D3F;overflow:hidden;margin-bottom:9px}
 .meal-hdr{padding:13px;display:flex;align-items:center;gap:10px}
-.meal-body{border-top:1px solid #2D2D3F}
-.meal-opt{padding:11px 13px;border-bottom:1px solid #1A1A2A}
-.meal-opt:last-child{border-bottom:none}
+.meal-body{border-top:1px solid #2D2D3F;padding:12px}
 .macbox{flex:1;background:#1E1E2E;border-radius:11px;padding:11px}
 .mval{font-size:18px;font-weight:800}
 .ebtn{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;border:1.5px solid #2D2D3F;background:#1E1E2E;text-align:left;width:100%;margin-bottom:8px}
@@ -80,14 +79,30 @@ input[type=date]{color-scheme:dark}
 .itgt{font-size:8px;color:#4B5563;margin-top:2px}
 .igform{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px}
 .iflbl{font-size:9px;color:#6B7280;margin-bottom:3px}
-input[type=number],input[type=date]{background:#14141F;border:1px solid #2D2D3F;border-radius:8px;color:#F1F1F5;padding:8px 10px;font-size:12px;width:100%}
+input[type=number],input[type=date],input[type=text]{background:#14141F;border:1px solid #2D2D3F;border-radius:8px;color:#F1F1F5;padding:8px 10px;font-size:12px;width:100%}
+select{background:#14141F;border:1px solid #2D2D3F;border-radius:8px;color:#F1F1F5;padding:8px 10px;font-size:12px;width:100%}
 textarea{background:#14141F;border:1px solid #2D2D3F;border-radius:8px;color:#F1F1F5;padding:8px 10px;font-size:12px;width:100%;resize:none}
 .ssup{display:inline-flex;align-items:center;gap:5px;border-radius:20px;padding:3px 11px;margin-bottom:9px;border:1.5px solid}
 .exk{background:#1E1E2E;border-radius:11px;padding:11px;border:1px solid #2D2D3F;margin-bottom:7px}
 .exk.open{border-color:var(--ec)}
 .edesc{margin-top:9px;padding-top:9px;border-top:1px solid #2D2D3F;font-size:11px;color:#A1A1B5;line-height:1.6}
-.fat-bar{height:18px;border-radius:9px;background:#2D2D3F;overflow:hidden;margin:6px 0}
-.fat-fill{height:100%;border-radius:9px;transition:width 1s;background:linear-gradient(90deg,#10B981,#F59E0B,#EF4444)}
+/* Nutrition tracker styles */
+.food-item{display:flex;align-items:center;gap:8px;padding:8px;background:#14141F;border-radius:9px;margin-bottom:6px;border:1px solid #2D2D3F}
+.food-item.selected{border-color:#10B981;background:#0F2B1F}
+.food-check{width:20px;height:20px;border-radius:6px;border:1.5px solid #374151;background:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px}
+.food-item.selected .food-check{background:#10B981;border-color:#10B981}
+.food-name{flex:1;font-size:12px;color:#F1F1F5}
+.food-macros{font-size:10px;color:#6B7280;text-align:right}
+.food-qty{width:55px;padding:4px 6px;border-radius:6px;border:1px solid #374151;background:#1E1E2E;color:#F1F1F5;font-size:11px;text-align:center}
+.macro-summary{display:flex;gap:6px;margin:12px 0;padding:10px;background:#14141F;border-radius:10px}
+.ms-item{flex:1;text-align:center}
+.ms-val{font-size:16px;font-weight:800}
+.ms-lbl{font-size:9px;color:#6B7280}
+.reco-card{background:#0F2B1F;border:1px solid #10B98140;border-radius:12px;padding:12px;margin-top:10px}
+.reco-item{padding:8px 0;border-bottom:1px solid #1A3A2A;font-size:12px;color:#D1FAE5;line-height:1.5}
+.reco-item:last-child{border-bottom:none}
+.day-total-bar{height:8px;border-radius:4px;background:#2D2D3F;overflow:hidden;margin:4px 0}
+.day-total-fill{height:100%;border-radius:4px;transition:width .5s}
 </style>
 </head>
 <body>
@@ -111,37 +126,183 @@ textarea{background:#14141F;border:1px solid #2D2D3F;border-radius:8px;color:#F1
   <button class="nbtn" onclick="nav('exercices',this)"><span class="nem">🏋️</span><span class="nlb">Exercices</span></button>
 </nav>
 <script>
+// ─── STORAGE ──────────────────────────────────────────────────────────────────
 const S={get(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch{return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}};
 
+// ─── SVGs ─────────────────────────────────────────────────────────────────────
 const SVG={
 "Squat barre":`<svg viewBox="0 0 80 90" width="44" height="44"><rect x="5" y="18" width="70" height="5" rx="2" fill="#6B7280"/><rect x="2" y="15" width="9" height="11" rx="2" fill="#374151"/><rect x="69" y="15" width="9" height="11" rx="2" fill="#374151"/><circle cx="40" cy="10" r="7" fill="#FBBF24"/><rect x="36" y="20" width="8" height="18" rx="3" fill="#FBBF24"/><line x1="40" y1="38" x2="24" y2="62" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="40" y1="38" x2="56" y2="62" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="24" y1="62" x2="16" y2="76" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="56" y1="62" x2="64" y2="76" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="36" y1="24" x2="18" y2="20" stroke="#FBBF24" stroke-width="4" stroke-linecap="round"/><line x1="44" y1="24" x2="62" y2="20" stroke="#FBBF24" stroke-width="4" stroke-linecap="round"/></svg>`,
 "Curl barre":`<svg viewBox="0 0 80 90" width="44" height="44"><circle cx="40" cy="10" r="7" fill="#FBBF24"/><rect x="36" y="17" width="8" height="26" rx="3" fill="#FBBF24"/><line x1="36" y1="26" x2="18" y2="34" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="18" y1="34" x2="20" y2="52" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="44" y1="26" x2="62" y2="34" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="62" y1="34" x2="60" y2="52" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><rect x="14" y="49" width="52" height="5" rx="2" fill="#6B7280"/><rect x="8" y="46" width="8" height="11" rx="2" fill="#374151"/><rect x="64" y="46" width="8" height="11" rx="2" fill="#374151"/><line x1="38" y1="43" x2="30" y2="76" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="42" y1="43" x2="50" y2="76" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/></svg>`,
-"Soulevé de terre roumain":`<svg viewBox="0 0 80 90" width="44" height="44"><circle cx="24" cy="14" r="7" fill="#FBBF24"/><line x1="24" y1="21" x2="54" y2="42" stroke="#FBBF24" stroke-width="9" stroke-linecap="round"/><line x1="54" y1="42" x2="50" y2="76" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="54" y1="42" x2="62" y2="74" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="32" y1="28" x2="38" y2="56" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="42" y1="34" x2="48" y2="60" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><rect x="32" y="54" width="22" height="5" rx="2" fill="#374151"/></svg>`,
-"Rowing 1 bras":`<svg viewBox="0 0 80 90" width="44" height="44"><rect x="18" y="50" width="55" height="8" rx="3" fill="#9CA3AF"/><circle cx="20" cy="36" r="7" fill="#FBBF24"/><line x1="25" y1="40" x2="58" y2="40" stroke="#FBBF24" stroke-width="9" stroke-linecap="round"/><line x1="24" y1="44" x2="18" y2="50" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="48" y1="42" x2="50" y2="30" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><rect x="46" y="24" width="12" height="5" rx="2" fill="#374151"/><line x1="58" y1="40" x2="68" y2="74" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/></svg>`,
-"Leg curl machine":`<svg viewBox="0 0 80 90" width="44" height="44"><rect x="5" y="42" width="70" height="9" rx="3" fill="#9CA3AF"/><circle cx="12" cy="34" r="7" fill="#FBBF24"/><line x1="18" y1="36" x2="62" y2="36" stroke="#FBBF24" stroke-width="9" stroke-linecap="round"/><line x1="62" y1="36" x2="72" y2="36" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="72" y1="36" x2="76" y2="16" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><rect x="70" y="11" width="12" height="6" rx="3" fill="#374151"/></svg>`,
+"Soulevé de terre roumain":`<svg viewBox="0 0 80 90" width="44" height="44"><circle cx="24" cy="14" r="7" fill="#FBBF24"/><line x1="24" y1="21" x2="54" y2="42" stroke="#FBBF24" stroke-width="9" stroke-linecap="round"/><line x1="54" y1="42" x2="50" y2="76" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="54" y1="42" x2="62" y2="74" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><rect x="32" y="54" width="22" height="5" rx="2" fill="#374151"/></svg>`,
+"Rowing 1 bras":`<svg viewBox="0 0 80 90" width="44" height="44"><rect x="18" y="50" width="55" height="8" rx="3" fill="#9CA3AF"/><circle cx="20" cy="36" r="7" fill="#FBBF24"/><line x1="25" y1="40" x2="58" y2="40" stroke="#FBBF24" stroke-width="9" stroke-linecap="round"/><line x1="48" y1="42" x2="50" y2="30" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><rect x="46" y="24" width="12" height="5" rx="2" fill="#374151"/><line x1="58" y1="40" x2="68" y2="74" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/></svg>`,
+"Leg curl machine":`<svg viewBox="0 0 80 90" width="44" height="44"><rect x="5" y="42" width="70" height="9" rx="3" fill="#9CA3AF"/><circle cx="12" cy="34" r="7" fill="#FBBF24"/><line x1="18" y1="36" x2="62" y2="36" stroke="#FBBF24" stroke-width="9" stroke-linecap="round"/><line x1="72" y1="36" x2="76" y2="16" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><rect x="70" y="11" width="12" height="6" rx="3" fill="#374151"/></svg>`,
 "Tractions assistées":`<svg viewBox="0 0 80 90" width="44" height="44"><rect x="10" y="8" width="60" height="5" rx="2" fill="#6B7280"/><circle cx="40" cy="20" r="7" fill="#FBBF24"/><rect x="36" y="27" width="8" height="24" rx="3" fill="#FBBF24"/><line x1="36" y1="31" x2="18" y2="12" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="44" y1="31" x2="62" y2="12" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="38" y1="51" x2="30" y2="76" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="42" y1="51" x2="50" y2="76" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/></svg>`,
 "Développé couché":`<svg viewBox="0 0 80 90" width="44" height="44"><rect x="10" y="50" width="65" height="9" rx="3" fill="#9CA3AF"/><line x1="15" y1="44" x2="65" y2="44" stroke="#FBBF24" stroke-width="9" stroke-linecap="round"/><circle cx="10" cy="41" r="7" fill="#FBBF24"/><line x1="28" y1="40" x2="22" y2="26" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="54" y1="40" x2="58" y2="26" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><rect x="14" y="22" width="52" height="5" rx="2" fill="#6B7280"/><rect x="7" y="19" width="8" height="11" rx="2" fill="#374151"/><rect x="65" y="19" width="8" height="11" rx="2" fill="#374151"/></svg>`,
-"Rowing barre penché":`<svg viewBox="0 0 80 90" width="44" height="44"><circle cx="18" cy="18" r="7" fill="#FBBF24"/><line x1="18" y1="25" x2="52" y2="44" stroke="#FBBF24" stroke-width="9" stroke-linecap="round"/><line x1="52" y1="44" x2="46" y2="76" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="52" y1="44" x2="60" y2="74" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="28" y1="32" x2="26" y2="52" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="40" y1="38" x2="42" y2="56" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><rect x="18" y="50" width="32" height="5" rx="2" fill="#6B7280"/><rect x="11" y="47" width="8" height="11" rx="2" fill="#374151"/><rect x="48" y="47" width="8" height="11" rx="2" fill="#374151"/></svg>`,
+"Rowing barre penché":`<svg viewBox="0 0 80 90" width="44" height="44"><circle cx="18" cy="18" r="7" fill="#FBBF24"/><line x1="18" y1="25" x2="52" y2="44" stroke="#FBBF24" stroke-width="9" stroke-linecap="round"/><line x1="52" y1="44" x2="46" y2="76" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="52" y1="44" x2="60" y2="74" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><rect x="18" y="50" width="32" height="5" rx="2" fill="#6B7280"/><rect x="11" y="47" width="8" height="11" rx="2" fill="#374151"/><rect x="48" y="47" width="8" height="11" rx="2" fill="#374151"/></svg>`,
 "Développé incliné haltères":`<svg viewBox="0 0 80 90" width="44" height="44"><rect x="14" y="38" width="55" height="8" rx="3" fill="#9CA3AF" transform="rotate(-25,41,52)"/><line x1="20" y1="58" x2="62" y2="38" stroke="#FBBF24" stroke-width="9" stroke-linecap="round"/><circle cx="67" cy="30" r="7" fill="#FBBF24"/><line x1="34" y1="52" x2="22" y2="34" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="50" y1="44" x2="52" y2="28" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><rect x="16" y="29" width="11" height="5" rx="2" fill="#374151"/><rect x="46" y="22" width="11" height="5" rx="2" fill="#374151"/></svg>`,
 "Pullover haltère":`<svg viewBox="0 0 80 90" width="44" height="44"><rect x="28" y="44" width="28" height="8" rx="3" fill="#9CA3AF"/><line x1="14" y1="40" x2="66" y2="40" stroke="#FBBF24" stroke-width="9" stroke-linecap="round"/><circle cx="8" cy="37" r="7" fill="#FBBF24"/><line x1="34" y1="36" x2="24" y2="18" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="46" y1="36" x2="46" y2="16" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><rect x="20" y="12" width="28" height="6" rx="3" fill="#374151"/></svg>`,
 "Dips":`<svg viewBox="0 0 80 90" width="44" height="44"><rect x="8" y="24" width="6" height="42" rx="2" fill="#6B7280"/><rect x="66" y="24" width="6" height="42" rx="2" fill="#6B7280"/><line x1="4" y1="24" x2="20" y2="24" stroke="#374151" stroke-width="4" stroke-linecap="round"/><line x1="60" y1="24" x2="76" y2="24" stroke="#374151" stroke-width="4" stroke-linecap="round"/><circle cx="40" cy="14" r="7" fill="#FBBF24"/><rect x="36" y="21" width="8" height="22" rx="3" fill="#FBBF24"/><line x1="36" y1="26" x2="14" y2="24" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="44" y1="26" x2="66" y2="24" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="38" y1="43" x2="32" y2="68" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="42" y1="43" x2="40" y2="68" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/></svg>`,
-"Planche":`<svg viewBox="0 0 80 90" width="44" height="44"><line x1="8" y1="46" x2="68" y2="46" stroke="#FBBF24" stroke-width="10" stroke-linecap="round"/><circle cx="74" cy="43" r="7" fill="#FBBF24"/><line x1="18" y1="50" x2="14" y2="64" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="34" y1="50" x2="30" y2="64" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="10" y1="32" x2="74" y2="32" stroke="#10B981" stroke-width="1.5" stroke-dasharray="4,3"/></svg>`,
+"Planche":`<svg viewBox="0 0 80 90" width="44" height="44"><line x1="8" y1="46" x2="68" y2="46" stroke="#FBBF24" stroke-width="10" stroke-linecap="round"/><circle cx="74" cy="43" r="7" fill="#FBBF24"/><line x1="18" y1="50" x2="14" y2="64" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="34" y1="50" x2="30" y2="64" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/></svg>`,
 "Pompes":`<svg viewBox="0 0 80 90" width="44" height="44"><line x1="8" y1="44" x2="68" y2="44" stroke="#FBBF24" stroke-width="10" stroke-linecap="round"/><circle cx="74" cy="40" r="7" fill="#FBBF24"/><line x1="16" y1="48" x2="12" y2="62" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="30" y1="48" x2="26" y2="62" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/></svg>`,
 "Pompes prises larges":`<svg viewBox="0 0 80 90" width="44" height="44"><line x1="5" y1="44" x2="75" y2="44" stroke="#FBBF24" stroke-width="10" stroke-linecap="round"/><circle cx="76" cy="40" r="7" fill="#FBBF24"/><line x1="12" y1="48" x2="8" y2="62" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="36" y1="48" x2="32" y2="62" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/></svg>`,
 "Pompes diamant":`<svg viewBox="0 0 80 90" width="44" height="44"><line x1="20" y1="44" x2="60" y2="44" stroke="#FBBF24" stroke-width="10" stroke-linecap="round"/><circle cx="62" cy="40" r="7" fill="#FBBF24"/><line x1="28" y1="48" x2="24" y2="62" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="42" y1="48" x2="38" y2="62" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><polygon points="40,36 44,42 40,48 36,42" fill="none" stroke="#F59E0B" stroke-width="1.5"/></svg>`,
-"Dips chaise":`<svg viewBox="0 0 80 90" width="44" height="44"><rect x="55" y="52" width="20" height="5" rx="2" fill="#9CA3AF"/><rect x="58" y="57" width="4" height="20" rx="2" fill="#6B7280"/><rect x="68" y="57" width="4" height="20" rx="2" fill="#6B7280"/><circle cx="30" cy="22" r="7" fill="#FBBF24"/><line x1="30" y1="29" x2="30" y2="48" stroke="#FBBF24" stroke-width="8" stroke-linecap="round"/><line x1="26" y1="34" x2="14" y2="40" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="14" y1="40" x2="14" y2="52" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="34" y1="34" x2="54" y2="40" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="54" y1="40" x2="54" y2="52" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="26" y1="48" x2="18" y2="72" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="34" y1="48" x2="42" y2="72" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/></svg>`,
-"Tractions serviette":`<svg viewBox="0 0 80 90" width="44" height="44"><rect x="35" y="4" width="10" height="30" rx="3" fill="#9CA3AF"/><rect x="30" y="4" width="20" height="6" rx="3" fill="#6B7280"/><circle cx="40" cy="42" r="7" fill="#FBBF24"/><line x1="40" y1="49" x2="40" y2="65" stroke="#FBBF24" stroke-width="8" stroke-linecap="round"/><line x1="36" y1="53" x2="26" y2="34" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="44" y1="53" x2="54" y2="34" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="36" y1="65" x2="28" y2="82" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="44" y1="65" x2="52" y2="82" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/></svg>`,
+"Dips chaise":`<svg viewBox="0 0 80 90" width="44" height="44"><rect x="55" y="52" width="20" height="5" rx="2" fill="#9CA3AF"/><rect x="58" y="57" width="4" height="20" rx="2" fill="#6B7280"/><rect x="68" y="57" width="4" height="20" rx="2" fill="#6B7280"/><circle cx="30" cy="22" r="7" fill="#FBBF24"/><line x1="30" y1="29" x2="30" y2="48" stroke="#FBBF24" stroke-width="8" stroke-linecap="round"/><line x1="26" y1="34" x2="14" y2="40" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="14" y1="40" x2="14" y2="52" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="34" y1="34" x2="54" y2="40" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="54" y1="40" x2="54" y2="52" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/></svg>`,
+"Tractions serviette":`<svg viewBox="0 0 80 90" width="44" height="44"><rect x="35" y="4" width="10" height="30" rx="3" fill="#9CA3AF"/><rect x="30" y="4" width="20" height="6" rx="3" fill="#6B7280"/><circle cx="40" cy="42" r="7" fill="#FBBF24"/><line x1="40" y1="49" x2="40" y2="65" stroke="#FBBF24" stroke-width="8" stroke-linecap="round"/><line x1="36" y1="53" x2="26" y2="34" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="44" y1="53" x2="54" y2="34" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/></svg>`,
 "Superman":`<svg viewBox="0 0 80 90" width="44" height="44"><line x1="8" y1="50" x2="72" y2="50" stroke="#FBBF24" stroke-width="10" stroke-linecap="round"/><circle cx="76" cy="47" r="7" fill="#FBBF24"/><line x1="8" y1="48" x2="8" y2="38" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="72" y1="48" x2="72" y2="38" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/></svg>`,
 "Crunchs vélo":`<svg viewBox="0 0 80 90" width="44" height="44"><circle cx="40" cy="18" r="7" fill="#FBBF24"/><line x1="40" y1="25" x2="40" y2="48" stroke="#FBBF24" stroke-width="8" stroke-linecap="round"/><line x1="36" y1="30" x2="18" y2="28" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="44" y1="30" x2="62" y2="28" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="36" y1="48" x2="20" y2="68" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="44" y1="48" x2="60" y2="68" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/></svg>`,
-"Burpees":`<svg viewBox="0 0 80 90" width="44" height="44"><circle cx="60" cy="10" r="7" fill="#FBBF24"/><line x1="60" y1="17" x2="50" y2="30" stroke="#FBBF24" stroke-width="7" stroke-linecap="round"/><line x1="54" y1="22" x2="68" y2="26" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="50" y1="30" x2="40" y2="44" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="50" y1="30" x2="60" y2="44" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><path d="M 56 6 L 60 0 L 64 6" stroke="#F59E0B" stroke-width="2" fill="none"/></svg>`,
-"Gainage latéral":`<svg viewBox="0 0 80 90" width="44" height="44"><line x1="10" y1="56" x2="72" y2="38" stroke="#FBBF24" stroke-width="10" stroke-linecap="round"/><circle cx="74" cy="32" r="7" fill="#FBBF24"/><line x1="18" y1="58" x2="14" y2="72" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="10" y1="56" x2="10" y2="66" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/></svg>`,
-"Course fractionnée":`<svg viewBox="0 0 80 90" width="44" height="44"><circle cx="48" cy="10" r="7" fill="#FBBF24"/><line x1="48" y1="17" x2="38" y2="36" stroke="#FBBF24" stroke-width="9" stroke-linecap="round"/><line x1="38" y1="36" x2="20" y2="52" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="38" y1="36" x2="56" y2="56" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="20" y1="52" x2="14" y2="72" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="56" y1="56" x2="62" y2="76" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><path d="M 8 76 Q 20 70 32 74 Q 44 78 56 72 Q 68 66 74 70" stroke="#3B82F6" stroke-width="2" fill="none" stroke-dasharray="3,2"/></svg>`,
+"Burpees":`<svg viewBox="0 0 80 90" width="44" height="44"><circle cx="60" cy="10" r="7" fill="#FBBF24"/><line x1="60" y1="17" x2="50" y2="30" stroke="#FBBF24" stroke-width="7" stroke-linecap="round"/><line x1="54" y1="22" x2="68" y2="26" stroke="#FBBF24" stroke-width="5" stroke-linecap="round"/><line x1="50" y1="30" x2="40" y2="44" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="50" y1="30" x2="60" y2="44" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/></svg>`,
+"Gainage latéral":`<svg viewBox="0 0 80 90" width="44" height="44"><line x1="10" y1="56" x2="72" y2="38" stroke="#FBBF24" stroke-width="10" stroke-linecap="round"/><circle cx="74" cy="32" r="7" fill="#FBBF24"/><line x1="18" y1="58" x2="14" y2="72" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/></svg>`,
+"Course fractionnée":`<svg viewBox="0 0 80 90" width="44" height="44"><circle cx="48" cy="10" r="7" fill="#FBBF24"/><line x1="48" y1="17" x2="38" y2="36" stroke="#FBBF24" stroke-width="9" stroke-linecap="round"/><line x1="38" y1="36" x2="20" y2="52" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="38" y1="36" x2="56" y2="56" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="20" y1="52" x2="14" y2="72" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="56" y1="56" x2="62" y2="76" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/></svg>`,
 "Course Bréguières":`<svg viewBox="0 0 80 90" width="44" height="44"><circle cx="48" cy="10" r="7" fill="#FBBF24"/><line x1="48" y1="17" x2="38" y2="36" stroke="#FBBF24" stroke-width="9" stroke-linecap="round"/><line x1="38" y1="36" x2="20" y2="52" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="38" y1="36" x2="56" y2="56" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="20" y1="52" x2="14" y2="72" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="56" y1="56" x2="62" y2="76" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><path d="M 5 76 Q 15 60 25 65 Q 35 70 45 50 Q 55 30 70 20" stroke="#10B981" stroke-width="2" fill="none" stroke-dasharray="3,2"/></svg>`,
-"Squats sautés":`<svg viewBox="0 0 80 90" width="44" height="44"><circle cx="40" cy="8" r="7" fill="#FBBF24"/><rect x="36" y="15" width="8" height="20" rx="3" fill="#FBBF24"/><line x1="40" y1="35" x2="24" y2="52" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="40" y1="35" x2="56" y2="52" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="24" y1="52" x2="18" y2="64" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="56" y1="52" x2="62" y2="64" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/></svg>`,
+"Squats sautés":`<svg viewBox="0 0 80 90" width="44" height="44"><circle cx="40" cy="8" r="7" fill="#FBBF24"/><rect x="36" y="15" width="8" height="20" rx="3" fill="#FBBF24"/><line x1="40" y1="35" x2="24" y2="52" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="40" y1="35" x2="56" y2="52" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/></svg>`,
 "Fentes marchées":`<svg viewBox="0 0 80 90" width="44" height="44"><circle cx="32" cy="10" r="7" fill="#FBBF24"/><rect x="28" y="17" width="8" height="20" rx="3" fill="#FBBF24"/><line x1="30" y1="37" x2="16" y2="56" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="34" y1="37" x2="52" y2="52" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="16" y1="56" x2="14" y2="76" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="52" y1="52" x2="56" y2="66" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/></svg>`,
 };
 
-// ─── DATA ─────────────────────────────────────────────────────────────────────
+// ─── BASE ALIMENTAIRE (pour 100g sauf indication) ─────────────────────────────
+const ALIMENTS = {
+  // Protéines
+  "Poulet (blanc, cuit)":       {k:165,p:31,g:0,l:3.6,   emoji:"🍗"},
+  "Bœuf haché 5%MG":           {k:137,p:21,g:0,l:5,     emoji:"🥩"},
+  "Saumon (cuit)":              {k:206,p:20,g:0,l:13,    emoji:"🐟"},
+  "Thon (boîte, égoutté)":     {k:116,p:26,g:0,l:1,     emoji:"🐟"},
+  "Cabillaud (cuit)":           {k:82, p:18,g:0,l:0.7,   emoji:"🐠"},
+  "Saumon fumé":                {k:142,p:20,g:0,l:7,     emoji:"🐟"},
+  "Jambon blanc":               {k:107,p:18,g:1,l:3,     emoji:"🥓"},
+  "Œuf entier":                 {k:155,p:13,g:1.1,l:11,  emoji:"🥚", note:"100g ≈ 2 œufs"},
+  // Laitiers
+  "Skyr":                       {k:63, p:11,g:4,l:0.2,   emoji:"🥛"},
+  "Fromage blanc 0%":           {k:45, p:8, g:4,l:0.1,   emoji:"🧀"},
+  "Yaourt nature":              {k:61, p:5, g:5,l:3.3,   emoji:"🥛"},
+  "Cottage cheese":             {k:98, p:11,g:3.4,l:4.3, emoji:"🧀"},
+  "Whey protéine":              {k:380,p:75,g:8,l:5,     emoji:"💊"},
+  // Féculents
+  "Riz cuit":                   {k:130,p:2.7,g:28,l:0.3, emoji:"🍚"},
+  "Pâtes cuites":               {k:158,p:5.8,g:31,l:0.9, emoji:"🍝"},
+  "Quinoa cuit":                {k:120,p:4.4,g:22,l:1.9, emoji:"🌾"},
+  "Patate douce cuite":         {k:86, p:1.6,g:20,l:0.1, emoji:"🍠"},
+  "Pain complet":               {k:247,p:9, g:41,l:3.4,  emoji:"🍞"},
+  "Flocons d'avoine":           {k:370,p:13,g:61,l:7,    emoji:"🌾"},
+  // Légumes
+  "Brocolis (cuit)":            {k:35, p:2.4,g:5,l:0.4,  emoji:"🥦"},
+  "Haricots verts":             {k:31, p:1.8,g:5.7,l:0.1,emoji:"🫘"},
+  "Salade verte":               {k:15, p:1.4,g:2.2,l:0.2,emoji:"🥗"},
+  "Tomates":                    {k:18, p:0.9,g:3.5,l:0.2,emoji:"🍅"},
+  "Épinards":                   {k:23, p:2.9,g:3.6,l:0.4,emoji:"🥬"},
+  "Courgettes":                 {k:17, p:1.2,g:3.1,l:0.3,emoji:"🥒"},
+  "Champignons":                {k:22, p:3.1,g:3.3,l:0.3,emoji:"🍄"},
+  "Poivrons":                   {k:31, p:1, g:6,l:0.3,   emoji:"🫑"},
+  "Lentilles cuites":           {k:116,p:9, g:20,l:0.4,  emoji:"🫘"},
+  // Fruits
+  "Pomme":                      {k:52, p:0.3,g:14,l:0.2, emoji:"🍎"},
+  "Poire":                      {k:57, p:0.4,g:15,l:0.1, emoji:"🍐"},
+  "Banane":                     {k:89, p:1.1,g:23,l:0.3, emoji:"🍌"},
+  "Orange":                     {k:47, p:0.9,g:12,l:0.1, emoji:"🍊"},
+  "Kiwi":                       {k:61, p:1.1,g:15,l:0.5, emoji:"🥝"},
+  "Fruits rouges (mix)":        {k:40, p:0.7,g:9,l:0.3,  emoji:"🍓"},
+  "Raisin":                     {k:69, p:0.7,g:18,l:0.2, emoji:"🍇"},
+  "Pastèque":                   {k:30, p:0.6,g:7.6,l:0.2,emoji:"🍉"},
+  "Mangue":                     {k:60, p:0.8,g:15,l:0.4, emoji:"🥭"},
+  "Abricot":                    {k:48, p:1.4,g:11,l:0.4, emoji:"🍑"},
+  "Pêche/Nectarine":            {k:42, p:1, g:10,l:0.3,  emoji:"🍑"},
+  "Noix de cajou":              {k:553,p:18,g:30,l:44,   emoji:"🌰"},
+  "Amandes":                    {k:579,p:21,g:22,l:50,   emoji:"🌰"},
+  // Plaisir
+  "Fondant au chocolat":        {k:380,p:6, g:42,l:22,   emoji:"🍫", note:"par pièce (~100g)"},
+  "Chocolat 85% (carré)":       {k:30, p:0.4,g:1.5,l:2.5,emoji:"🍫", note:"par carré (~5g)"},
+  "California roll (pièce)":    {k:47, p:1.3,g:7.3,l:1.2,emoji:"🍣", note:"par pièce"},
+  "Navette au thon":            {k:210,p:12,g:22,l:8,    emoji:"🥖", note:"par pièce"},
+};
+
+// ─── REPAS PRÉDÉFINIS PAR SLOT ────────────────────────────────────────────────
+const MEAL_SLOTS = {
+  pdj: {
+    lbl:"Petit déjeuner", emoji:"☀️", time:"7h–8h",
+    items:[
+      {n:"Œuf entier",      qty:150, unite:"g"},
+      {n:"Skyr",            qty:150, unite:"g"},
+      {n:"Fromage blanc 0%",qty:200, unite:"g"},
+      {n:"Saumon fumé",     qty:80,  unite:"g"},
+      {n:"Pain complet",    qty:60,  unite:"g"},
+      {n:"Flocons d'avoine",qty:40,  unite:"g"},
+      {n:"Whey protéine",   qty:30,  unite:"g"},
+      {n:"Banane",          qty:120, unite:"g"},
+      {n:"Pomme",           qty:150, unite:"g"},
+      {n:"Kiwi",            qty:80,  unite:"g"},
+      {n:"Fruits rouges (mix)",qty:100,unite:"g"},
+      {n:"Amandes",         qty:20,  unite:"g"},
+    ]
+  },
+  dej: {
+    lbl:"Déjeuner", emoji:"🍽️", time:"12h–13h",
+    items:[
+      {n:"Poulet (blanc, cuit)", qty:200, unite:"g"},
+      {n:"Thon (boîte, égoutté)",qty:140, unite:"g"},
+      {n:"Saumon (cuit)",        qty:150, unite:"g"},
+      {n:"Riz cuit",             qty:150, unite:"g"},
+      {n:"Quinoa cuit",          qty:100, unite:"g"},
+      {n:"Patate douce cuite",   qty:200, unite:"g"},
+      {n:"Pâtes cuites",         qty:100, unite:"g"},
+      {n:"Brocolis (cuit)",      qty:150, unite:"g"},
+      {n:"Haricots verts",       qty:150, unite:"g"},
+      {n:"Salade verte",         qty:80,  unite:"g"},
+      {n:"Tomates",              qty:100, unite:"g"},
+      {n:"Yaourt nature",        qty:125, unite:"g"},
+      {n:"Pomme",                qty:150, unite:"g"},
+      {n:"Poire",                qty:150, unite:"g"},
+      {n:"Orange",               qty:150, unite:"g"},
+      {n:"Kiwi",                 qty:80,  unite:"g"},
+      {n:"Mangue",               qty:150, unite:"g"},
+      {n:"Pastèque",             qty:300, unite:"g"},
+      {n:"Raisin",               qty:150, unite:"g"},
+    ]
+  },
+  snack: {
+    lbl:"Snack post-workout", emoji:"💪", time:"Après séance",
+    items:[
+      {n:"Whey protéine",        qty:30,  unite:"g"},
+      {n:"Banane",               qty:120, unite:"g"},
+      {n:"Skyr",                 qty:200, unite:"g"},
+      {n:"Fruits rouges (mix)",  qty:100, unite:"g"},
+      {n:"Pain complet",         qty:60,  unite:"g"},
+      {n:"Thon (boîte, égoutté)",qty:140, unite:"g"},
+      {n:"Fromage blanc 0%",     qty:200, unite:"g"},
+      {n:"Flocons d'avoine",     qty:30,  unite:"g"},
+      {n:"Amandes",              qty:20,  unite:"g"},
+      {n:"Kiwi",                 qty:80,  unite:"g"},
+    ]
+  },
+  diner: {
+    lbl:"Dîner", emoji:"🌙", time:"20h–21h",
+    items:[
+      {n:"Bœuf haché 5%MG",      qty:200, unite:"g"},
+      {n:"Poulet (blanc, cuit)",  qty:200, unite:"g"},
+      {n:"Cabillaud (cuit)",      qty:150, unite:"g"},
+      {n:"Saumon (cuit)",         qty:150, unite:"g"},
+      {n:"Œuf entier",            qty:200, unite:"g"},
+      {n:"Fromage blanc 0%",      qty:150, unite:"g"},
+      {n:"Pâtes cuites",          qty:80,  unite:"g"},
+      {n:"Lentilles cuites",      qty:150, unite:"g"},
+      {n:"Brocolis (cuit)",       qty:150, unite:"g"},
+      {n:"Épinards",              qty:100, unite:"g"},
+      {n:"Courgettes",            qty:150, unite:"g"},
+      {n:"Champignons",           qty:100, unite:"g"},
+      {n:"Poivrons",              qty:100, unite:"g"},
+      {n:"Tomates",               qty:100, unite:"g"},
+      {n:"Pomme",                 qty:150, unite:"g"},
+      {n:"Poire",                 qty:150, unite:"g"},
+      {n:"Kiwi",                  qty:80,  unite:"g"},
+      {n:"Abricot",               qty:100, unite:"g"},
+      {n:"Pêche/Nectarine",       qty:130, unite:"g"},
+      {n:"Fruits rouges (mix)",   qty:100, unite:"g"},
+    ]
+  }
+};
+
+// ─── CIBLES JOURNALIÈRES ─────────────────────────────────────────────────────
+const TARGET_KCAL = 2400;
+const TARGET_PROT = 165;
+
+// ─── DONNÉES PROGRAMME ────────────────────────────────────────────────────────
 const WKL=["Lun. 22 juin","Lun. 29 juin","Lun. 6 juil","Lun. 13 juil","Lun. 20 juil","Lun. 27 juil","Lun. 3 août 🏖️","Lun. 10 août 🏖️","Lun. 17 août 🏖️","Lun. 24 août 🏖️"];
 const isDech=w=>w===4;
 const isVac=w=>w>=7;
@@ -173,133 +334,56 @@ const WEEK=[
     {name:"Développé couché",sets:"4×8",load:"60 kg",muscles:"Pecto · Triceps · Épaules",desc:"Allongé sur le banc, pieds au sol. Descends la barre jusqu'à effleurer la poitrine, pousse en soufflant."},
     {name:"Rowing barre penché",sets:"4×10",load:"50 kg",muscles:"Dorsal · Trapèzes",desc:"Buste penché à 45°, dos plat, prise pronation. Tire la barre vers le nombril. Genoux légèrement fléchis."},
     {name:"Développé incliné haltères",sets:"3×10",load:"20 kg/main",muscles:"Pecto haut · Épaules",desc:"Banc incliné 30–45°. Pousse les deux haltères vers le haut, légèrement vers l'intérieur."},
-    {name:"Pullover haltère",sets:"3×12",load:"40 kg",muscles:"Dorsal · Pecto · Grand dentelé",desc:"Allongé perpendiculairement sur un banc, épaules sur le banc. Descends l'haltère derrière la tête, reviens."},
+    {name:"Pullover haltère",sets:"3×12",load:"40 kg",muscles:"Dorsal · Pecto",desc:"Allongé perpendiculairement sur un banc. Descends l'haltère derrière la tête, reviens."},
     {name:"Dips",sets:"3×max",load:"poids corps",muscles:"Triceps · Pecto bas",desc:"Barres parallèles, bras tendus. Descends jusqu'à ~90° aux coudes. Buste légèrement penché vers l'avant."},
     {name:"Planche",sets:"3×45s",load:"—",muscles:"Abdos · Gainage",desc:"Appui avant-bras et orteils, corps en ligne droite. Contracte abdos et fessiers. Respire normalement."},
   ]},
   {day:"Ven",fullDay:"Vendredi",type:"repos",tag:"Repos",c:"#374151",emoji:"🍫",exercises:[],note:"Soir : 4 fondants 🍫 (1 520 kcal) → mange léger le reste de la journée"},
   {day:"Sam",fullDay:"Samedi",type:"repos",tag:"Repos",c:"#374151",emoji:"🥖",exercises:[],note:"Midi : 8 navettes thon 🥖 (1 680 kcal) → mange très léger le soir"},
   {day:"Dim",fullDay:"Dimanche",type:"course",tag:"Course",c:"#10B981",emoji:"🏃",
-    exercises:[{name:"Course fractionnée",sets:"1h15",load:"voir format",muscles:"Cardio · Endurance",desc:"S1–4 : 10 min éch. + 5×(8 min à 9,5 km/h / 2 min marche) + 15 min retour calme. S5–6 : 10 min éch. + 6×(6 min à 10 km/h / 90 sec marche) + 10 min retour calme."}],
+    exercises:[{name:"Course fractionnée",sets:"1h15",load:"voir format",muscles:"Cardio · Endurance",desc:"S1–4 : 10 min éch. + 5×(8 min à 9,5 km/h / 2 min marche) + 15 min retour calme. S5–6 : 6×(6 min à 10 km/h / 90 sec marche)."}],
     note:"C'est parti ! 💪"},
 ];
-
 const WEEK_VAC=[
   {day:"Lun",fullDay:"Lundi",type:"repos",tag:"Repos",c:"#374151",emoji:"😴",exercises:[]},
-  {day:"Mar",fullDay:"Mardi",type:"muscu",tag:"Circuit A",c:"#F59E0B",emoji:"💪",
-    note:"Circuit continu : enchaîne sans pause · 90 sec repos entre tours · 3 tours = 30 min",
+  {day:"Mar",fullDay:"Mardi",type:"muscu",tag:"Circuit A",c:"#F59E0B",emoji:"💪",note:"Circuit continu · 90 sec repos entre tours · 3 tours = 30 min",
     exercises:[
-      {name:"Pompes",sets:"4×max",load:"poids corps",muscles:"Pecto · Triceps · Épaules",desc:"Corps droit, mains largeur épaules. Descends la poitrine vers le sol, remonte en soufflant. Si trop facile : pieds surélevés."},
-      {name:"Dips chaise",sets:"4×max",load:"poids corps",muscles:"Triceps · Pecto bas",desc:"Mains sur le bord d'une chaise, jambes tendues. Descends jusqu'à 90° aux coudes, remonte."},
-      {name:"Tractions serviette",sets:"3×max",load:"poids corps",muscles:"Dorsal · Biceps",desc:"Serviette sur une porte ouverte, tiens les deux bouts. Penche-toi en arrière et tire le buste vers la porte."},
-      {name:"Planche",sets:"3×60s",load:"—",muscles:"Abdos · Gainage",desc:"Appui avant-bras et orteils, corps en ligne droite. Contracte abdos et fessiers. Respire normalement."},
-      {name:"Gainage latéral",sets:"3×45s",load:"chaque côté",muscles:"Obliques · Gainage latéral",desc:"Appui sur un avant-bras et le côté du pied. Corps en ligne droite, hanche ne touche pas le sol. 45 sec de chaque côté."},
+      {name:"Pompes",sets:"4×max",load:"poids corps",muscles:"Pecto · Triceps",desc:"Corps droit, mains largeur épaules. Descends la poitrine, remonte en soufflant."},
+      {name:"Dips chaise",sets:"4×max",load:"poids corps",muscles:"Triceps · Pecto bas",desc:"Mains sur le bord d'une chaise, jambes tendues. Descends jusqu'à 90° aux coudes."},
+      {name:"Tractions serviette",sets:"3×max",load:"poids corps",muscles:"Dorsal · Biceps",desc:"Serviette sur une porte ouverte. Penche-toi en arrière et tire le buste vers la porte."},
+      {name:"Planche",sets:"3×60s",load:"—",muscles:"Abdos · Gainage",desc:"Appui avant-bras et orteils, corps en ligne droite. Contracte tout."},
+      {name:"Gainage latéral",sets:"3×45s",load:"chaque côté",muscles:"Obliques",desc:"Appui sur un avant-bras et le côté du pied. Hanche ne touche pas le sol."},
     ]},
-  {day:"Mer",fullDay:"Mercredi",type:"course",tag:"Bréguières",c:"#10B981",emoji:"🏃",
-    note:"🏔️ ~160m de dénivelé · allure naturelle · foulée légère en descente · vue sur la baie de Cannes",
-    exercises:[{name:"Course Bréguières",sets:"1h",load:"allure naturelle",muscles:"Cardio · Cuisses · Fessiers · Mollets",desc:"Route des Bréguières, Le Cannet. Montée progressive ~160m de dénivelé. La pente fait le boulot. Descente en foulée légère, protège les genoux."}]},
-  {day:"Jeu",fullDay:"Jeudi",type:"muscu",tag:"Circuit B",c:"#EF4444",emoji:"💪",
-    note:"Circuit continu : enchaîne sans pause · 90 sec repos entre tours · 3 tours = 30 min",
+  {day:"Mer",fullDay:"Mercredi",type:"course",tag:"Bréguières",c:"#10B981",emoji:"🏃",note:"🏔️ ~160m de dénivelé · allure naturelle · vue sur la baie de Cannes",
+    exercises:[{name:"Course Bréguières",sets:"1h",load:"allure naturelle",muscles:"Cardio · Cuisses · Fessiers",desc:"Route des Bréguières, Le Cannet. ~160m de dénivelé. La pente fait le boulot. Descente en foulée légère."}]},
+  {day:"Jeu",fullDay:"Jeudi",type:"muscu",tag:"Circuit B",c:"#EF4444",emoji:"💪",note:"Circuit continu · 90 sec repos entre tours · 3 tours = 30 min",
     exercises:[
       {name:"Pompes prises larges",sets:"4×max",load:"poids corps",muscles:"Pecto extérieur · Épaules",desc:"Mains plus larges que les épaules. Descends lentement, remonte explosif."},
-      {name:"Pompes diamant",sets:"3×max",load:"poids corps",muscles:"Triceps · Pecto intérieur",desc:"Mains formant un triangle sous la poitrine. Très ciblé sur les triceps."},
-      {name:"Superman",sets:"3×12",load:"poids corps",muscles:"Bas du dos · Fessiers · Ischio",desc:"Allongé sur le ventre, bras tendus. Soulève simultanément bras et jambes. Tiens 2 secondes en haut."},
-      {name:"Crunchs vélo",sets:"3×20",load:"poids corps",muscles:"Abdos · Obliques",desc:"Sur le dos, mains derrière la tête. Ramène genou gauche vers coude droit, alterne. Lent et contrôlé."},
-      {name:"Burpees",sets:"3×10",load:"poids corps",muscles:"Full body · Cardio",desc:"Debout → accroupi → pompe → accroupi → saut bras en l'air. 10 répétitions = transpiration garantie."},
+      {name:"Pompes diamant",sets:"3×max",load:"poids corps",muscles:"Triceps · Pecto intérieur",desc:"Mains formant un triangle sous la poitrine."},
+      {name:"Superman",sets:"3×12",load:"poids corps",muscles:"Bas du dos · Fessiers",desc:"Allongé sur le ventre, soulève simultanément bras et jambes. Tiens 2 sec en haut."},
+      {name:"Crunchs vélo",sets:"3×20",load:"poids corps",muscles:"Abdos · Obliques",desc:"Sur le dos, ramène genou gauche vers coude droit, alterne."},
+      {name:"Burpees",sets:"3×10",load:"poids corps",muscles:"Full body · Cardio",desc:"Debout → accroupi → pompe → accroupi → saut bras en l'air."},
     ]},
   {day:"Ven",fullDay:"Vendredi",type:"repos",tag:"Repos",c:"#374151",emoji:"🍫",exercises:[],note:"Soir : 4 fondants 🍫 (1 520 kcal) → mange léger le reste de la journée"},
   {day:"Sam",fullDay:"Samedi",type:"repos",tag:"Repos",c:"#374151",emoji:"🥖",exercises:[],note:"Midi : 8 navettes thon 🥖 (1 680 kcal) → mange très léger le soir"},
-  {day:"Dim",fullDay:"Dimanche",type:"course",tag:"Bréguières",c:"#10B981",emoji:"🏃",
-    note:"🏔️ 2ème sortie · varie le parcours ou explore le sentier du Canal de la Siagne",
-    exercises:[{name:"Course Bréguières",sets:"1h",load:"allure naturelle",muscles:"Cardio · Cuisses · Fessiers · Mollets",desc:"Même parcours que mercredi ou variante via le Canal de la Siagne. Vue panoramique sur Cannes garantie."}]},
+  {day:"Dim",fullDay:"Dimanche",type:"course",tag:"Bréguières",c:"#10B981",emoji:"🏃",note:"🏔️ 2ème sortie · varie le parcours ou explore le Canal de la Siagne",
+    exercises:[{name:"Course Bréguières",sets:"1h",load:"allure naturelle",muscles:"Cardio · Cuisses · Fessiers",desc:"Même parcours que mercredi ou variante via le Canal de la Siagne. Vue panoramique sur Cannes."}]},
 ];
 
-// ─── NUTRITION ────────────────────────────────────────────────────────────────
-const NUT={
-  normal:{label:"Lun–Jeu·Dim",meals:[
-    {id:"pdj",lbl:"Petit déjeuner",emoji:"☀️",time:"7h–8h",options:[
-      {n:"Œufs + Skyr",d:"3 œufs brouillés + skyr 150g + café",k:380,p:38,t:"⚡ Rapide"},
-      {n:"Fromage blanc bowl",d:"Fromage blanc 0% 200g + flocons avoine 40g + café",k:300,p:22,t:"🌾 Rassasiant"},
-      {n:"Pain + Saumon fumé",d:"2 tranches pain complet + 150g saumon fumé + 2 œufs",k:420,p:45,t:"🐟 Riche prot"},
-    ]},
-    {id:"dej",lbl:"Déjeuner",emoji:"🍽️",time:"12h–13h",options:[
-      {n:"Poulet riz + yaourt + fruit",d:"200g poulet grillé + 150g riz + légumes + yaourt 125g + 1 fruit",k:660,p:58,t:"🍗 Classique"},
-      {n:"Thon quinoa + yaourt + fruit",d:"Thon 140g + quinoa 100g + salade + yaourt 125g + 1 fruit",k:620,p:50,t:"🐟 Léger"},
-      {n:"Saumon patate + yaourt + fruit",d:"150g saumon + patate douce 200g + haricots + yaourt 125g + 1 fruit",k:650,p:46,t:"🍠 Complet"},
-    ]},
-    {id:"snack",lbl:"Snack post-workout",emoji:"💪",time:"Après séance",options:[
-      {n:"🥤 Shake whey + banane",d:"30g whey + 250ml lait demi-écrémé + 1 banane. Sucres rapides pour la récup musculaire.",k:280,p:26,t:"⚡ Express"},
-      {n:"🍓 Skyr + fruits rouges + miel",d:"200g skyr + 100g fruits rouges + 1 càc miel. Naturel, antioxydants, protéines lentes.",k:220,p:20,t:"🌿 Naturel"},
-      {n:"🐟 Pain complet + thon",d:"2 tranches pain complet + 1 boîte thon 140g + cornichons. Top ratio prot/kcal.",k:300,p:32,t:"💪 Solide"},
-      {n:"🧀 Fromage blanc + flocons + amandes",d:"200g fromage blanc 0% + 30g flocons avoine + 15g amandes. Protéines rapides + lentes.",k:310,p:24,t:"🔥 Complet"},
-    ]},
-    {id:"diner",lbl:"Dîner post-séance",emoji:"🌙",time:"20h–21h",options:[
-      {n:"Bœuf haché légumes + fruit",d:"200g bœuf 5%MG + légumes poêlés + 50g pâtes + 1 fruit",k:570,p:46,t:"🥩 Récup"},
-      {n:"Omelette géante + fruit",d:"4 œufs + fromage blanc + poivrons + champignons + 1 fruit",k:490,p:40,t:"🍳 Simple"},
-      {n:"Cabillaud lentilles + fruit",d:"150g cabillaud + lentilles 150g + brocolis + 1 fruit",k:510,p:42,t:"🐟 Léger"},
-    ]},
-  ]},
-  vendredi:{label:"Vendredi",note:"🍫 4 fondants le soir = 1 520 kcal · 24g prot. Mange léger toute la journée.",meals:[
-    {id:"pdj",lbl:"Petit déjeuner",emoji:"☀️",time:"7h–8h",options:[{n:"Maximum protéines",d:"4 œufs brouillés + fromage blanc 0% 200g + café noir",k:420,p:52,t:"💪 Prot max"}]},
-    {id:"dej",lbl:"Déjeuner",emoji:"🍽️",time:"12h–13h",options:[{n:"Poulet salade + yaourt + fruit",d:"200g poulet + salade + tomates + yaourt 125g + 1 fruit",k:430,p:52,t:"🥗 Léger"}]},
-    {id:"soir",lbl:"Soir 🍫",emoji:"🍫",time:"20h+",options:[{n:"4 fondants au chocolat",d:"C'est le deal hebdo. Enjoy sans culpabilité — t'as bossé dur toute la semaine.",k:1520,p:24,t:"🎉 Cheat",cheat:true}]},
-  ]},
-  samedi:{label:"Samedi",note:"🥖 8 navettes à midi = 1 680 kcal · 96g prot. Mange très léger le reste.",meals:[
-    {id:"pdj",lbl:"Petit déjeuner",emoji:"☀️",time:"7h–8h",options:[{n:"Skyr + café",d:"Skyr 150g + café noir. Simple, laisse de la place pour midi.",k:100,p:15,t:"🪶 Léger"}]},
-    {id:"midi",lbl:"Midi 🥖",emoji:"🥖",time:"12h–13h",options:[{n:"8 navettes au thon",d:"Tu cours le matin, tu te régales à midi. Bien mérité.",k:1680,p:96,t:"🎉 Cheat",cheat:true}]},
-    {id:"diner",lbl:"Dîner",emoji:"🌙",time:"19h–20h",options:[{n:"Très léger + fruit",d:"Omelette 3 œufs + fromage blanc 0% 150g + salade verte + 1 fruit",k:370,p:42,t:"🥚 Récup"}]},
-  ]},
-};
-
-// ─── ÉCARTS ───────────────────────────────────────────────────────────────────
 const ECARTS=[
-  {id:"fondant_matin",lbl:"1 fondant chocolat (matin)",emoji:"🍫",k:380,p:6,
-    reel:"380 kcal · 6g prot · 42g gluc · 22g lip",
-    c:"Journée ultra légère. Il te reste ~2020 kcal pour 2 repas. Vise 120g prot min sur la journée. Zéro féculent au déjeuner et dîner — protéines + légumes uniquement. Hydratation normale.",
-    repas:"Déj : 200g poulet + salade + yaourt. Dîner : 4 œufs + légumes poêlés."},
-  {id:"demi_pizza",lbl:"Demi-pizza (4 parts)",emoji:"🍕",k:700,p:28,
-    reel:"700 kcal · 28g prot · 80g gluc · 28g lip",
-    c:"Reste ~1700 kcal pour la journée. Petit déj protéiné léger si avant midi. Dîner : protéines maigres + légumes, zéro féculent.",
-    repas:"Avant : œufs + fromage blanc. Après : cabillaud ou poulet + brocolis + salade."},
-  {id:"california_6",lbl:"6 California rolls",emoji:"🍣",k:280,p:8,
-    reel:"280 kcal · 8g prot · 44g gluc · 7g lip",
-    c:"Très raisonnable, zéro drama. Journée quasi normale. Ajoute 20-25g prot au repas suivant pour compenser le faible apport protéique des california.",
-    repas:"Repas suivant : poulet ou thon en priorité. Reste de la journée : normal."},
-  {id:"california_12",lbl:"12 California rolls",emoji:"🍣",k:560,p:16,
-    reel:"560 kcal · 16g prot · 88g gluc · 14g lip",
-    c:"Glucides élevés mais qualité correcte (riz, poisson). Dîner protéiné léger, pas de féculents le soir. Journée sinon normale.",
-    repas:"Dîner : saumon + légumes vapeur, ou omelette + salade. Zéro riz ni pâtes le soir."},
-  {id:"pates_creme",lbl:"Pâtes à la crème",emoji:"🍝",k:850,p:20,
-    reel:"850 kcal · 20g prot · 95g gluc · 42g lip",
-    c:"Gros repas, beaucoup de gras. Petit déj protéiné sans glucides si avant. Dîner ultra léger. Hydratation 2L. Si séance demain, parfait — les glucides seront utilisés.",
-    repas:"Petit déj : 4 œufs + fromage blanc, zéro pain. Dîner : omelette légère + salade."},
-  {id:"pates_puttanesca",lbl:"Pâtes puttanesca",emoji:"🍝",k:580,p:18,
-    reel:"580 kcal · 18g prot · 82g gluc · 18g lip",
-    c:"Plus équilibré que la crème (moins de gras, moins calorique). Reste ~1820 kcal. Journée quasi normale, dîner léger protéiné.",
-    repas:"Dîner : poulet ou poisson + légumes. Pas de féculents le soir."},
-  {id:"quart_pasteque",lbl:"Quart de pastèque (~500g)",emoji:"🍉",k:150,p:3,
-    reel:"150 kcal · 3g prot · 34g gluc · 1g lip",
-    c:"Quasiment rien en kcal. Zéro impact sur la journée. Journée 100% normale.",
-    repas:"Rien à changer. Programme normal."},
-  {id:"demi_pasteque",lbl:"Demi pastèque (~1 kg)",emoji:"🍉",k:300,p:6,
-    reel:"300 kcal · 6g prot · 68g gluc · 2g lip",
-    c:"Léger mais sucres rapides. Journée normale avec -300 kcal sur un des repas. Évite les féculents au repas qui suit directement.",
-    repas:"Repas suivant : protéines + légumes, pas de riz ni pâtes."},
-  {id:"raisin",lbl:"Grappe de raisin (~300g)",emoji:"🍇",k:195,p:2,
-    reel:"195 kcal · 2g prot · 50g gluc · 0g lip",
-    c:"Sucres rapides mais quantité raisonnable. Évite les féculents au repas suivant, sinon journée normale.",
-    repas:"Repas suivant : protéines maigres + légumes. Pas de riz ni pâtes juste après."},
-  {id:"chocolat_2",lbl:"2 carreaux chocolat 85%",emoji:"🍫",k:110,p:2,
-    reel:"110 kcal · 2g prot · 6g gluc · 9g lip",
-    c:"Anecdotique. Le 85% est d'excellente qualité nutritive. Zéro impact sur la journée. Programme normal.",
-    repas:"Rien à changer. C'est un bon snack en soi."},
-  {id:"exces_sucre",lbl:"Excès sucrés (gâteaux, bonbons...)",emoji:"🍰",k:600,p:5,
-    reel:"~600 kcal · 5g prot · 90g gluc · 20g lip",
-    c:"Pic insulinique + glucides vides. Demain : petit déj sans sucre (œufs + fromage blanc, zéro fruit le matin). Évite le sucre toute la journée suivante. Séance sport idéale pour brûler le glycogène excédentaire.",
-    repas:"Lendemain matin : 4 œufs + fromage blanc 0%, café noir. Midi et soir : protéines + légumes."},
+  {id:"fondant_matin",lbl:"1 fondant chocolat (matin)",emoji:"🍫",k:380,p:6,reel:"380 kcal · 6g prot · 42g gluc · 22g lip",c:"Journée ultra légère. Reste ~2020 kcal. Vise 120g prot min. Zéro féculent au déj et dîner — protéines + légumes uniquement.",repas:"Déj : 200g poulet + salade + yaourt. Dîner : 4 œufs + légumes poêlés."},
+  {id:"demi_pizza",lbl:"Demi-pizza (4 parts)",emoji:"🍕",k:700,p:28,reel:"700 kcal · 28g prot · 80g gluc · 28g lip",c:"Reste ~1700 kcal. Petit déj protéiné léger si avant midi. Dîner : protéines maigres + légumes, zéro féculent.",repas:"Avant : œufs + fromage blanc. Après : cabillaud ou poulet + brocolis."},
+  {id:"california_6",lbl:"6 California rolls",emoji:"🍣",k:280,p:8,reel:"280 kcal · 8g prot · 44g gluc · 7g lip",c:"Très raisonnable. Journée quasi normale. Ajoute 20-25g prot au repas suivant.",repas:"Repas suivant : poulet ou thon en priorité."},
+  {id:"california_12",lbl:"12 California rolls",emoji:"🍣",k:560,p:16,reel:"560 kcal · 16g prot · 88g gluc · 14g lip",c:"Glucides élevés mais qualité ok. Dîner protéiné léger, pas de féculents le soir.",repas:"Dîner : saumon + légumes vapeur ou omelette + salade."},
+  {id:"pates_creme",lbl:"Pâtes à la crème",emoji:"🍝",k:850,p:20,reel:"850 kcal · 20g prot · 95g gluc · 42g lip",c:"Gros repas. Petit déj protéiné sans glucides. Dîner ultra léger. Hydratation 2L.",repas:"Petit déj : 4 œufs + fromage blanc. Dîner : omelette légère + salade."},
+  {id:"pates_puttanesca",lbl:"Pâtes puttanesca",emoji:"🍝",k:580,p:18,reel:"580 kcal · 18g prot · 82g gluc · 18g lip",c:"Plus équilibré que la crème. Reste ~1820 kcal. Dîner léger protéiné.",repas:"Dîner : poulet ou poisson + légumes. Pas de féculents le soir."},
+  {id:"quart_pasteque",lbl:"Quart de pastèque (~500g)",emoji:"🍉",k:150,p:3,reel:"150 kcal · 3g prot · 34g gluc · 1g lip",c:"Quasiment rien. Zéro impact. Journée 100% normale.",repas:"Rien à changer."},
+  {id:"demi_pasteque",lbl:"Demi pastèque (~1 kg)",emoji:"🍉",k:300,p:6,reel:"300 kcal · 6g prot · 68g gluc · 2g lip",c:"Léger. Journée normale avec -300 kcal sur un repas. Évite les féculents au repas suivant.",repas:"Repas suivant : protéines + légumes, pas de riz ni pâtes."},
+  {id:"raisin",lbl:"Grappe de raisin (~300g)",emoji:"🍇",k:195,p:2,reel:"195 kcal · 2g prot · 50g gluc · 0g lip",c:"Sucres rapides mais raisonnable. Évite les féculents au repas suivant.",repas:"Repas suivant : protéines maigres + légumes."},
+  {id:"chocolat_2",lbl:"2 carreaux chocolat 85%",emoji:"🍫",k:110,p:2,reel:"110 kcal · 2g prot · 6g gluc · 9g lip",c:"Anecdotique. Le 85% est excellent nutritionnellement. Zéro impact. Programme normal.",repas:"Rien à changer. C'est un bon snack."},
+  {id:"exces_sucre",lbl:"Excès sucrés (gâteaux, bonbons...)",emoji:"🍰",k:600,p:5,reel:"~600 kcal · 5g prot · 90g gluc · 20g lip",c:"Pic insulinique + glucides vides. Demain : petit déj sans sucre, évite féculents toute la journée. Séance sport idéale.",repas:"Lendemain : 4 œufs + fromage blanc le matin. Midi et soir : protéines + légumes."},
 ];
 
-// ─── SEANCES EXERCICES ────────────────────────────────────────────────────────
 const SEANCES={
   A:[
     {sup:"A — BARRE",c:"#3B82F6",pairs:[
@@ -342,7 +426,16 @@ const SEANCES={
 };
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
-let ST={week:1,day:0,jshow:false,jinp:{},nutDay:'normal',nutMeal:null,ecSel:null,ecShow:false,trTab:'poids',exTab:'A',exOpen:null};
+let ST={
+  week:1, day:0, jshow:false, jinp:{},
+  nutSlot: 'pdj',          // repas actif dans nutrition
+  nutSelections: {},        // {pdj:{itemName: qty}, dej:{...}, snack:{...}, diner:{...}}
+  nutFreeInput: '',         // saisie libre
+  nutShowReco: null,        // null ou slot id
+  nutPlanOverrides: {},     // plan journalier retouché
+  ecSel: null, ecShow: false,
+  trTab: 'poids', exTab:'A', exOpen:null
+};
 
 // ─── NAV ─────────────────────────────────────────────────────────────────────
 function nav(t,btn){
@@ -351,6 +444,276 @@ function nav(t,btn){
   document.getElementById('t-'+t).classList.add('act');
   btn.classList.add('act');
   render(t);
+}
+
+// ─── NUTRITION HELPERS ────────────────────────────────────────────────────────
+function calcMacros(name, qty){
+  const a = ALIMENTS[name];
+  if(!a) return {k:0,p:0,g:0,l:0};
+  return {
+    k: Math.round(a.k * qty / 100),
+    p: Math.round(a.p * qty / 100 * 10) / 10,
+    g: Math.round(a.g * qty / 100 * 10) / 10,
+    l: Math.round(a.l * qty / 100 * 10) / 10,
+  };
+}
+
+function getSlotTotals(slotId){
+  const sel = ST.nutSelections[slotId] || {};
+  let tk=0, tp=0;
+  Object.entries(sel).forEach(([name, qty])=>{
+    const m = calcMacros(name, qty);
+    tk += m.k; tp += m.p;
+  });
+  return {k: Math.round(tk), p: Math.round(tp*10)/10};
+}
+
+function getDayTotals(){
+  let tk=0, tp=0;
+  ['pdj','dej','snack','diner'].forEach(s=>{
+    const t = getSlotTotals(s);
+    tk += t.k; tp += t.p;
+  });
+  return {k: Math.round(tk), p: Math.round(tp*10)/10};
+}
+
+function genReco(slotId){
+  // Calcule ce qui reste à manger après ce slot
+  const slots = ['pdj','dej','snack','diner'];
+  const idx = slots.indexOf(slotId);
+  // Totaux déjà mangés (slots précédents + ce slot)
+  let doneK=0, doneP=0;
+  for(let i=0; i<=idx; i++){
+    const t = getSlotTotals(slots[i]);
+    doneK += t.k; doneP += t.p;
+  }
+  const resteK = Math.max(0, TARGET_KCAL - doneK);
+  const resteP = Math.max(0, TARGET_PROT - doneP);
+  const nextSlots = slots.slice(idx+1);
+
+  // Génère suggestions pour chaque slot restant
+  const recos = {};
+  if(nextSlots.length === 0) return recos;
+
+  const kPerSlot = Math.round(resteK / nextSlots.length);
+  const pPerSlot = Math.round(resteP / nextSlots.length);
+
+  // Templates par slot
+  const templates = {
+    dej: (k,p) => {
+      const items = [];
+      if(p > 35) items.push({n:"Poulet (blanc, cuit)", qty:200});
+      else items.push({n:"Thon (boîte, égoutté)", qty:140});
+      if(k > 400) items.push({n:"Riz cuit", qty:150});
+      items.push({n:"Brocolis (cuit)", qty:150});
+      items.push({n:"Yaourt nature", qty:125});
+      items.push({n:"Pomme", qty:150});
+      return items;
+    },
+    snack: (k,p) => {
+      const items = [];
+      if(p > 20) items.push({n:"Whey protéine", qty:30});
+      items.push({n:"Skyr", qty:150});
+      if(k > 200) items.push({n:"Banane", qty:120});
+      else items.push({n:"Kiwi", qty:80});
+      return items;
+    },
+    diner: (k,p) => {
+      const items = [];
+      if(p > 35) items.push({n:"Bœuf haché 5%MG", qty:200});
+      else if(p > 25) items.push({n:"Cabillaud (cuit)", qty:150});
+      else items.push({n:"Œuf entier", qty:200});
+      if(k > 400) items.push({n:"Pâtes cuites", qty:80});
+      items.push({n:"Brocolis (cuit)", qty:150});
+      items.push({n:"Tomates", qty:100});
+      items.push({n:"Kiwi", qty:80});
+      return items;
+    }
+  };
+
+  nextSlots.forEach(s => {
+    const fn = templates[s];
+    recos[s] = fn ? fn(kPerSlot, pPerSlot) : [];
+  });
+
+  return {resteK, resteP, nextSlots, recos};
+}
+
+// ─── NUTRITION RENDER ─────────────────────────────────────────────────────────
+function renderNut(){
+  const dayT = getDayTotals();
+  const kPct = Math.min((dayT.k/TARGET_KCAL)*100, 100);
+  const pPct = Math.min((dayT.p/TARGET_PROT)*100, 100);
+
+  let h = ``;
+
+  // Résumé journalier
+  h += `<div class="card" style="margin-bottom:12px">
+    <div class="slbl">📊 Total journalier</div>
+    <div style="display:flex;gap:7px;margin-bottom:8px">
+      <div class="macbox"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Calories</div>
+        <div class="mval" style="color:${kPct>100?'#EF4444':'#F59E0B'}">${dayT.k}<span style="font-size:11px;color:#6B7280"> / ${TARGET_KCAL}</span></div>
+        <div class="pb-bg" style="margin-top:5px"><div class="pb-fill" style="width:${kPct}%;background:${kPct>100?'#EF4444':'#F59E0B'}"></div></div>
+      </div>
+      <div class="macbox"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Protéines</div>
+        <div class="mval" style="color:${pPct>100?'#10B981':'#3B82F6'}">${dayT.p}g<span style="font-size:11px;color:#6B7280"> / ${TARGET_PROT}</span></div>
+        <div class="pb-bg" style="margin-top:5px"><div class="pb-fill" style="width:${pPct}%;background:${pPct>100?'#10B981':'#3B82F6'}"></div></div>
+      </div>
+    </div>
+    <div style="font-size:10px;color:#6B7280;text-align:center">
+      Reste : <b style="color:#F59E0B">${Math.max(0,TARGET_KCAL-dayT.k)} kcal</b> · <b style="color:#3B82F6">${Math.max(0,TARGET_PROT-dayT.p).toFixed(0)}g prot</b>
+    </div>
+  </div>`;
+
+  // Onglets repas
+  h += `<div class="pill-row">`;
+  Object.entries(MEAL_SLOTS).forEach(([id, slot])=>{
+    const t = getSlotTotals(id);
+    const hasSel = Object.keys(ST.nutSelections[id]||{}).length > 0;
+    h += `<button class="pill ${ST.nutSlot===id?'act':''}" onclick="setNutSlot('${id}')">
+      <div class="pe">${slot.emoji}${hasSel?'✓':''}</div>
+      <div class="pl">${slot.lbl.split(' ')[0]}</div>
+      ${hasSel?`<div style="font-size:9px;color:#10B981">${t.k}kcal</div>`:''}
+    </button>`;
+  });
+  h += `</div>`;
+
+  // Slot actif
+  const slot = MEAL_SLOTS[ST.nutSlot];
+  const sel = ST.nutSelections[ST.nutSlot] || {};
+  const slotT = getSlotTotals(ST.nutSlot);
+
+  h += `<div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div>
+        <div style="font-weight:800;font-size:15px">${slot.emoji} ${slot.lbl}</div>
+        <div style="font-size:10px;color:#6B7280">${slot.time}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:14px;font-weight:800;color:#F59E0B">${slotT.k} kcal</div>
+        <div style="font-size:11px;color:#3B82F6">${slotT.p}g prot</div>
+      </div>
+    </div>`;
+
+  // Liste des aliments
+  slot.items.forEach(item => {
+    const isSelected = sel.hasOwnProperty(item.n);
+    const qty = isSelected ? sel[item.n] : item.qty;
+    const m = calcMacros(item.n, qty);
+    const a = ALIMENTS[item.n];
+    h += `<div class="food-item ${isSelected?'selected':''}" onclick="togFood('${ST.nutSlot}','${item.n}',${item.qty})">
+      <div class="food-check">${isSelected?'✓':''}</div>
+      <div style="flex:1">
+        <div class="food-name">${a?.emoji||'🍽️'} ${item.n}</div>
+        ${a?.note?`<div style="font-size:9px;color:#6B7280">${a.note}</div>`:''}
+      </div>
+      ${isSelected?`<input type="number" class="food-qty" value="${qty}" min="1" onclick="event.stopPropagation()" onchange="updateQty('${ST.nutSlot}','${item.n}',this.value)">`:'<div style="font-size:10px;color:#4B5563">'+item.qty+'g</div>'}
+      <div class="food-macros">
+        <div style="color:#F59E0B">${m.k} kcal</div>
+        <div style="color:#3B82F6">${m.p}g</div>
+      </div>
+    </div>`;
+  });
+
+  // Saisie libre
+  h += `<div style="margin-top:10px;padding-top:10px;border-top:1px solid #2D2D3F">
+    <div style="font-size:10px;color:#6B7280;margin-bottom:6px">✏️ Ajouter un aliment manuellement</div>
+    <div style="display:flex;gap:6px;margin-bottom:6px">
+      <select id="free-select" style="flex:2" onchange="document.getElementById('free-qty').value=''">
+        <option value="">Choisir un aliment...</option>
+        ${Object.entries(ALIMENTS).map(([n,a])=>`<option value="${n}">${a.emoji} ${n}</option>`).join('')}
+      </select>
+      <input type="number" id="free-qty" placeholder="g" style="width:60px" min="1">
+    </div>
+    <button onclick="addFreeItem('${ST.nutSlot}')" style="width:100%;padding:8px;border-radius:8px;border:none;background:#374151;color:#F1F1F5;font-size:12px;font-weight:600">Ajouter ✓</button>
+  </div>`;
+
+  h += `</div>`;
+
+  // Bouton reconfigurer
+  if(Object.keys(sel).length > 0){
+    h += `<button onclick="showReco('${ST.nutSlot}')" style="width:100%;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#10B981,#3B82F6);color:#fff;font-size:13px;font-weight:800;margin-bottom:12px">
+      🔄 Reconfigurer mes prochains repas
+    </button>`;
+  }
+
+  // Reco affichée
+  if(ST.nutShowReco === ST.nutSlot){
+    const reco = genReco(ST.nutSlot);
+    if(reco && reco.nextSlots && reco.nextSlots.length > 0){
+      h += `<div class="reco-card">
+        <div style="font-weight:800;font-size:13px;color:#10B981;margin-bottom:10px">
+          💡 Plan suggéré pour le reste de la journée
+        </div>
+        <div style="font-size:11px;color:#6EE7B7;margin-bottom:10px">
+          Reste à manger : <b>${reco.resteK} kcal</b> · <b>${reco.resteP}g prot</b>
+        </div>`;
+      reco.nextSlots.forEach(s => {
+        const slotInfo = MEAL_SLOTS[s];
+        const recoItems = reco.recos[s] || [];
+        if(recoItems.length === 0) return;
+        let recoK=0, recoP=0;
+        recoItems.forEach(ri=>{ const m=calcMacros(ri.n,ri.qty); recoK+=m.k; recoP+=m.p; });
+        h += `<div class="reco-item">
+          <b>${slotInfo.emoji} ${slotInfo.lbl}</b> — ${Math.round(recoK)} kcal · ${Math.round(recoP)}g prot<br>
+          <span style="color:#A7F3D0">${recoItems.map(ri=>`${ALIMENTS[ri.n]?.emoji||'🍽️'} ${ri.n} (${ri.qty}g)`).join(' · ')}</span>
+        </div>`;
+      });
+      h += `<div style="display:flex;gap:8px;margin-top:10px">
+        <button onclick="applyReco('${ST.nutSlot}')" class="btn-g" style="flex:2">Appliquer ce plan ✓</button>
+        <button onclick="ST.nutShowReco=null;renderNut()" class="btn-s" style="flex:1">Ignorer</button>
+      </div>
+      </div>`;
+    } else {
+      h += `<div class="reco-card"><div style="color:#6EE7B7;font-size:12px">🎉 C'est le dernier repas de la journée — objectif atteint !</div></div>`;
+    }
+  }
+
+  document.getElementById('t-nutrition').innerHTML = h;
+}
+
+function setNutSlot(s){ ST.nutSlot=s; ST.nutShowReco=null; renderNut(); }
+
+function togFood(slot, name, defaultQty){
+  if(!ST.nutSelections[slot]) ST.nutSelections[slot]={};
+  if(ST.nutSelections[slot].hasOwnProperty(name)){
+    delete ST.nutSelections[slot][name];
+  } else {
+    ST.nutSelections[slot][name] = defaultQty;
+  }
+  ST.nutShowReco=null;
+  renderNut();
+}
+
+function updateQty(slot, name, val){
+  if(!ST.nutSelections[slot]) ST.nutSelections[slot]={};
+  ST.nutSelections[slot][name] = parseFloat(val)||0;
+  renderNut();
+}
+
+function addFreeItem(slot){
+  const sel = document.getElementById('free-select');
+  const qty = parseFloat(document.getElementById('free-qty').value);
+  if(!sel.value || !qty || qty<=0) return;
+  if(!ST.nutSelections[slot]) ST.nutSelections[slot]={};
+  ST.nutSelections[slot][sel.value] = (ST.nutSelections[slot][sel.value]||0) + qty;
+  ST.nutShowReco=null;
+  renderNut();
+}
+
+function showReco(slot){ ST.nutShowReco=slot; renderNut(); }
+
+function applyReco(slot){
+  const reco = genReco(slot);
+  if(!reco || !reco.nextSlots) return;
+  reco.nextSlots.forEach(s=>{
+    if(!ST.nutSelections[s]) ST.nutSelections[s]={};
+    (reco.recos[s]||[]).forEach(ri=>{
+      ST.nutSelections[s][ri.n] = ri.qty;
+    });
+  });
+  ST.nutShowReco=null;
+  renderNut();
 }
 
 // ─── SEMAINE ─────────────────────────────────────────────────────────────────
@@ -374,7 +737,6 @@ function renderSem(){
     </button>`;
   });
   h+=`</div>`;
-
   const day=tmpl[ST.day];
   const canLog=day.type==='salle'||day.type==='course'||day.type==='muscu';
   const logged=j[`w${ST.week}-d${ST.day}`];
@@ -390,7 +752,7 @@ function renderSem(){
   if(day.note)h+=`<div class="${day.type==='muscu'?'cbox':'ybox'}">${day.note}</div>`;
   if(day.type==='salle'){
     h+=`<div style="padding:7px 10px;border-radius:8px;margin-bottom:10px;background:#1A2A1A;border:1px solid #10B98130;font-size:11px;color:#6EE7B7">🔥 Échauffement : 5 min vélo/tapis + 1 série légère à 50%</div>`;
-    if(p.decharge)h+=`<div class="ybox">🔄 Décharge : charges −15%, 3 séries au lieu de 4 sur les principaux</div>`;
+    if(p.decharge)h+=`<div class="ybox">🔄 Décharge : charges −15%, 3 séries au lieu de 4</div>`;
     day.exercises.forEach(ex=>{
       const ld=LOAD(p,ex.name)||ex.load||'—';
       h+=`<div class="exc"><div class="esvg">${SVG[ex.name]||'💪'}</div><div style="flex:1"><div class="enm">${ex.name}</div><div class="emu">${ex.muscles}</div></div><div class="elo"><div class="eset" style="color:${day.c}">${ex.sets}</div><div class="ekg">${ld}</div></div></div>`;
@@ -408,7 +770,6 @@ function renderSem(){
     h+=`<div style="text-align:center;padding:16px;font-size:28px">😴<div style="font-size:11px;color:#6B7280;margin-top:6px">Récupération — marche, étirements</div></div>`;
   }
   h+=`</div>`;
-
   if(ST.jshow&&canLog){
     const ex=j[`w${ST.week}-d${ST.day}`]||{};
     h+=`<div class="card" style="border-color:#3B82F640;margin-bottom:12px">
@@ -429,13 +790,11 @@ function renderSem(){
       <button style="flex:2;padding:11px;border-radius:10px;border:none;background:#3B82F6;color:#fff;font-size:13px;font-weight:700" onclick="saveJ()">Enregistrer ✓</button>
     </div></div>`;
   }
-
-  // Charges
   h+=`<div class="card"><div class="slbl">Charges S${ST.week}${p.decharge?' 🔄':p.vacances?' 🏖️':''}</div>`;
   if(p.vacances){
-    h+=`<div style="font-size:12px;color:#67E8F9;padding:10px;background:#0F2B2B;border-radius:9px;line-height:1.6">Pas de charges cette semaine — circuit poids du corps + Bréguières. La montée remplace la séance jambes 🏔️</div>`;
+    h+=`<div style="font-size:12px;color:#67E8F9;padding:10px;background:#0F2B2B;border-radius:9px">Pas de charges cette semaine — circuit poids du corps + Bréguières 🏔️</div>`;
   } else {
-    [{n:"Squat",v:p.squat,m:80,c:"#3B82F6"},{n:"Roumain",v:p.rdl,m:90,c:"#10B981"},{n:"Développé",v:p.bench,m:80,c:"#EF4444"},{n:"Curl barre",v:p.curl,m:50,c:"#F59E0B"},{n:"Rowing 1 bras",v:p.row,m:35,c:"#8B5CF6"},{n:"Leg curl",v:p.legCurl,m:50,c:"#06B6D4"},{n:"Tractions (ctrpoids↓)",v:p.tractions,m:40,c:"#EC4899",inv:true}].forEach(it=>{
+    [{n:"Squat",v:p.squat,m:80,c:"#3B82F6"},{n:"Roumain",v:p.rdl,m:90,c:"#10B981"},{n:"Développé",v:p.bench,m:80,c:"#EF4444"},{n:"Curl",v:p.curl,m:50,c:"#F59E0B"},{n:"Rowing",v:p.row,m:35,c:"#8B5CF6"},{n:"Leg curl",v:p.legCurl,m:50,c:"#06B6D4"},{n:"Tractions↓",v:p.tractions,m:40,c:"#EC4899",inv:true}].forEach(it=>{
       const pct=Math.min(it.inv?((40-it.v+25)/40)*100:(it.v/it.m)*100,100);
       h+=`<div class="pb-wrap"><div class="pb-lbl"><span style="font-size:10px;color:#9CA3AF">${it.n}</span><span style="font-size:10px;font-weight:700;color:${it.c}">${it.v} kg${it.inv?' ↓':''}</span></div><div class="pb-bg"><div class="pb-fill" style="width:${pct}%;background:${it.c}"></div></div></div>`;
     });
@@ -450,60 +809,13 @@ function setJI(k,v){ST.jinp[k]=v;}
 function setRes(r){ST.jinp.ressenti=r;renderSem();}
 function saveJ(){const j=S.get('journal')||{};j[`w${ST.week}-d${ST.day}`]={...ST.jinp,done:true};S.set('journal',j);ST.jshow=false;renderSem();}
 
-// ─── NUTRITION ────────────────────────────────────────────────────────────────
-function renderNut(){
-  const data=NUT[ST.nutDay];
-  const tk=data.meals.reduce((s,m)=>s+m.options[0].k,0);
-  const tp=data.meals.reduce((s,m)=>s+m.options[0].p,0);
-  let h=`<div class="pill-row">`;
-  [{k:'normal',l:'Semaine',e:'📅'},{k:'vendredi',l:'Vendredi',e:'🍫'},{k:'samedi',l:'Samedi',e:'🥖'}].forEach(o=>{
-    h+=`<button class="pill ${ST.nutDay===o.k?'act':''}" onclick="setND('${o.k}')"><div class="pe">${o.e}</div><div class="pl">${o.l}</div></button>`;
-  });
-  h+=`</div>`;
-  if(data.note)h+=`<div class="ybox">${data.note}</div>`;
-  h+=`<div style="display:flex;gap:7px;margin-bottom:14px">`;
-  [{lbl:'Calories',v:tk,u:'kcal',t:2400,c:'#F59E0B'},{lbl:'Protéines',v:tp,u:'g',t:165,c:'#3B82F6'}].forEach(m=>{
-    h+=`<div class="macbox"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">${m.lbl}</div><div class="mval" style="color:${m.c}">~${m.v}</div><div style="font-size:9px;color:#6B7280;margin-bottom:5px">${m.u} · cible ${m.t}</div><div class="pb-bg"><div class="pb-fill" style="width:${Math.min((m.v/m.t)*100,100)}%;background:${m.c}"></div></div></div>`;
-  });
-  h+=`</div>`;
-  data.meals.forEach((meal,mi)=>{
-    const op=ST.nutMeal===mi;
-    h+=`<div class="meal-card" style="${op?'border-color:#3B82F640':''}">
-      <div class="meal-hdr" onclick="setNM(${op?-1:mi})">
-        <span style="font-size:18px">${meal.emoji}</span>
-        <div style="flex:1"><div style="font-weight:700;font-size:13px">${meal.lbl}</div><div style="font-size:10px;color:#6B7280">${meal.time}</div></div>
-        <div style="text-align:right;margin-right:6px"><div style="font-size:11px;font-weight:700;color:#F59E0B">${meal.options[0].k} kcal</div><div style="font-size:10px;color:#3B82F6">${meal.options[0].p}g prot</div></div>
-        <span style="color:#6B7280;font-size:14px;display:inline-block;transform:${op?'rotate(180deg)':'none'}">▾</span>
-      </div>`;
-    if(op){
-      h+=`<div class="meal-body">`;
-      meal.options.forEach(opt=>{
-        h+=`<div class="meal-opt" style="${opt.cheat?'background:#1A0E0E':''}">
-          <div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:4px">
-            <div><div style="font-size:12px;font-weight:700;color:${opt.cheat?'#FCA5A5':'#F1F1F5'}">${opt.n}</div><div style="font-size:10px;color:#6B7280;margin-top:2px">${opt.d}</div></div>
-            <span class="tag" style="background:${opt.cheat?'#EF444422':'#10B98122'};color:${opt.cheat?'#EF4444':'#10B981'};border:1px solid ${opt.cheat?'#EF444440':'#10B98140'};white-space:nowrap">${opt.t}</span>
-          </div>
-          <span style="font-size:10px;font-weight:700;color:#F59E0B;background:#F59E0B18;padding:2px 6px;border-radius:4px">${opt.k} kcal</span>
-          <span style="font-size:10px;font-weight:700;color:#3B82F6;background:#3B82F618;padding:2px 6px;border-radius:4px;margin-left:4px">${opt.p}g prot</span>
-        </div>`;
-      });
-      h+=`</div>`;
-    }
-    h+=`</div>`;
-  });
-  h+=`<div class="gbox">💡 Cible : 165g prot/jour · 2 300–2 400 kcal · Si du mal à atteindre les protéines, rajoute un shaker whey.</div>`;
-  document.getElementById('t-nutrition').innerHTML=h;
-}
-function setND(d){ST.nutDay=d;ST.nutMeal=null;renderNut();}
-function setNM(i){ST.nutMeal=i<0?null:i;renderNut();}
-
 // ─── ÉCARTS ───────────────────────────────────────────────────────────────────
 function renderEc(){
   let h=`<div style="font-size:13px;color:#9CA3AF;margin-bottom:14px;line-height:1.5">T'as mangé un truc hors programme ? Sélectionne, je recalcule le reste de ta journée.</div>`;
   ECARTS.forEach(e=>{
     h+=`<button class="ebtn ${ST.ecSel?.id===e.id?'sel':''}" onclick="selEc('${e.id}')">
       <span style="font-size:22px">${e.emoji}</span>
-      <div style="flex:1"><div style="font-size:13px;font-weight:700;color:#F1F1F5">${e.lbl}</div><div style="font-size:10px;color:#6B7280">${e.reel||'~'+e.k+' kcal · '+e.p+'g prot'}</div></div>
+      <div style="flex:1"><div style="font-size:13px;font-weight:700;color:#F1F1F5">${e.lbl}</div><div style="font-size:10px;color:#6B7280">${e.reel}</div></div>
       ${ST.ecSel?.id===e.id?'<span style="color:#F59E0B;font-size:16px">✓</span>':''}
     </button>`;
   });
@@ -537,11 +849,10 @@ function renderTr(){
   const wl=S.get('wLog')||[];
   const il=S.get('iLog')||[];
   let h=`<div class="pill-row">`;
-  [{k:'poids',l:'Poids',e:'⚖️'},{k:'impedance',l:'Impédance',e:'📊'},{k:'gras',l:'Perte de gras',e:'🔥'}].forEach(t=>{
+  [{k:'poids',l:'Poids',e:'⚖️'},{k:'impedance',l:'Impédance',e:'📊'},{k:'gras',l:'Perte gras',e:'🔥'}].forEach(t=>{
     h+=`<button class="pill ${ST.trTab===t.k?'act':''}" onclick="setTT('${t.k}')"><div class="pe">${t.e}</div><div class="pl">${t.l}</div></button>`;
   });
   h+=`</div>`;
-
   if(ST.trTab==='poids'){
     const last=wl.length?wl[wl.length-1]:null;
     const first=wl.length>1?wl[0]:null;
@@ -574,7 +885,6 @@ function renderTr(){
       h+=`</div>`;
     }
     if(!wl.length){h+=`<div class="gbox">💡 Commence le monitoring dès le lundi 22 juin — pèse-toi le matin à jeun, après les toilettes, toujours dans les mêmes conditions.</div>`;}
-
   } else if(ST.trTab==='impedance'){
     const last=il.length?il[il.length-1]:null;
     if(last){
@@ -585,7 +895,7 @@ function renderTr(){
       h+=`</div></div>`;
     }
     h+=`<div class="card"><div style="font-size:11px;color:#F59E0B;font-weight:700;margin-bottom:10px">📖 Comment lire ta balance</div>`;
-    [{l:"Masse grasse %",i:"10–20%",d:"> 25% = surpoids",c:"#EF4444",t:"Fond en premier avec déficit calorique + course."},{l:"Masse musculaire %",i:"40–50%",d:"< 35% = masse maigre faible",c:"#3B82F6",t:"Doit rester stable ou augmenter. Si ça baisse → plus de protéines."},{l:"Hydratation %",i:"55–65%",d:"< 50% = déshydraté",c:"#06B6D4",t:"Mesure toujours à jeun le matin, sans sport la veille."},{l:"Masse osseuse",i:"3,5–4 kg",d:"< 3 kg = attention",c:"#F59E0B",t:"Augmente avec squat et deadlift."}].forEach(it=>{
+    [{l:"Masse grasse %",i:"10–20%",d:"> 25% = surpoids",c:"#EF4444",t:"Fond en premier avec déficit + course."},{l:"Masse musculaire %",i:"40–50%",d:"< 35% = masse maigre faible",c:"#3B82F6",t:"Doit rester stable. Si ça baisse → plus de protéines."},{l:"Hydratation %",i:"55–65%",d:"< 50% = déshydraté",c:"#06B6D4",t:"Mesure toujours à jeun le matin, sans sport la veille."},{l:"Masse osseuse",i:"3,5–4 kg",d:"< 3 kg = attention",c:"#F59E0B",t:"Augmente avec squat et deadlift."}].forEach(it=>{
       h+=`<div style="margin-bottom:10px;padding:10px;background:#14141F;border-radius:9px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:11px;font-weight:700;color:${it.c}">${it.l}</span><span style="font-size:10px;color:#10B981">${it.i}</span></div><div style="font-size:10px;color:#6B7280;margin-bottom:3px">${it.t}</div><div style="font-size:9px;color:#EF4444">⚠ ${it.d}</div></div>`;
     });
     h+=`</div>`;
@@ -613,74 +923,54 @@ function renderTr(){
         </svg>
         <div style="display:flex;gap:12px;margin-top:6px"><span style="font-size:9px;color:#EF4444">● Masse grasse</span><span style="font-size:9px;color:#3B82F6">● Masse musculaire</span></div></div>`;
     }
-    if(!il.length){h+=`<div class="gbox">💡 Commence la balance à impédance dès le 22 juin — note tout : masse grasse, masse musculaire, eau, os et IMC.</div>`;}
-
+    if(!il.length){h+=`<div class="gbox">💡 Commence la balance à impédance dès le 22 juin.</div>`;}
   } else {
-    // ONGLET PERTE DE GRAS
+    // PERTE DE GRAS
     const lastI=il.length?il[il.length-1]:null;
     const firstI=il.length>1?il[0]:null;
     const lastW=wl.length?wl[wl.length-1]:null;
     const firstW=wl.length>1?wl[0]:null;
-
-    // Calcul perte de gras estimée
     let grasDiff=null,muscDiff=null,poidsTotal=null;
     if(lastI&&firstI){
-      const mgKgStart=(parseFloat(firstI.mg)||0)/100*(parseFloat(firstI.p)||86);
-      const mgKgEnd=(parseFloat(lastI.mg)||0)/100*(parseFloat(lastI.p)||86);
-      grasDiff=(mgKgEnd-mgKgStart).toFixed(1);
-      const mmKgStart=(parseFloat(firstI.mm)||0)/100*(parseFloat(firstI.p)||86);
-      const mmKgEnd=(parseFloat(lastI.mm)||0)/100*(parseFloat(lastI.p)||86);
-      muscDiff=(mmKgEnd-mmKgStart).toFixed(1);
+      const mgKgS=(parseFloat(firstI.mg)||0)/100*(parseFloat(firstI.p)||86);
+      const mgKgE=(parseFloat(lastI.mg)||0)/100*(parseFloat(lastI.p)||86);
+      grasDiff=(mgKgE-mgKgS).toFixed(1);
+      const mmKgS=(parseFloat(firstI.mm)||0)/100*(parseFloat(firstI.p)||86);
+      const mmKgE=(parseFloat(lastI.mm)||0)/100*(parseFloat(lastI.p)||86);
+      muscDiff=(mmKgE-mmKgS).toFixed(1);
     }
     if(lastW&&firstW) poidsTotal=(lastW.p-firstW.p).toFixed(1);
-
-    const objectifGras=2; // kg de gras à perdre
-    const grasPct=grasDiff?Math.min(Math.abs(parseFloat(grasDiff))/objectifGras*100,100):0;
-
-    h+=`<div class="card" style="margin-bottom:12px">
+    const grasPct=grasDiff?Math.min(Math.abs(parseFloat(grasDiff))/2*100,100):0;
+    h+=`<div class="card">
       <div class="slbl">🔥 Indicateur perte de gras</div>
       <div style="text-align:center;margin-bottom:16px">
-        <div style="font-size:11px;color:#6B7280;margin-bottom:6px">Progression vers l'objectif</div>
-        <div style="position:relative;display:inline-block;width:120px;height:120px">
-          <svg viewBox="0 0 120 120" width="120" height="120">
-            <circle cx="60" cy="60" r="50" fill="none" stroke="#2D2D3F" stroke-width="12"/>
-            <circle cx="60" cy="60" r="50" fill="none" stroke="url(#grad)" stroke-width="12"
-              stroke-dasharray="${grasPct*3.14}" stroke-dashoffset="78.5" stroke-linecap="round"
-              transform="rotate(-90 60 60)"/>
-            <defs><linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" style="stop-color:#10B981"/><stop offset="100%" style="stop-color:#EF4444"/>
-            </linearGradient></defs>
-          </svg>
-          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center">
-            <div style="font-size:22px;font-weight:900;color:#F1F1F5">${grasPct.toFixed(0)}%</div>
-            <div style="font-size:9px;color:#6B7280">objectif</div>
-          </div>
-        </div>
+        <svg viewBox="0 0 120 120" width="120" height="120" style="display:block;margin:0 auto">
+          <circle cx="60" cy="60" r="50" fill="none" stroke="#2D2D3F" stroke-width="12"/>
+          <circle cx="60" cy="60" r="50" fill="none" stroke="url(#grad2)" stroke-width="12"
+            stroke-dasharray="${grasPct*3.14}" stroke-dashoffset="78.5" stroke-linecap="round"
+            transform="rotate(-90 60 60)"/>
+          <defs><linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:#10B981"/><stop offset="100%" style="stop-color:#EF4444"/>
+          </linearGradient></defs>
+          <text x="60" y="56" text-anchor="middle" fill="#F1F1F5" font-size="20" font-weight="900">${grasPct.toFixed(0)}%</text>
+          <text x="60" y="70" text-anchor="middle" fill="#6B7280" font-size="9">objectif</text>
+        </svg>
       </div>
       <div style="display:flex;gap:7px;margin-bottom:12px">
         <div class="sbox" style="border:1px solid #EF444430"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Gras perdu</div><div style="font-size:20px;font-weight:800;color:#EF4444">${grasDiff!==null?grasDiff:'—'}<span style="font-size:11px;color:#6B7280"> kg</span></div></div>
         <div class="sbox" style="border:1px solid #3B82F630"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Muscle gagné</div><div style="font-size:20px;font-weight:800;color:#3B82F6">${muscDiff!==null?(parseFloat(muscDiff)>=0?'+':'')+muscDiff:'—'}<span style="font-size:11px;color:#6B7280"> kg</span></div></div>
         <div class="sbox" style="border:1px solid #6B728030"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Poids total</div><div style="font-size:20px;font-weight:800;color:${poidsTotal===null?'#6B7280':parseFloat(poidsTotal)<0?'#10B981':'#EF4444'}">${poidsTotal!==null?(parseFloat(poidsTotal)<0?poidsTotal:'+'+poidsTotal):'—'}<span style="font-size:11px;color:#6B7280"> kg</span></div></div>
       </div>`;
-
     if(grasDiff!==null){
       h+=`<div style="padding:10px 12px;border-radius:9px;background:#14141F;font-size:11px;color:#D1D5DB;line-height:1.7">`;
-      if(parseFloat(grasDiff)<0 && parseFloat(muscDiff||0)>=0){
-        h+=`✅ <b style="color:#10B981">Recomposition en cours !</b> Tu perds du gras tout en maintenant ou gagnant du muscle. C'est exactement l'objectif.`;
-      } else if(parseFloat(grasDiff)<0){
-        h+=`📉 Tu perds du gras — bonne trajectoire. Surveille que la masse musculaire ne baisse pas trop.`;
-      } else if(parseFloat(grasDiff)===0){
-        h+=`⏳ Pas encore de variation significative. Continue — les premières semaines sont souvent silencieuses.`;
-      } else {
-        h+=`⚠️ La masse grasse n'a pas encore baissé. Vérifie ton déficit calorique et tes protéines.`;
-      }
+      if(parseFloat(grasDiff)<0&&parseFloat(muscDiff||0)>=0) h+=`✅ <b style="color:#10B981">Recomposition en cours !</b> Tu perds du gras tout en maintenant ou gagnant du muscle. C'est exactement l'objectif.`;
+      else if(parseFloat(grasDiff)<0) h+=`📉 Tu perds du gras — bonne trajectoire. Surveille que la masse musculaire ne baisse pas trop.`;
+      else h+=`⏳ Continue — les premières semaines sont souvent silencieuses.`;
       h+=`</div>`;
     } else {
-      h+=`<div class="gbox">💡 Commence tes mesures d'impédance le 22 juin pour voir l'évolution de ta composition corporelle ici. Le cercle se remplira au fur et à mesure.</div>`;
+      h+=`<div class="gbox">💡 Commence tes mesures d'impédance le 22 juin pour voir l'évolution ici.</div>`;
     }
     h+=`</div>`;
-
-    // Évolution masse grasse si données dispo
     if(il.length>1){
       const maxG=Math.max(...il.map(r=>parseFloat(r.mg)||0))+2,minG=Math.min(...il.map(r=>parseFloat(r.mg)||0))-2;
       const pG=il.map((r,idx)=>{const x=(idx/(il.length-1))*290+5,y=((maxG-(parseFloat(r.mg)||0))/(maxG-minG))*70+5;return x+','+y;}).join(' ');
@@ -689,11 +979,8 @@ function renderTr(){
           <polyline points="${pG}" fill="none" stroke="#EF4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
           ${il.map((r,idx)=>{const x=(idx/(il.length-1))*290+5,y=((maxG-(parseFloat(r.mg)||0))/(maxG-minG))*70+5;return`<circle cx="${x}" cy="${y}" r="4" fill="#EF4444" stroke="#0F0F1A" stroke-width="2"/><text x="${x}" y="${y-8}" fill="#9CA3AF" font-size="8" text-anchor="middle">${r.mg}%</text>`;}).join('')}
         </svg>
-        <div style="display:flex;justify-content:space-between;margin-top:4px">
-          <span style="font-size:9px;color:#4B5563">${il[0].d}</span>
-          <span style="font-size:9px;color:#EF4444">● Masse grasse</span>
-          <span style="font-size:9px;color:#4B5563">${il[il.length-1].d}</span>
-        </div></div>`;
+        <div style="display:flex;justify-content:space-between;margin-top:4px"><span style="font-size:9px;color:#4B5563">${il[0].d}</span><span style="font-size:9px;color:#EF4444">● Masse grasse</span><span style="font-size:9px;color:#4B5563">${il[il.length-1].d}</span></div>
+      </div>`;
     }
   }
   document.getElementById('t-tracker').innerHTML=h;
