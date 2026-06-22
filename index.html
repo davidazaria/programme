@@ -699,16 +699,22 @@ function renderNut(){
         <div style="font-size:11px;color:#6EE7B7;margin-bottom:10px">
           Reste à manger : <b>${reco.resteK} kcal</b> · <b>${reco.resteP}g prot</b>
         </div>`;
-      reco.nextSlots.forEach(s => {
+      reco.nextSlots.forEach(function(s){
         const slotInfo = MEAL_SLOTS[s];
         const recoItems = reco.recos[s] || [];
         if(recoItems.length === 0) return;
         let recoK=0, recoP=0;
-        recoItems.forEach(ri=>{ const m=calcMacros(ri.n,ri.qty); recoK+=m.k; recoP+=m.p; });
-        h += `<div class="reco-item">
-          <b>${slotInfo.emoji} ${slotInfo.lbl}</b> — ${Math.round(recoK)} kcal · ${Math.round(recoP)}g prot<br>
-          <span style="color:#A7F3D0">${recoItems.map(ri=>`${ALIMENTS[ri.n]?.emoji||'🍽️'} ${ri.n} (${ri.qty}g)`).join(' · ')}</span>
-        </div>`;
+        recoItems.forEach(function(ri){ const m=calcMacros(ri.n,ri.qty); recoK+=m.k; recoP+=m.p; });
+        let recoItemsStr = '';
+        recoItems.forEach(function(ri){
+          const a = ALIMENTS[ri.n];
+          if(recoItemsStr) recoItemsStr += ' · ';
+          recoItemsStr += (a&&a.emoji?a.emoji:'🍽️') + ' ' + ri.n + ' (' + ri.qty + 'g)';
+        });
+        h += '<div class="reco-item">';
+        h += '<b>' + slotInfo.emoji + ' ' + slotInfo.lbl + '</b> — ' + Math.round(recoK) + ' kcal · ' + Math.round(recoP) + 'g prot<br>';
+        h += '<span style="color:#A7F3D0">' + recoItemsStr + '</span>';
+        h += '</div>';
       });
       h += `<div style="display:flex;gap:8px;margin-top:10px">
         <button onclick="applyReco('${ST.nutSlot}')" class="btn-g" style="flex:2">Appliquer ce plan ✓</button>
@@ -1170,21 +1176,22 @@ function renderJournal(){
   // Résumé hebdo si assez de données
   if(days.length >= 3){
     const last7 = days.slice(0,7);
-    const avgK = Math.round(last7.reduce((s,d)=>s+d.totalK,0)/last7.length);
-    const avgP = Math.round(last7.reduce((s,d)=>s+d.totalP,0)/last7.length);
-    h += `<div class="card" style="margin-bottom:12px">
-      <div class="slbl">📊 Moyenne (${last7.length} derniers jours)</div>
-      <div style="display:flex;gap:7px">
-        <div class="sbox"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Calories moy.</div>
-          <div style="font-size:20px;font-weight:800;color:#F59E0B">${avgK}<span style="font-size:11px;color:#6B7280"> kcal</span></div>
-          <div style="font-size:9px;color:${avgK>2400?'#EF4444':'#10B981'}">${avgK>2400?'⚠ au-dessus':'✓ dans l'objectif'}</div>
-        </div>
-        <div class="sbox"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Protéines moy.</div>
-          <div style="font-size:20px;font-weight:800;color:#3B82F6">${avgP}g</div>
-          <div style="font-size:9px;color:${avgP<165?'#F59E0B':'#10B981'}">${avgP<165?'↗ vise 165g':'✓ objectif atteint'}</div>
-        </div>
-      </div>
-    </div>`;
+    const avgK = Math.round(last7.reduce(function(s,d){return s+d.totalK;},0)/last7.length);
+    const avgP = Math.round(last7.reduce(function(s,d){return s+d.totalP;},0)/last7.length);
+    const avgKColor = avgK>2400?'#EF4444':'#10B981';
+    const avgPColor = avgP<165?'#F59E0B':'#10B981';
+    const avgKTxt = avgK>2400?'⚠ au-dessus':'✓ dans l'objectif';
+    const avgPTxt = avgP<165?'↗ vise 165g':'✓ objectif atteint';
+    h += '<div class="card" style="margin-bottom:12px">';
+    h += '<div class="slbl">📊 Moyenne (' + last7.length + ' derniers jours)</div>';
+    h += '<div style="display:flex;gap:7px">';
+    h += '<div class="sbox"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Calories moy.</div>';
+    h += '<div style="font-size:20px;font-weight:800;color:#F59E0B">' + avgK + '<span style="font-size:11px;color:#6B7280"> kcal</span></div>';
+    h += '<div style="font-size:9px;color:' + avgKColor + '">' + avgKTxt + '</div></div>';
+    h += '<div class="sbox"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Protéines moy.</div>';
+    h += '<div style="font-size:20px;font-weight:800;color:#3B82F6">' + avgP + 'g</div>';
+    h += '<div style="font-size:9px;color:' + avgPColor + '">' + avgPTxt + '</div></div>';
+    h += '</div></div>';
   }
 
   // Rappel dimanche 22h
@@ -1196,39 +1203,38 @@ function renderJournal(){
   }
 
   // Liste des journées
-  days.forEach(day => {
+  days.forEach(function(day){
     const date = new Date(day.date);
     const dateStr = date.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'});
     const kPct = Math.min((day.totalK/2400)*100,100);
     const pPct = Math.min((day.totalP/165)*100,100);
     const kColor = day.totalK > 2500 ? '#EF4444' : day.totalK < 2000 ? '#F59E0B' : '#10B981';
     const pColor = day.totalP < 140 ? '#F59E0B' : '#10B981';
+    const mealsDetail = renderDayMeals(day);
 
-    h += `<div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
-        <div>
-          <div style="font-weight:800;font-size:14px;color:#F1F1F5;text-transform:capitalize">${dateStr}</div>
-          <div style="font-size:10px;color:#6B7280">Enregistré à ${day.savedAt||'—'}</div>
-        </div>
-        <div style="display:flex;gap:6px">
-          <button onclick="loadDay('${day.date}')" style="padding:5px 8px;border-radius:7px;border:none;background:#1E3A5F;color:#93C5FD;font-size:10px;font-weight:700">Recharger</button>
-          <button onclick="deleteDay('${day.date}')" style="padding:5px 8px;border-radius:7px;border:none;background:#3A1A1A;color:#EF4444;font-size:10px;font-weight:700">✕</button>
-        </div>
-      </div>
-      <div style="display:flex;gap:7px;margin-bottom:10px">
-        <div style="flex:1;background:#14141F;border-radius:9px;padding:9px;border:1px solid ${kColor}30">
-          <div style="font-size:9px;color:#6B7280;margin-bottom:2px">Calories</div>
-          <div style="font-size:18px;font-weight:800;color:${kColor}">${day.totalK}</div>
-          <div class="pb-bg" style="margin-top:4px"><div class="pb-fill" style="width:${kPct}%;background:${kColor}"></div></div>
-        </div>
-        <div style="flex:1;background:#14141F;border-radius:9px;padding:9px;border:1px solid ${pColor}30">
-          <div style="font-size:9px;color:#6B7280;margin-bottom:2px">Protéines</div>
-          <div style="font-size:18px;font-weight:800;color:${pColor}">${day.totalP}g</div>
-          <div class="pb-bg" style="margin-top:4px"><div class="pb-fill" style="width:${pPct}%;background:${pColor}"></div></div>
-        </div>
-      </div>
-      ${renderDayMeals(day)}
-    </div>`;
+    h += '<div class="card">';
+    h += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">';
+    h += '<div>';
+    h += '<div style="font-weight:800;font-size:14px;color:#F1F1F5;text-transform:capitalize">' + dateStr + '</div>';
+    h += '<div style="font-size:10px;color:#6B7280">Enregistré à ' + (day.savedAt||'—') + '</div>';
+    h += '</div>';
+    h += '<div style="display:flex;gap:6px">';
+    h += '<button onclick="loadDay('' + day.date + '')" style="padding:5px 8px;border-radius:7px;border:none;background:#1E3A5F;color:#93C5FD;font-size:10px;font-weight:700">Recharger</button>';
+    h += '<button onclick="deleteDay('' + day.date + '')" style="padding:5px 8px;border-radius:7px;border:none;background:#3A1A1A;color:#EF4444;font-size:10px;font-weight:700">✕</button>';
+    h += '</div></div>';
+    h += '<div style="display:flex;gap:7px;margin-bottom:10px">';
+    h += '<div style="flex:1;background:#14141F;border-radius:9px;padding:9px;border:1px solid ' + kColor + '30">';
+    h += '<div style="font-size:9px;color:#6B7280;margin-bottom:2px">Calories</div>';
+    h += '<div style="font-size:18px;font-weight:800;color:' + kColor + '">' + day.totalK + '</div>';
+    h += '<div class="pb-bg" style="margin-top:4px"><div class="pb-fill" style="width:' + kPct + '%;background:' + kColor + '"></div></div>';
+    h += '</div>';
+    h += '<div style="flex:1;background:#14141F;border-radius:9px;padding:9px;border:1px solid ' + pColor + '30">';
+    h += '<div style="font-size:9px;color:#6B7280;margin-bottom:2px">Protéines</div>';
+    h += '<div style="font-size:18px;font-weight:800;color:' + pColor + '">' + day.totalP + 'g</div>';
+    h += '<div class="pb-bg" style="margin-top:4px"><div class="pb-fill" style="width:' + pPct + '%;background:' + pColor + '"></div></div>';
+    h += '</div></div>';
+    h += mealsDetail;
+    h += '</div>';
   });
 
   document.getElementById('t-journal').innerHTML = h;
@@ -1239,22 +1245,26 @@ function renderDayMeals(day){
   const slots = {pdj:'☀️ Petit déj', dej:'🍽️ Déjeuner', snack:'💪 Snack', diner:'🌙 Dîner'};
   let h = '<div style="border-top:1px solid #2D2D3F;padding-top:8px">';
   let hasAny = false;
-  Object.entries(slots).forEach(([id, lbl])=>{
+  Object.entries(slots).forEach(function(entry){
+    const id = entry[0], lbl = entry[1];
     const sel = day.selections[id]||{};
     const manual = (day.manual||{})[id]||[];
-    const items = [...Object.entries(sel).map(([n,q])=>({n,q})), ...manual.map(m=>({n:m.n,q:m.qty}))];
+    const items = [];
+    Object.entries(sel).forEach(function(e){ items.push({n:e[0],q:e[1]}); });
+    manual.forEach(function(m){ items.push({n:m.n,q:m.qty}); });
     if(items.length === 0) return;
     hasAny = true;
-    h += `<div style="margin-bottom:6px">
-      <div style="font-size:10px;font-weight:700;color:#9CA3AF;margin-bottom:3px">${lbl}</div>
-      <div style="font-size:11px;color:#6B7280;line-height:1.6">
-        ${items.map(i => {
-          const a = ALIMENTS[i.n];
-          const m = calcMacros(i.n, i.q);
-          return `${a?.emoji||'🍽️'} ${i.n} ${i.q}g <span style="color:#4B5563">(${m.k}kcal)</span>`;
-        }).join(' · ')}
-      </div>
-    </div>`;
+    let itemsHtml = '';
+    items.forEach(function(i){
+      const a = ALIMENTS[i.n];
+      const m = calcMacros(i.n, i.q);
+      if(itemsHtml) itemsHtml += ' · ';
+      itemsHtml += (a&&a.emoji?a.emoji:'🍽️') + ' ' + i.n + ' ' + i.q + 'g <span style="color:#4B5563">(' + m.k + 'kcal)</span>';
+    });
+    h += '<div style="margin-bottom:6px">';
+    h += '<div style="font-size:10px;font-weight:700;color:#9CA3AF;margin-bottom:3px">' + lbl + '</div>';
+    h += '<div style="font-size:11px;color:#6B7280;line-height:1.6">' + itemsHtml + '</div>';
+    h += '</div>';
   });
   h += '</div>';
   return hasAny ? h : '';
