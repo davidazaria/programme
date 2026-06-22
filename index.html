@@ -209,14 +209,23 @@ const ALIMENTS = {
   "Pêche/Nectarine":            {k:42, p:1,  g:10, l:0.3, emoji:"🍑", cat:"Fruits"},
   "Amandes":                    {k:579,p:21, g:22, l:50,  emoji:"🌰", cat:"Oléagineux"},
   "Noix de cajou":              {k:553,p:18, g:30, l:44,  emoji:"🌰", cat:"Oléagineux"},
+  "Figues (fraîches)":          {k:74, p:0.7,g:19, l:0.3, emoji:"🍑", cat:"Fruits"},
+  "Compote de pommes":          {k:47, p:0.2,g:11, l:0.1, emoji:"🍎", cat:"Fruits", note:"sans sucre ajouté"},
+  "Avocat":                     {k:160,p:2,  g:9,  l:15,  emoji:"🥑", cat:"Légumes"},
+  "Guacamole":                  {k:150,p:2,  g:8,  l:13,  emoji:"🥑", cat:"Légumes", note:"maison ~100g"},
+  "Mozzarella":                 {k:280,p:18, g:2.2,l:22,  emoji:"🧀", cat:"Laitiers"},
+  "Challah (pain de chabbat)":  {k:320,p:9,  g:54, l:6,   emoji:"🍞", cat:"Féculents"},
+  "Saumon fumé":                {k:142,p:20, g:0,  l:7,   emoji:"🐟", cat:"Protéines"},
+  "Café latte (200ml)":         {k:80, p:4,  g:8,  l:3,   emoji:"☕", cat:"Boissons", note:"200ml lait demi-écrémé"},
   "Fondant au chocolat":        {k:380,p:6,  g:42, l:22,  emoji:"🍫", cat:"Plaisir", note:"par pièce (~100g)"},
-  "Chocolat 85% (carré)":       {k:30, p:0.4,g:1.5,l:2.5, emoji:"🍫", cat:"Plaisir", note:"par carré (~5g)"},
+  "Chocolat 85% (carré)":       {k:29, p:0.6,g:1.1,l:2.3, emoji:"🍫", cat:"Plaisir", note:"par carré (~5g)"},
+  "Chocolat 85% (100g)":        {k:584,p:12.5,g:22,l:46,  emoji:"🍫", cat:"Plaisir", note:"tablette 100g"},
   "California roll (pièce)":    {k:47, p:1.3,g:7.3,l:1.2, emoji:"🍣", cat:"Plaisir", note:"par pièce"},
   "Navette au thon":            {k:210,p:12, g:22, l:8,   emoji:"🥖", cat:"Plaisir", note:"par pièce"},
 };
 
 // Catégories dans l'ordre d'affichage
-const ALIMENT_CATS = ["Protéines","Laitiers","Féculents","Légumes","Fruits","Oléagineux","Plaisir"];
+const ALIMENT_CATS = ["Protéines","Laitiers","Féculents","Légumes","Fruits","Oléagineux","Boissons","Plaisir"];
 
 // ─── REPAS PRÉDÉFINIS PAR SLOT ────────────────────────────────────────────────
 const MEAL_SLOTS = {
@@ -259,6 +268,23 @@ const MEAL_SLOTS = {
       {n:"Mangue",               qty:150, unite:"g"},
       {n:"Pastèque",             qty:300, unite:"g"},
       {n:"Raisin",               qty:150, unite:"g"},
+    ]
+  },
+  gouter: {
+    lbl:"Goûter", emoji:"🍎", time:"16h–17h",
+    items:[
+      {n:"Pomme",           qty:150, unite:"g"},
+      {n:"Poire",           qty:150, unite:"g"},
+      {n:"Banane",          qty:120, unite:"g"},
+      {n:"Cerises",         qty:150, unite:"g"},
+      {n:"Kiwi",            qty:80,  unite:"g"},
+      {n:"Fruits rouges (mix)", qty:100, unite:"g"},
+      {n:"Yaourt nature",   qty:125, unite:"g"},
+      {n:"Skyr",            qty:150, unite:"g"},
+      {n:"Amandes",         qty:20,  unite:"g"},
+      {n:"Chocolat 85% (carré)", qty:20, unite:"g"},
+      {n:"Fromage blanc 0%",qty:150, unite:"g"},
+      {n:"Cottage cheese",  qty:100, unite:"g"},
     ]
   },
   snack: {
@@ -304,8 +330,8 @@ const MEAL_SLOTS = {
 };
 
 // ─── CIBLES JOURNALIÈRES ─────────────────────────────────────────────────────
-const TARGET_KCAL = 2400;
 const TARGET_PROT = 165;
+function getTargetKcal(){ return ST.isSportDay ? 2400 : 2200; }
 
 // ─── DONNÉES PROGRAMME ────────────────────────────────────────────────────────
 const WKL=["Lun. 22 juin","Lun. 29 juin","Lun. 6 juil","Lun. 13 juil","Lun. 20 juil","Lun. 27 juil","Lun. 3 août 🏖️","Lun. 10 août 🏖️","Lun. 17 août 🏖️","Lun. 24 août 🏖️"];
@@ -313,7 +339,7 @@ const isDech=w=>w===4;
 const isVac=w=>w>=7;
 const PROGS=Array.from({length:10},(_,i)=>{
   const w=i+1,d=isDech(w),v=isVac(w),b=x=>d?Math.round(x*.85/2.5)*2.5:x;
-  return{week:w,squat:b(50+Math.floor(i/2)*5),rdl:b(55+Math.floor(i/2)*5),bench:b(60+Math.floor(i/2)*2.5),row:b(22+Math.floor(i/2)*2),curl:b(30+Math.floor(i/2)*2.5),legCurl:b(30+Math.floor(i/2)*2.5),tractions:d?Math.round((40-Math.floor(i/2)*2.5)*1.15/2.5)*2.5:40-Math.floor(i/2)*2.5,
+  return{week:w,squat:b(50+Math.floor(i/2)*5),rdl:b(55+Math.floor(i/2)*5),bench:b(60+Math.floor(i/2)*2.5),row:b(22+Math.floor(i/2)*2),curl:b(30+Math.floor(i/2)*2.5),legCurl:b(30+Math.floor(i/2)*2.5),tractions:d?Math.round((50-Math.floor(i/2)*2.5)*1.15/2.5)*2.5:50-Math.floor(i/2)*2.5,
   focus:d?"🔄 Décharge — charges −15%":v?"🏖️ Vacances — 2× Bréguières + 2× circuit 30 min":i<3?"Technique + prise de repères":i<6?"Progression charges":"Intensification",
   date:WKL[i],decharge:d,vacances:v};
 });
@@ -331,7 +357,7 @@ const WEEK=[
     {name:"Soulevé de terre roumain",sets:"3×8",load:"55 kg",muscles:"Ischio · Fessiers · Dos",desc:"Haltères devant cuisses, penche le buste dos plat jusqu'à mi-tibia. Reviens en contractant les fessiers."},
     {name:"Rowing 1 bras",sets:"3×10",load:"22 kg",muscles:"Dorsal · Rhomboïdes",desc:"Un genou et une main sur le banc, dos horizontal. Tire l'haltère vers la hanche, coude près du corps."},
     {name:"Leg curl machine",sets:"3×12",load:"30 kg",muscles:"Ischio-jambiers",desc:"Allongé sur le ventre. Fléchis les genoux pour ramener le coussin vers les fesses. Contrôle la descente."},
-    {name:"Tractions assistées",sets:"3×8",load:"contrepoids 40 kg",muscles:"Dorsal · Biceps",desc:"Contrepoids = plus il est lourd, plus c'est facile. Barre large, amène le menton au-dessus de la barre."},
+    {name:"Tractions assistées",sets:"3×8",load:"contrepoids 50 kg",muscles:"Dorsal · Biceps",desc:"Contrepoids = plus il est lourd, plus c'est facile. Barre large, amène le menton au-dessus de la barre."},
   ]},
   {day:"Mar",fullDay:"Mardi",type:"repos",tag:"Repos",c:"#374151",emoji:"😴",exercises:[]},
   {day:"Mer",fullDay:"Mercredi",type:"repos",tag:"Repos",c:"#374151",emoji:"😴",exercises:[]},
@@ -391,48 +417,36 @@ const ECARTS=[
 
 const SEANCES={
   A:[
-    {sup:"A — BARRE",c:"#3B82F6",pairs:[
-      {name:"Squat barre",sets:"4×8",load:"50 kg",muscles:"Quadriceps · Fessiers · Ischio",desc:"Barre sur les trapèzes, pieds largeur épaules. Descends dos droit, genoux dans l'axe. Pousse dans le sol pour remonter."},
-      {name:"Curl barre",sets:"4×10",load:"30 kg",muscles:"Biceps · Avant-bras",desc:"Prise supination, paumes vers le haut. Fléchis les coudes, coudes collés au corps. Redescends lentement."},
-    ]},
-    {sup:"B — HALTÈRE",c:"#10B981",pairs:[
-      {name:"Soulevé de terre roumain",sets:"3×8",load:"55 kg",muscles:"Ischio-jambiers · Fessiers · Dos",desc:"Haltères devant cuisses, penche le buste dos plat jusqu'à mi-tibia. Reviens en contractant les fessiers."},
-      {name:"Rowing 1 bras",sets:"3×10",load:"22 kg",muscles:"Grand dorsal · Rhomboïdes · Biceps",desc:"Un genou et une main sur le banc, dos horizontal. Tire l'haltère vers la hanche, coude près du corps."},
-    ]},
-    {sup:"C — MACHINE",c:"#8B5CF6",pairs:[
-      {name:"Leg curl machine",sets:"3×12",load:"30 kg",muscles:"Ischio-jambiers",desc:"Allongé sur le ventre. Fléchis les genoux pour ramener le coussin vers les fesses. Contrôle la descente, amplitude complète."},
-      {name:"Tractions assistées",sets:"3×8",load:"contrepoids 40 kg",muscles:"Grand dorsal · Biceps · Épaules",desc:"Contrepoids = plus il est lourd, plus c'est facile. Barre large, amène le menton au-dessus de la barre."},
-    ]},
+    {name:"Squat barre",        sets:"4×8", load:"50 kg", rest:"2 min", c:"#3B82F6", muscles:"Quadriceps · Fessiers · Ischio", desc:"Barre sur les trapèzes, pieds largeur épaules. Descends dos droit, genoux dans l'axe des orteils. Pousse dans le sol pour remonter. C'est le roi des exercices — concentre-toi sur la technique."},
+    {name:"Soulevé de terre roumain", sets:"3×8", load:"55 kg", rest:"2 min", c:"#10B981", muscles:"Ischio-jambiers · Fessiers · Bas du dos", desc:"Haltères devant les cuisses, penche le buste dos plat jusqu'à mi-tibia. Sens l'étirement dans les ischio. Reviens en contractant les fessiers."},
+    {name:"Leg curl machine",   sets:"3×12", load:"30 kg", rest:"90 sec", c:"#8B5CF6", muscles:"Ischio-jambiers", desc:"Allongé sur le ventre. Fléchis les genoux pour ramener le coussin vers les fesses. Contrôle la descente, amplitude complète."},
+    {name:"Tractions assistées", sets:"3×8", load:"contrepoids 50 kg", rest:"2 min", c:"#06B6D4", muscles:"Grand dorsal · Biceps · Épaules", desc:"Règle le contrepoids (plus il est lourd, plus c'est facile). Barre large, paumes vers l'avant, amène le menton au-dessus de la barre. Descends lentement."},
+    {name:"Rowing 1 bras",      sets:"3×10", load:"22 kg", rest:"90 sec", c:"#10B981", muscles:"Grand dorsal · Rhomboïdes · Biceps", desc:"Un genou et une main sur le banc, dos horizontal. Tire l'haltère vers la hanche, coude près du corps. Contrôle la descente."},
+    {name:"Curl barre",         sets:"4×10", load:"30 kg", rest:"90 sec", c:"#F59E0B", muscles:"Biceps · Avant-bras", desc:"Debout, prise supination (paumes vers le haut). Fléchis les coudes vers les épaules, coudes collés au corps. Redescends lentement."},
   ],
   B:[
-    {sup:"A — BARRE",c:"#EF4444",pairs:[
-      {name:"Développé couché",sets:"4×8",load:"60 kg",muscles:"Pectoraux · Triceps · Épaules",desc:"Allongé sur le banc, pieds au sol. Descends la barre jusqu'à effleurer la poitrine, pousse en soufflant."},
-      {name:"Rowing barre penché",sets:"4×10",load:"50 kg",muscles:"Grand dorsal · Trapèzes · Biceps",desc:"Buste penché à 45°, dos plat, prise pronation. Tire la barre vers le nombril. Genoux légèrement fléchis."},
-    ]},
-    {sup:"B — HALTÈRE",c:"#F59E0B",pairs:[
-      {name:"Développé incliné haltères",sets:"3×10",load:"20 kg/main",muscles:"Pectoraux hauts · Épaules · Triceps",desc:"Banc incliné 30–45°. Pousse les deux haltères vers le haut et légèrement vers l'intérieur."},
-      {name:"Pullover haltère",sets:"3×12",load:"40 kg",muscles:"Grand dorsal · Grand pectoral",desc:"Allongé perpendiculairement sur un banc, épaules sur le banc. Descends l'haltère derrière la tête, reviens."},
-    ]},
-    {sup:"C — POIDS DE CORPS",c:"#6B7280",pairs:[
-      {name:"Dips",sets:"3×max",load:"poids de corps",muscles:"Triceps · Pectoraux bas · Épaules",desc:"Barres parallèles, bras tendus. Descends jusqu'à ~90° aux coudes. Buste légèrement penché vers l'avant."},
-      {name:"Planche",sets:"3×45s",load:"—",muscles:"Abdominaux · Transverse · Gainage",desc:"Appui avant-bras et orteils, corps en ligne droite. Contracte abdos, fessiers et cuisses. Respire normalement."},
-    ]},
+    {name:"Développé couché",   sets:"4×8", load:"60 kg", rest:"2 min", c:"#EF4444", muscles:"Pectoraux · Triceps · Épaules avant", desc:"Allongé sur le banc, pieds au sol. Descends la barre jusqu'à effleurer la poitrine, pousse en soufflant. Omoplates serrées, dos légèrement arqué."},
+    {name:"Développé incliné haltères", sets:"3×10", load:"20 kg/main", rest:"90 sec", c:"#F59E0B", muscles:"Pectoraux hauts · Épaules · Triceps", desc:"Banc incliné 30–45°. Pousse les deux haltères vers le haut et légèrement vers l'intérieur. Redescends sous contrôle."},
+    {name:"Dips",               sets:"3×max", load:"poids de corps", rest:"90 sec", c:"#6B7280", muscles:"Triceps · Pectoraux bas · Épaules", desc:"Barres parallèles, bras tendus. Descends jusqu'à ~90° aux coudes. Buste légèrement penché vers l'avant pour cibler les pectoraux."},
+    {name:"Rowing barre penché", sets:"4×10", load:"50 kg", rest:"2 min", c:"#EF4444", muscles:"Grand dorsal · Trapèzes · Biceps", desc:"Buste penché à 45°, dos plat, prise pronation (paumes vers le bas). Tire la barre vers le nombril. Redescends lentement. Genoux légèrement fléchis."},
+    {name:"Pullover haltère",   sets:"3×12", load:"40 kg", rest:"90 sec", c:"#F59E0B", muscles:"Grand dorsal · Grand pectoral · Grand dentelé", desc:"Allongé perpendiculairement sur un banc, épaules sur le banc. Haltère à deux mains au-dessus de la poitrine. Descends lentement derrière la tête en inspirant, reviens."},
+    {name:"Planche",            sets:"3×45s", load:"—", rest:"60 sec", c:"#6B7280", muscles:"Abdominaux · Transverse · Gainage global", desc:"Appui avant-bras et orteils, corps en ligne droite de la tête aux talons. Contracte les abdos, les fessiers et les cuisses. Respire normalement."},
   ],
   V:[
-    {sup:"CIRCUIT A — SOL",c:"#10B981",pairs:[
-      {name:"Pompes",sets:"4×max",load:"poids corps",muscles:"Pectoraux · Triceps · Épaules",desc:"Corps droit, mains largeur épaules. Descends la poitrine vers le sol, remonte en soufflant."},
-      {name:"Squats sautés",sets:"4×15",load:"poids corps",muscles:"Quadriceps · Fessiers · Cardio",desc:"Fais un squat, saute vers le haut en tendant les bras. Atterris en douceur et enchaîne."},
-    ]},
-    {sup:"CIRCUIT B — FONCTIONNEL",c:"#F59E0B",pairs:[
-      {name:"Fentes marchées",sets:"3×12",load:"poids corps",muscles:"Quadriceps · Fessiers · Équilibre",desc:"Grandes enjambées, genou avant à 90°, genou arrière qui frôle le sol. Alterne les jambes."},
-      {name:"Planche",sets:"3×60s",load:"—",muscles:"Abdos · Transverse · Gainage global",desc:"Appui avant-bras et orteils, corps en ligne droite. Contracte tout et respire normalement."},
-    ]},
+    {name:"Pompes",             sets:"4×max", load:"poids corps", rest:"90 sec", c:"#10B981", muscles:"Pectoraux · Triceps · Épaules", desc:"Corps droit, mains largeur épaules. Descends la poitrine vers le sol, remonte en soufflant. Si trop facile : pieds surélevés sur une chaise."},
+    {name:"Dips chaise",        sets:"3×max", load:"poids corps", rest:"90 sec", c:"#F59E0B", muscles:"Triceps · Pectoraux bas", desc:"Mains sur le bord d'une chaise derrière toi, jambes tendues. Descends jusqu'à 90° aux coudes, remonte en poussant."},
+    {name:"Tractions serviette", sets:"3×max", load:"poids corps", rest:"2 min", c:"#06B6D4", muscles:"Grand dorsal · Biceps", desc:"Passe une serviette sur une porte ouverte, tiens les deux bouts. Penche-toi en arrière bras tendus, tire le buste vers la porte."},
+    {name:"Squats sautés",      sets:"4×15", load:"poids corps", rest:"90 sec", c:"#EF4444", muscles:"Quadriceps · Fessiers · Cardio", desc:"Fais un squat, saute vers le haut en tendant les bras. Atterris en douceur et enchaîne directement."},
+    {name:"Fentes marchées",    sets:"3×12", load:"poids corps", rest:"90 sec", c:"#F59E0B", muscles:"Quadriceps · Fessiers · Équilibre", desc:"Grandes enjambées, genou avant à 90°, genou arrière qui frôle le sol. Alterne les jambes en marchant. Buste droit."},
+    {name:"Planche",            sets:"3×60s", load:"—", rest:"60 sec", c:"#6B7280", muscles:"Abdos · Transverse · Gainage global", desc:"Appui avant-bras et orteils, corps en ligne droite. Contracte tout et respire normalement."},
   ],
 };
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
 let ST={
   week:1, day:0, jshow:false, jinp:{},
+  isSportDay: true,
+  show24h: false,
   nutSlot: 'pdj',
   nutSelections: {},
   nutManual: {},            // {pdj:[{n,qty}], ...} aliments ajoutés manuellement
@@ -481,7 +495,7 @@ function getSlotTotals(slotId){
 
 function getDayTotals(){
   let tk=0, tp=0;
-  ['pdj','dej','snack','diner'].forEach(s=>{
+  ['pdj','dej','gouter','snack','diner'].forEach(s=>{
     const t = getSlotTotals(s);
     tk += t.k; tp += t.p;
   });
@@ -490,7 +504,7 @@ function getDayTotals(){
 
 function genReco(slotId){
   // Calcule ce qui reste à manger après ce slot
-  const slots = ['pdj','dej','snack','diner'];
+  const slots = ['pdj','dej','gouter','snack','diner'];
   const idx = slots.indexOf(slotId);
   // Totaux déjà mangés (slots précédents + ce slot)
   let doneK=0, doneP=0;
@@ -498,7 +512,7 @@ function genReco(slotId){
     const t = getSlotTotals(slots[i]);
     doneK += t.k; doneP += t.p;
   }
-  const resteK = Math.max(0, TARGET_KCAL - doneK);
+  const resteK = Math.max(0, getTargetKcal() - doneK);
   const resteP = Math.max(0, TARGET_PROT - doneP);
   const nextSlots = slots.slice(idx+1);
 
@@ -553,17 +567,47 @@ function genReco(slotId){
 // ─── NUTRITION RENDER ─────────────────────────────────────────────────────────
 function renderNut(){
   const dayT = getDayTotals();
-  const kPct = Math.min((dayT.k/TARGET_KCAL)*100, 100);
+  const kPct = Math.min((dayT.k/getTargetKcal())*100, 100);
   const pPct = Math.min((dayT.p/TARGET_PROT)*100, 100);
 
   let h = ``;
+
+  // Toggle sport/repos
+  h += `<div style="display:flex;gap:8px;margin-bottom:12px">
+    <button onclick="ST.isSportDay=true;renderNut()" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid ${ST.isSportDay?'#3B82F6':'#2D2D3F'};background:${ST.isSportDay?'#1E3A5F':'#1E1E2E'};color:${ST.isSportDay?'#93C5FD':'#6B7280'};font-size:12px;font-weight:700">
+      🏋️ Jour de sport<div style="font-size:9px;margin-top:2px">2 400 kcal</div>
+    </button>
+    <button onclick="ST.isSportDay=false;renderNut()" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid ${!ST.isSportDay?'#10B981':'#2D2D3F'};background:${!ST.isSportDay?'#0F2B1F':'#1E1E2E'};color:${!ST.isSportDay?'#6EE7B7':'#6B7280'};font-size:12px;font-weight:700">
+      😴 Jour de repos<div style="font-size:9px;margin-top:2px">2 200 kcal</div>
+    </button>
+  </div>`;
+
+  // Alerte 18h protéines
+  const nowH = new Date().getHours();
+  if(nowH >= 17 && nowH < 20){
+    const protMissing = Math.max(0, TARGET_PROT - dayT.p);
+    if(protMissing > 20){
+      h += `<div style="padding:10px 12px;border-radius:10px;margin-bottom:12px;background:#2D1F00;border:1px solid #F59E0B50;font-size:11px;color:#FCD34D;line-height:1.6">
+        ⏰ <b>Rappel 18h</b> — Il te manque encore <b>${protMissing.toFixed(0)}g de protéines</b> aujourd'hui.<br>
+        💡 Solution rapide : ${protMissing > 40 ? 'shaker whey 30g + skyr 150g = 37g prot' : protMissing > 25 ? 'shaker whey 30g = 24g prot' : 'skyr 150g ou 2 œufs = 16g prot'}
+      </div>`;
+    } else if(protMissing <= 20 && protMissing > 0){
+      h += `<div style="padding:10px 12px;border-radius:10px;margin-bottom:12px;background:#0F2B1F;border:1px solid #10B98150;font-size:11px;color:#6EE7B7">
+        ✅ <b>Rappel 18h</b> — Presque là ! Plus que <b>${protMissing.toFixed(0)}g</b> à trouver ce soir.
+      </div>`;
+    } else {
+      h += `<div style="padding:10px 12px;border-radius:10px;margin-bottom:12px;background:#0F2B1F;border:1px solid #10B98150;font-size:11px;color:#6EE7B7">
+        🎯 <b>Rappel 18h</b> — Objectif protéines atteint aujourd'hui ! Bien joué.
+      </div>`;
+    }
+  }
 
   // Résumé journalier
   h += `<div class="card" style="margin-bottom:12px">
     <div class="slbl">📊 Total journalier</div>
     <div style="display:flex;gap:7px;margin-bottom:8px">
       <div class="macbox"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Calories</div>
-        <div class="mval" style="color:${kPct>100?'#EF4444':'#F59E0B'}">${dayT.k}<span style="font-size:11px;color:#6B7280"> / ${TARGET_KCAL}</span></div>
+        <div class="mval" style="color:${kPct>100?'#EF4444':'#F59E0B'}">${dayT.k}<span style="font-size:11px;color:#6B7280"> / ${getTargetKcal()}</span></div>
         <div class="pb-bg" style="margin-top:5px"><div class="pb-fill" style="width:${kPct}%;background:${kPct>100?'#EF4444':'#F59E0B'}"></div></div>
       </div>
       <div class="macbox"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Protéines</div>
@@ -572,7 +616,7 @@ function renderNut(){
       </div>
     </div>
     <div style="font-size:10px;color:#6B7280;text-align:center">
-      Reste : <b style="color:#F59E0B">${Math.max(0,TARGET_KCAL-dayT.k)} kcal</b> · <b style="color:#3B82F6">${Math.max(0,TARGET_PROT-dayT.p).toFixed(0)}g prot</b>
+      Reste : <b style="color:#F59E0B">${Math.max(0,getTargetKcal()-dayT.k)} kcal</b> · <b style="color:#3B82F6">${Math.max(0,TARGET_PROT-dayT.p).toFixed(0)}g prot</b>
     </div>
   </div>`;
 
@@ -683,8 +727,11 @@ function renderNut(){
 
   // Bouton reconfigurer
   if(Object.keys(sel).length > 0){
-    h += `<button onclick="showReco('${ST.nutSlot}')" style="width:100%;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#10B981,#3B82F6);color:#fff;font-size:13px;font-weight:800;margin-bottom:12px">
+    h += `<button onclick="showReco('${ST.nutSlot}')" style="width:100%;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#10B981,#3B82F6);color:#fff;font-size:13px;font-weight:800;margin-bottom:8px">
       🔄 Reconfigurer mes prochains repas
+    </button>`;
+    h += `<button onclick="showAdvice24h()" style="width:100%;padding:12px;border-radius:12px;border:1.5px solid #8B5CF6;background:#14141F;color:#C4B5FD;font-size:13px;font-weight:800;margin-bottom:12px">
+      🧠 Conseils nutrition 24h suivantes
     </button>`;
   }
 
@@ -724,6 +771,40 @@ function renderNut(){
     } else {
       h += `<div class="reco-card"><div style="color:#6EE7B7;font-size:12px">🎉 C'est le dernier repas de la journée — objectif atteint !</div></div>`;
     }
+  }
+
+  // Conseils 24h
+  if(ST.show24h){
+    const dayT2 = getDayTotals();
+    const kLeft = Math.max(0, getTargetKcal() - dayT2.k);
+    const pLeft = Math.max(0, TARGET_PROT - dayT2.p);
+    const kTomorrow = ST.isSportDay ? 2400 : 2200;
+
+    h += `<div class="card" style="border-color:#8B5CF640;margin-bottom:12px">
+      <div style="font-weight:800;font-size:14px;color:#C4B5FD;margin-bottom:12px">🧠 Plan nutrition 24h</div>
+      <div style="font-size:11px;color:#9CA3AF;margin-bottom:12px;line-height:1.6">
+        <b style="color:#F1F1F5">Aujourd'hui</b> — Reste à manger : <b style="color:#F59E0B">${kLeft} kcal</b> · <b style="color:#3B82F6">${pLeft.toFixed(0)}g prot</b>
+      </div>
+      <div style="margin-bottom:10px;padding:10px;background:#14141F;border-radius:9px">
+        <div style="font-size:10px;color:#C4B5FD;font-weight:700;margin-bottom:6px">Ce soir</div>
+        <div style="font-size:11px;color:#D1D5DB;line-height:1.7">
+          ${pLeft > 50 ? '⚠️ Gros déficit protéines — priorité absolue ce soir : 200g poulet ou 4 œufs + fromage blanc + shaker whey.' :
+            pLeft > 30 ? '💪 Dîner riche en protéines : 200g bœuf haché + légumes. Rajoute un shaker whey si possible.' :
+            pLeft > 15 ? '✅ Dîner normal : protéines maigres + légumes + 1 fruit.' :
+            '🎯 Objectif quasi atteint — dîner léger suffira.'}
+        </div>
+      </div>
+      <div style="padding:10px;background:#14141F;border-radius:9px">
+        <div style="font-size:10px;color:#C4B5FD;font-weight:700;margin-bottom:6px">Demain (${kTomorrow} kcal · 165g prot)</div>
+        <div style="font-size:11px;color:#D1D5DB;line-height:1.7">
+          <b>Petit déj :</b> 3 œufs + skyr 150g → 50g prot<br>
+          <b>Déjeuner :</b> ${kTomorrow > 2300 ? '200g poulet + riz 150g + légumes + yaourt + fruit → 60g prot' : '200g poulet + légumes + yaourt + fruit → 50g prot'}<br>
+          <b>Goûter :</b> Skyr 150g + 1 fruit → 18g prot<br>
+          <b>Dîner :</b> ${kTomorrow > 2300 ? '150g saumon + légumes + 1 fruit → 35g prot' : 'Cabillaud 150g + légumes + 1 fruit → 30g prot'}<br>
+          <b>Total estimé :</b> ~${kTomorrow > 2300 ? '2350 kcal · 163g prot' : '2150 kcal · 148g prot'}
+        </div>
+      </div>
+    </div>`;
   }
 
   // Date selector + save button
@@ -836,6 +917,11 @@ function addCustomItem(slot){
   renderNut();
 }
 
+function showAdvice24h(){
+  ST.show24h = !ST.show24h;
+  renderNut();
+}
+
 function applyReco(slot){
   const reco = genReco(slot);
   if(!reco || !reco.nextSlots) return;
@@ -937,7 +1023,15 @@ function renderSem(){
 }
 function selW(w){ST.week=w;ST.day=0;ST.jshow=false;renderSem();}
 function selD(d){ST.day=d;ST.jshow=false;renderSem();}
-function togJ(){const j=S.get('journal')||{};ST.jinp={...j[`w${ST.week}-d${ST.day}`]||{}};ST.jshow=!ST.jshow;renderSem();}
+function togJ(){
+  const j=S.get('journal')||{};
+  const key='w'+ST.week+'-d'+ST.day;
+  const existing=j[key]||{};
+  ST.jinp={};
+  Object.keys(existing).forEach(function(k){ ST.jinp[k]=existing[k]; });
+  ST.jshow=!ST.jshow;
+  renderSem();
+}
 function setJI(k,v){ST.jinp[k]=v;}
 function setRes(r){ST.jinp.ressenti=r;renderSem();}
 function saveJ(){const j=S.get('journal')||{};j[`w${ST.week}-d${ST.day}`]={...ST.jinp,done:true};S.set('journal',j);ST.jshow=false;renderSem();}
@@ -1017,7 +1111,14 @@ function renderTr(){
       [...wl].reverse().slice(0,8).forEach(w=>{h+=`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #2D2D3F"><span style="font-size:11px;color:#9CA3AF">${w.d}</span><span style="font-size:12px;font-weight:700">${w.p} kg</span></div>`;});
       h+=`</div>`;
     }
-    if(!wl.length){h+=`<div class="gbox">💡 Commence le monitoring dès le lundi 22 juin — pèse-toi le matin à jeun, après les toilettes, toujours dans les mêmes conditions.</div>`;}
+    if(!wl.length){h+='<div class="gbox">💡 Commence le monitoring dès le lundi 22 juin — pèse-toi <b>lundi et vendredi matin</b>, à jeun, après les toilettes, toujours dans les mêmes conditions.</div>';}
+  else {
+    const today2 = new Date();
+    const dow = today2.getDay(); // 0=dim, 1=lun, 5=ven
+    if(dow===1||dow===5){
+      h+='<div style="padding:9px 12px;border-radius:9px;background:#1E3A5F;border:1px solid #3B82F640;font-size:11px;color:#93C5FD;margin-bottom:10px">⚖️ <b>Rappel</b> — Aujourd\'hui c\'est jour de pesée ! Rentre ton poids ci-dessous.</div>';
+    }
+  }
   } else if(ST.trTab==='impedance'){
     const last=il.length?il[il.length-1]:null;
     if(last){
@@ -1141,31 +1242,41 @@ function updateImcPreview(){
 
 // ─── EXERCICES ───────────────────────────────────────────────────────────────
 function renderEx(){
-  let h=`<div style="display:flex;gap:7px;margin-bottom:14px">`;
-  [{k:'A',l:'Séance A',s:'Bas + Tirage',c:'#3B82F6'},{k:'B',l:'Séance B',s:'Haut + Poussée',c:'#EF4444'},{k:'V',l:'Vacances',s:'Poids corps',c:'#10B981'}].forEach(t=>{
-    h+=`<button onclick="setET('${t.k}')" style="flex:1;padding:9px 4px;border-radius:11px;border:1.5px solid ${ST.exTab===t.k?t.c:'#2D2D3F'};background:${ST.exTab===t.k?t.c+'22':'#1E1E2E'};text-align:center"><div style="font-size:11px;font-weight:700;color:${ST.exTab===t.k?t.c:'#9CA3AF'}">${t.l}</div><div style="font-size:9px;color:#6B7280">${t.s}</div></button>`;
+  let h='<div style="display:flex;gap:7px;margin-bottom:14px">';
+  [{k:'A',l:'Séance A',s:'Bas + Tirage',c:'#3B82F6'},{k:'B',l:'Séance B',s:'Haut + Poussée',c:'#EF4444'},{k:'V',l:'Vacances',s:'Poids corps',c:'#10B981'}].forEach(function(t){
+    h+='<button onclick="setET(\''+t.k+'\')" style="flex:1;padding:9px 4px;border-radius:11px;border:1.5px solid '+(ST.exTab===t.k?t.c:'#2D2D3F')+';background:'+(ST.exTab===t.k?t.c+'22':'#1E1E2E')+';text-align:center"><div style="font-size:11px;font-weight:700;color:'+(ST.exTab===t.k?t.c:'#9CA3AF')+'">'+t.l+'</div><div style="font-size:9px;color:#6B7280">'+t.s+'</div></button>';
   });
-  h+=`</div>`;
-  SEANCES[ST.exTab].forEach((group,gi)=>{
-    h+=`<div style="margin-bottom:14px"><div class="ssup" style="background:${group.c}18;border-color:${group.c}"><div style="width:6px;height:6px;border-radius:50%;background:${group.c}"></div><span style="font-size:9px;font-weight:800;color:${group.c};letter-spacing:.05em;text-transform:uppercase">Superset ${group.sup}</span></div>`;
-    group.pairs.forEach((ex,ei)=>{
-      const key=`${gi}-${ei}`,open=ST.exOpen===key;
-      h+=`<div class="exk ${open?'open':''}" style="--ec:${group.c}" onclick="togEx('${key}')">
-        <div style="display:flex;align-items:center;gap:10px">
-          <div style="background:#14141F;border-radius:7px;padding:5px;min-width:48px;display:flex;justify-content:center">${SVG[ex.name]||'💪'}</div>
-          <div style="flex:1"><div style="font-weight:700;font-size:12px;color:#F1F1F5">${ex.name}</div><div style="font-size:9px;color:#6B7280">${ex.muscles}</div></div>
-          <div style="text-align:right"><div style="font-size:10px;font-weight:700;color:${group.c}">${ex.sets}</div><div style="font-size:9px;color:#9CA3AF">${ex.load}</div></div>
-        </div>
-        ${open?`<div class="edesc">${ex.desc}</div>`:''}
-      </div>`;
-    });
-    if(gi<SEANCES[ST.exTab].length-1)h+=`<div style="text-align:center;padding:7px;font-size:10px;color:#4B5563">⏱ 60 sec de repos → puis superset suivant</div>`;
-    h+=`</div>`;
+  h+='</div>';
+
+  SEANCES[ST.exTab].forEach(function(ex, gi){
+    const open = ST.exOpen===gi;
+    const svgIcon = SVG[ex.name]||'<span style="font-size:24px">💪</span>';
+    h+='<div style="margin-bottom:10px">';
+    h+='<div class="exk '+(open?'open':'')+'" style="--ec:'+ex.c+'" onclick="togEx('+gi+')">';
+    h+='<div style="display:flex;align-items:center;gap:10px">';
+    h+='<div style="background:#14141F;border-radius:7px;padding:5px;min-width:48px;display:flex;justify-content:center">'+svgIcon+'</div>';
+    h+='<div style="flex:1">';
+    h+='<div style="font-weight:700;font-size:12px;color:#F1F1F5">'+ex.name+'</div>';
+    h+='<div style="font-size:9px;color:#6B7280">'+ex.muscles+'</div>';
+    h+='</div>';
+    h+='<div style="text-align:right">';
+    h+='<div style="font-size:11px;font-weight:700;color:'+ex.c+'">'+ex.sets+'</div>';
+    h+='<div style="font-size:10px;color:#9CA3AF">'+ex.load+'</div>';
+    h+='</div></div>';
+    if(open){
+      h+='<div class="edesc">'+ex.desc+'</div>';
+    }
+    h+='</div>';
+    h+='<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;margin-bottom:4px">';
+    h+='<span style="font-size:9px;color:#4B5563">⏱ Repos après chaque série :</span>';
+    h+='<span style="font-size:10px;font-weight:700;color:'+ex.c+'">'+ex.rest+'</span>';
+    h+='</div>';
+    h+='</div>';
   });
   document.getElementById('t-exercices').innerHTML=h;
 }
 function setET(t){ST.exTab=t;ST.exOpen=null;renderEx();}
-function togEx(k){ST.exOpen=ST.exOpen===k?null:k;renderEx();}
+function togEx(k){ST.exOpen=(ST.exOpen===k?null:k);renderEx();}
 
 // ─── JOURNAL ─────────────────────────────────────────────────────────────────
 function renderJournal(){
@@ -1251,7 +1362,7 @@ function renderJournal(){
 
 function renderDayMeals(day){
   if(!day.selections) return '';
-  const slots = {pdj:'☀️ Petit déj', dej:'🍽️ Déjeuner', snack:'💪 Snack', diner:'🌙 Dîner'};
+  const slots = {pdj:'☀️ Petit déj', dej:'🍽️ Déjeuner', gouter:'🍎 Goûter', snack:'💪 Snack', diner:'🌙 Dîner'};
   let h = '<div style="border-top:1px solid #2D2D3F;padding-top:8px">';
   let hasAny = false;
   Object.entries(slots).forEach(function(entry){
@@ -1309,6 +1420,28 @@ function render(t){
   else if(t==='tracker')renderTr();
   else if(t==='exercices')renderEx();
 }
+
+// Auto-load today's nutrition data on startup
+(function initNutrition(){
+  const today = new Date().toISOString().split('T')[0];
+  ST.nutDate = today;
+  const saved = (S.get('nutJournal')||{})[today];
+  if(saved && saved.selections){
+    ST.nutSelections = JSON.parse(JSON.stringify(saved.selections));
+    ST.nutManual = JSON.parse(JSON.stringify(saved.manual||{}));
+  }
+  // Purge entries older than 7 days
+  const journal = S.get('nutJournal')||{};
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate()-7);
+  const cutoffStr = cutoff.toISOString().split('T')[0];
+  let purged = false;
+  Object.keys(journal).forEach(function(d){
+    if(d < cutoffStr){ delete journal[d]; purged=true; }
+  });
+  if(purged) S.set('nutJournal', journal);
+})();
+
 renderSem();
 </script>
 </body>
