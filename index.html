@@ -1022,13 +1022,15 @@ function renderTr(){
     const last=il.length?il[il.length-1]:null;
     if(last){
       h+=`<div class="card"><div class="slbl">Dernière mesure · ${last.d}</div><div class="igrid">`;
-      [{l:"Masse grasse",v:last.mg,u:"%",c:"#EF4444",t:"10–20%"},{l:"Masse muscu",v:last.mm,u:"%",c:"#3B82F6",t:"40–50%"},{l:"Eau",v:last.eau,u:"%",c:"#06B6D4",t:"55–65%"},{l:"Masse osseuse",v:last.os,u:"kg",c:"#F59E0B",t:"3,5–4 kg"},{l:"IMC",v:last.imc,u:"",c:"#8B5CF6",t:"18,5–25"},{l:"Poids",v:last.p,u:"kg",c:"#10B981",t:"82 kg"}].forEach(m=>{
+      const imc = last.p ? (86/(1.85*1.85)).toFixed(1) : (parseFloat(last.p)/(1.85*1.85)).toFixed(1);
+      const imcCalc = last.p ? (parseFloat(last.p)/(1.85*1.85)).toFixed(1) : '—';
+      [{l:"Masse grasse",v:last.mg,u:"%",c:"#EF4444",t:"10–20%"},{l:"Masse muscu",v:last.mm,u:"%",c:"#3B82F6",t:"40–50%"},{l:"Eau",v:last.eau,u:"%",c:"#06B6D4",t:"55–65%"},{l:"IMC (calculé)",v:imcCalc,u:"",c:"#8B5CF6",t:"< 25"},{l:"Poids",v:last.p,u:"kg",c:"#10B981",t:"82 kg"}].forEach(m=>{
         h+=`<div class="icell" style="border:1px solid ${m.c}30"><div class="ilbl">${m.l}</div><div class="ival" style="color:${m.c}">${m.v||'—'}<span style="font-size:9px">${m.u}</span></div><div class="itgt">Cible : ${m.t}</div></div>`;
       });
       h+=`</div></div>`;
     }
     h+=`<div class="card"><div style="font-size:11px;color:#F59E0B;font-weight:700;margin-bottom:10px">📖 Comment lire ta balance</div>`;
-    [{l:"Masse grasse %",i:"10–20%",d:"> 25% = surpoids",c:"#EF4444",t:"Fond en premier avec déficit + course."},{l:"Masse musculaire %",i:"40–50%",d:"< 35% = masse maigre faible",c:"#3B82F6",t:"Doit rester stable. Si ça baisse → plus de protéines."},{l:"Hydratation %",i:"55–65%",d:"< 50% = déshydraté",c:"#06B6D4",t:"Mesure toujours à jeun le matin, sans sport la veille."},{l:"Masse osseuse",i:"3,5–4 kg",d:"< 3 kg = attention",c:"#F59E0B",t:"Augmente avec squat et deadlift."}].forEach(it=>{
+    [{l:"Masse grasse %",i:"10–20%",d:"> 25% = surpoids",c:"#EF4444",t:"Fond en premier avec déficit + course."},{l:"Masse musculaire %",i:"40–50%",d:"< 35% = masse maigre faible",c:"#3B82F6",t:"Doit rester stable. Si ça baisse → plus de protéines."},{l:"Hydratation %",i:"55–65%",d:"< 50% = déshydraté",c:"#06B6D4",t:"Mesure toujours à jeun le matin, sans sport la veille."},{l:"IMC",i:"18,5–25",d:"> 25 = surpoids",c:"#8B5CF6",t:"Calculé automatiquement depuis ton poids. Objectif : passer sous 25 (~85 kg)."}].forEach(it=>{
       h+=`<div style="margin-bottom:10px;padding:10px;background:#14141F;border-radius:9px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:11px;font-weight:700;color:${it.c}">${it.l}</span><span style="font-size:10px;color:#10B981">${it.i}</span></div><div style="font-size:10px;color:#6B7280;margin-bottom:3px">${it.t}</div><div style="font-size:9px;color:#EF4444">⚠ ${it.d}</div></div>`;
     });
     h+=`</div>`;
@@ -1036,12 +1038,11 @@ function renderTr(){
       <div class="ybox">💡 Toujours le matin à jeun, après les toilettes, sans sport la veille.</div>
       <input type="date" id="id" style="margin-bottom:7px">
       <div class="igform">
-        <div><div class="iflbl">Poids (kg)</div><input type="number" id="ip" step="0.1" placeholder="86.0"></div>
-        <div><div class="iflbl">IMC</div><input type="number" id="ii" step="0.1" placeholder="25.1"></div>
+        <div><div class="iflbl">Poids (kg)</div><input type="number" id="ip" step="0.1" placeholder="86.0" oninput="updateImcPreview()"></div>
+        <div><div class="iflbl">IMC (auto)</div><div id="imc-preview" style="background:#14141F;border:1px solid #2D2D3F;border-radius:8px;color:#8B5CF6;padding:8px 10px;font-size:14px;font-weight:700;text-align:center">—</div></div>
         <div><div class="iflbl">Masse grasse (%)</div><input type="number" id="img" step="0.1" placeholder="18.0"></div>
         <div><div class="iflbl">Masse muscu (%)</div><input type="number" id="imm" step="0.1" placeholder="42.0"></div>
-        <div><div class="iflbl">Eau (%)</div><input type="number" id="ie" step="0.1" placeholder="58.0"></div>
-        <div><div class="iflbl">Masse osseuse (kg)</div><input type="number" id="io" step="0.1" placeholder="3.5"></div>
+        <div style="grid-column:1/-1"><div class="iflbl">Eau (%)</div><input type="number" id="ie" step="0.1" placeholder="58.0"></div>
       </div>
       <button style="width:100%;padding:10px;border-radius:10px;border:none;background:#8B5CF6;color:#fff;font-size:12px;font-weight:700" onclick="addI()">Enregistrer la mesure ✓</button></div>`;
     if(il.length>1){
@@ -1126,8 +1127,16 @@ function addW(){
 }
 function addI(){
   const d=document.getElementById('id').value;if(!d)return;
-  const entry={d,p:document.getElementById('ip').value,imc:document.getElementById('ii').value,mg:document.getElementById('img').value,mm:document.getElementById('imm').value,eau:document.getElementById('ie').value,os:document.getElementById('io').value};
+  const poids=parseFloat(document.getElementById('ip').value)||0;
+  const imc = poids>0 ? (poids/(1.85*1.85)).toFixed(1) : '—';
+  const entry={d,p:poids,imc:imc,mg:document.getElementById('img').value,mm:document.getElementById('imm').value,eau:document.getElementById('ie').value};
   const l=S.get('iLog')||[];l.push(entry);l.sort((a,b)=>a.d.localeCompare(b.d));S.set('iLog',l);renderTr();
+}
+
+function updateImcPreview(){
+  const p=parseFloat(document.getElementById('ip')?.value)||0;
+  const el=document.getElementById('imc-preview');
+  if(el) el.textContent = p>0 ? (p/(1.85*1.85)).toFixed(1) : '—';
 }
 
 // ─── EXERCICES ───────────────────────────────────────────────────────────────
