@@ -114,6 +114,7 @@ textarea{background:#14141F;border:1px solid #2D2D3F;border-radius:8px;color:#F1
 <div class="content">
   <div id="t-semaine" class="tab act"></div>
   <div id="t-nutrition" class="tab"></div>
+  <div id="t-journal" class="tab"></div>
   <div id="t-ecarts" class="tab"></div>
   <div id="t-tracker" class="tab"></div>
   <div id="t-exercices" class="tab"></div>
@@ -121,6 +122,7 @@ textarea{background:#14141F;border:1px solid #2D2D3F;border-radius:8px;color:#F1
 <nav class="bnav">
   <button class="nbtn act" onclick="nav('semaine',this)"><span class="nem">📅</span><span class="nlb">Semaine</span></button>
   <button class="nbtn" onclick="nav('nutrition',this)"><span class="nem">🥗</span><span class="nlb">Nutrition</span></button>
+  <button class="nbtn" onclick="nav('journal',this)"><span class="nem">📓</span><span class="nlb">Journal</span></button>
   <button class="nbtn" onclick="nav('ecarts',this)"><span class="nem">🍕</span><span class="nlb">Écarts</span></button>
   <button class="nbtn" onclick="nav('tracker',this)"><span class="nem">📊</span><span class="nlb">Tracker</span></button>
   <button class="nbtn" onclick="nav('exercices',this)"><span class="nem">🏋️</span><span class="nlb">Exercices</span></button>
@@ -160,58 +162,61 @@ const SVG={
 
 // ─── BASE ALIMENTAIRE (pour 100g sauf indication) ─────────────────────────────
 const ALIMENTS = {
-  // Protéines
-  "Poulet (blanc, cuit)":       {k:165,p:31,g:0,l:3.6,   emoji:"🍗"},
-  "Bœuf haché 5%MG":           {k:137,p:21,g:0,l:5,     emoji:"🥩"},
-  "Saumon (cuit)":              {k:206,p:20,g:0,l:13,    emoji:"🐟"},
-  "Thon (boîte, égoutté)":     {k:116,p:26,g:0,l:1,     emoji:"🐟"},
-  "Cabillaud (cuit)":           {k:82, p:18,g:0,l:0.7,   emoji:"🐠"},
-  "Saumon fumé":                {k:142,p:20,g:0,l:7,     emoji:"🐟"},
-  "Jambon blanc":               {k:107,p:18,g:1,l:3,     emoji:"🥓"},
-  "Œuf entier":                 {k:155,p:13,g:1.1,l:11,  emoji:"🥚", note:"100g ≈ 2 œufs"},
-  // Laitiers
-  "Skyr":                       {k:63, p:11,g:4,l:0.2,   emoji:"🥛"},
-  "Fromage blanc 0%":           {k:45, p:8, g:4,l:0.1,   emoji:"🧀"},
-  "Yaourt nature":              {k:61, p:5, g:5,l:3.3,   emoji:"🥛"},
-  "Cottage cheese":             {k:98, p:11,g:3.4,l:4.3, emoji:"🧀"},
-  "Whey protéine":              {k:380,p:75,g:8,l:5,     emoji:"💊"},
-  // Féculents
-  "Riz cuit":                   {k:130,p:2.7,g:28,l:0.3, emoji:"🍚"},
-  "Pâtes cuites":               {k:158,p:5.8,g:31,l:0.9, emoji:"🍝"},
-  "Quinoa cuit":                {k:120,p:4.4,g:22,l:1.9, emoji:"🌾"},
-  "Patate douce cuite":         {k:86, p:1.6,g:20,l:0.1, emoji:"🍠"},
-  "Pain complet":               {k:247,p:9, g:41,l:3.4,  emoji:"🍞"},
-  "Flocons d'avoine":           {k:370,p:13,g:61,l:7,    emoji:"🌾"},
-  // Légumes
-  "Brocolis (cuit)":            {k:35, p:2.4,g:5,l:0.4,  emoji:"🥦"},
-  "Haricots verts":             {k:31, p:1.8,g:5.7,l:0.1,emoji:"🫘"},
-  "Salade verte":               {k:15, p:1.4,g:2.2,l:0.2,emoji:"🥗"},
-  "Tomates":                    {k:18, p:0.9,g:3.5,l:0.2,emoji:"🍅"},
-  "Épinards":                   {k:23, p:2.9,g:3.6,l:0.4,emoji:"🥬"},
-  "Courgettes":                 {k:17, p:1.2,g:3.1,l:0.3,emoji:"🥒"},
-  "Champignons":                {k:22, p:3.1,g:3.3,l:0.3,emoji:"🍄"},
-  "Poivrons":                   {k:31, p:1, g:6,l:0.3,   emoji:"🫑"},
-  "Lentilles cuites":           {k:116,p:9, g:20,l:0.4,  emoji:"🫘"},
-  // Fruits
-  "Pomme":                      {k:52, p:0.3,g:14,l:0.2, emoji:"🍎"},
-  "Poire":                      {k:57, p:0.4,g:15,l:0.1, emoji:"🍐"},
-  "Banane":                     {k:89, p:1.1,g:23,l:0.3, emoji:"🍌"},
-  "Orange":                     {k:47, p:0.9,g:12,l:0.1, emoji:"🍊"},
-  "Kiwi":                       {k:61, p:1.1,g:15,l:0.5, emoji:"🥝"},
-  "Fruits rouges (mix)":        {k:40, p:0.7,g:9,l:0.3,  emoji:"🍓"},
-  "Raisin":                     {k:69, p:0.7,g:18,l:0.2, emoji:"🍇"},
-  "Pastèque":                   {k:30, p:0.6,g:7.6,l:0.2,emoji:"🍉"},
-  "Mangue":                     {k:60, p:0.8,g:15,l:0.4, emoji:"🥭"},
-  "Abricot":                    {k:48, p:1.4,g:11,l:0.4, emoji:"🍑"},
-  "Pêche/Nectarine":            {k:42, p:1, g:10,l:0.3,  emoji:"🍑"},
-  "Noix de cajou":              {k:553,p:18,g:30,l:44,   emoji:"🌰"},
-  "Amandes":                    {k:579,p:21,g:22,l:50,   emoji:"🌰"},
-  // Plaisir
-  "Fondant au chocolat":        {k:380,p:6, g:42,l:22,   emoji:"🍫", note:"par pièce (~100g)"},
-  "Chocolat 85% (carré)":       {k:30, p:0.4,g:1.5,l:2.5,emoji:"🍫", note:"par carré (~5g)"},
-  "California roll (pièce)":    {k:47, p:1.3,g:7.3,l:1.2,emoji:"🍣", note:"par pièce"},
-  "Navette au thon":            {k:210,p:12,g:22,l:8,    emoji:"🥖", note:"par pièce"},
+  "Poulet (blanc, cuit)":       {k:165,p:31,g:0,  l:3.6, emoji:"🍗", cat:"Protéines"},
+  "Bœuf haché 5%MG":           {k:137,p:21,g:0,  l:5,   emoji:"🥩", cat:"Protéines"},
+  "Saumon (cuit)":              {k:206,p:20,g:0,  l:13,  emoji:"🐟", cat:"Protéines"},
+  "Thon (boîte, égoutté)":     {k:116,p:26,g:0,  l:1,   emoji:"🐟", cat:"Protéines"},
+  "Cabillaud (cuit)":           {k:82, p:18,g:0,  l:0.7, emoji:"🐠", cat:"Protéines"},
+  "Saumon fumé":                {k:142,p:20,g:0,  l:7,   emoji:"🐟", cat:"Protéines"},
+  "Jambon blanc":               {k:107,p:18,g:1,  l:3,   emoji:"🥓", cat:"Protéines"},
+  "Œuf entier":                 {k:155,p:13,g:1.1,l:11,  emoji:"🥚", cat:"Protéines", note:"100g ≈ 2 œufs"},
+  "Skyr":                       {k:63, p:11,g:4,  l:0.2, emoji:"🥛", cat:"Laitiers"},
+  "Fromage blanc 0%":           {k:45, p:8, g:4,  l:0.1, emoji:"🧀", cat:"Laitiers"},
+  "Yaourt nature":              {k:61, p:5, g:5,  l:3.3, emoji:"🥛", cat:"Laitiers"},
+  "Cottage cheese":             {k:98, p:11,g:3.4,l:4.3, emoji:"🧀", cat:"Laitiers"},
+  "Cottage cheese 180g":        {k:176,p:19.8,g:6.1,l:7.7, emoji:"🧀", cat:"Laitiers", note:"portion 180g"},
+  "Sveltesse 125g":             {k:109,p:5,  g:18, l:1.6, emoji:"🥛", cat:"Laitiers", note:"portion 125g", fixed:true},
+  "Hipro 160g":                 {k:85, p:15, g:5.8,l:0.2, emoji:"🥛", cat:"Laitiers", note:"portion 160g", fixed:true},
+  "Miel (1 cuillère)":          {k:32, p:0,  g:8.7,l:0,   emoji:"🍯", cat:"Laitiers", note:"1 càc (~10g)", fixed:true},
+  "Whey protéine":              {k:380,p:75,g:8,  l:5,   emoji:"💊", cat:"Laitiers"},
+  "Riz cuit":                   {k:130,p:2.7,g:28,l:0.3, emoji:"🍚", cat:"Féculents"},
+  "Pâtes cuites":               {k:158,p:5.8,g:31,l:0.9, emoji:"🍝", cat:"Féculents"},
+  "Quinoa cuit":                {k:120,p:4.4,g:22,l:1.9, emoji:"🌾", cat:"Féculents"},
+  "Patate douce cuite":         {k:86, p:1.6,g:20,l:0.1, emoji:"🍠", cat:"Féculents"},
+  "Pomme de terre cuite":       {k:77, p:2, g:18, l:0.1, emoji:"🥔", cat:"Féculents"},
+  "Purée de pomme de terre":    {k:83, p:2, g:16, l:1.5, emoji:"🥔", cat:"Féculents"},
+  "Pain complet":               {k:247,p:9, g:41, l:3.4, emoji:"🍞", cat:"Féculents"},
+  "Flocons d'avoine":           {k:370,p:13,g:61, l:7,   emoji:"🌾", cat:"Féculents"},
+  "Brocolis (cuit)":            {k:35, p:2.4,g:5, l:0.4, emoji:"🥦", cat:"Légumes"},
+  "Haricots verts":             {k:31, p:1.8,g:5.7,l:0.1,emoji:"🫘", cat:"Légumes"},
+  "Salade verte":               {k:15, p:1.4,g:2.2,l:0.2,emoji:"🥗", cat:"Légumes"},
+  "Tomates":                    {k:18, p:0.9,g:3.5,l:0.2,emoji:"🍅", cat:"Légumes"},
+  "Épinards":                   {k:23, p:2.9,g:3.6,l:0.4,emoji:"🥬", cat:"Légumes"},
+  "Courgettes":                 {k:17, p:1.2,g:3.1,l:0.3,emoji:"🥒", cat:"Légumes"},
+  "Champignons":                {k:22, p:3.1,g:3.3,l:0.3,emoji:"🍄", cat:"Légumes"},
+  "Lentilles cuites":           {k:116,p:9, g:20, l:0.4, emoji:"🫘", cat:"Légumes"},
+  "Pomme":                      {k:52, p:0.3,g:14, l:0.2, emoji:"🍎", cat:"Fruits"},
+  "Poire":                      {k:57, p:0.4,g:15, l:0.1, emoji:"🍐", cat:"Fruits"},
+  "Banane":                     {k:89, p:1.1,g:23, l:0.3, emoji:"🍌", cat:"Fruits"},
+  "Orange":                     {k:47, p:0.9,g:12, l:0.1, emoji:"🍊", cat:"Fruits"},
+  "Kiwi":                       {k:61, p:1.1,g:15, l:0.5, emoji:"🥝", cat:"Fruits"},
+  "Cerises":                    {k:50, p:1,  g:12, l:0.3, emoji:"🍒", cat:"Fruits"},
+  "Fruits rouges (mix)":        {k:40, p:0.7,g:9,  l:0.3, emoji:"🍓", cat:"Fruits"},
+  "Raisin":                     {k:69, p:0.7,g:18, l:0.2, emoji:"🍇", cat:"Fruits"},
+  "Pastèque":                   {k:30, p:0.6,g:7.6,l:0.2, emoji:"🍉", cat:"Fruits"},
+  "Mangue":                     {k:60, p:0.8,g:15, l:0.4, emoji:"🥭", cat:"Fruits"},
+  "Abricot":                    {k:48, p:1.4,g:11, l:0.4, emoji:"🍑", cat:"Fruits"},
+  "Pêche/Nectarine":            {k:42, p:1,  g:10, l:0.3, emoji:"🍑", cat:"Fruits"},
+  "Amandes":                    {k:579,p:21, g:22, l:50,  emoji:"🌰", cat:"Oléagineux"},
+  "Noix de cajou":              {k:553,p:18, g:30, l:44,  emoji:"🌰", cat:"Oléagineux"},
+  "Fondant au chocolat":        {k:380,p:6,  g:42, l:22,  emoji:"🍫", cat:"Plaisir", note:"par pièce (~100g)"},
+  "Chocolat 85% (carré)":       {k:30, p:0.4,g:1.5,l:2.5, emoji:"🍫", cat:"Plaisir", note:"par carré (~5g)"},
+  "California roll (pièce)":    {k:47, p:1.3,g:7.3,l:1.2, emoji:"🍣", cat:"Plaisir", note:"par pièce"},
+  "Navette au thon":            {k:210,p:12, g:22, l:8,   emoji:"🥖", cat:"Plaisir", note:"par pièce"},
 };
+
+// Catégories dans l'ordre d'affichage
+const ALIMENT_CATS = ["Protéines","Laitiers","Féculents","Légumes","Fruits","Oléagineux","Plaisir"];
 
 // ─── REPAS PRÉDÉFINIS PAR SLOT ────────────────────────────────────────────────
 const MEAL_SLOTS = {
@@ -428,11 +433,12 @@ const SEANCES={
 // ─── STATE ────────────────────────────────────────────────────────────────────
 let ST={
   week:1, day:0, jshow:false, jinp:{},
-  nutSlot: 'pdj',          // repas actif dans nutrition
-  nutSelections: {},        // {pdj:{itemName: qty}, dej:{...}, snack:{...}, diner:{...}}
-  nutFreeInput: '',         // saisie libre
-  nutShowReco: null,        // null ou slot id
-  nutPlanOverrides: {},     // plan journalier retouché
+  nutSlot: 'pdj',
+  nutSelections: {},
+  nutManual: {},            // {pdj:[{n,qty}], ...} aliments ajoutés manuellement
+  nutFreeInput: '',
+  nutShowReco: null,
+  nutPlanOverrides: {},
   ecSel: null, ecShow: false,
   trTab: 'poids', exTab:'A', exOpen:null
 };
@@ -460,9 +466,14 @@ function calcMacros(name, qty){
 
 function getSlotTotals(slotId){
   const sel = ST.nutSelections[slotId] || {};
+  const manual = ST.nutManual[slotId] || [];
   let tk=0, tp=0;
   Object.entries(sel).forEach(([name, qty])=>{
     const m = calcMacros(name, qty);
+    tk += m.k; tp += m.p;
+  });
+  manual.forEach(mi=>{
+    const m = calcMacros(mi.n, mi.qty);
     tk += m.k; tp += m.p;
   });
   return {k: Math.round(tk), p: Math.round(tp*10)/10};
@@ -615,17 +626,57 @@ function renderNut(){
     </div>`;
   });
 
-  // Saisie libre
+  // Saisie libre avec catégories
+  const catOptions = ALIMENT_CATS.map(cat => {
+    const items = Object.entries(ALIMENTS).filter(([n,a])=>a.cat===cat);
+    return `<optgroup label="── ${cat} ──">${items.map(([n,a])=>`<option value="${n}">${a.emoji} ${n}${a.note?' ('+a.note+')':''}</option>`).join('')}</optgroup>`;
+  }).join('');
+
+  // Aliments ajoutés manuellement pour ce slot
+  const manualItems = ST.nutManual[ST.nutSlot] || [];
+  let manualHtml = '';
+  if(manualItems.length > 0){
+    manualHtml = `<div style="margin-bottom:8px">` +
+      manualItems.map((mi,idx) => {
+        const m = calcMacros(mi.n, mi.qty);
+        const a = ALIMENTS[mi.n];
+        return `<div class="food-item selected" style="margin-bottom:5px">
+          <div class="food-check">✓</div>
+          <div style="flex:1"><div class="food-name">${a?.emoji||'🍽️'} ${mi.n}</div></div>
+          <input type="number" class="food-qty" value="${mi.qty}" min="1"
+            onchange="updateManualQty('${ST.nutSlot}',${idx},this.value)">
+          <div class="food-macros">
+            <div style="color:#F59E0B">${m.k} kcal</div>
+            <div style="color:#3B82F6">${m.p}g</div>
+          </div>
+          <button onclick="removeManual('${ST.nutSlot}',${idx})" style="background:none;border:none;color:#EF4444;font-size:14px;padding:0 4px">✕</button>
+        </div>`;
+      }).join('') + `</div>`;
+  }
+
   h += `<div style="margin-top:10px;padding-top:10px;border-top:1px solid #2D2D3F">
-    <div style="font-size:10px;color:#6B7280;margin-bottom:6px">✏️ Ajouter un aliment manuellement</div>
+    <div style="font-size:10px;color:#6B7280;margin-bottom:6px">✏️ Ajouter un aliment</div>
+    ${manualHtml}
     <div style="display:flex;gap:6px;margin-bottom:6px">
-      <select id="free-select" style="flex:2" onchange="document.getElementById('free-qty').value=''">
-        <option value="">Choisir un aliment...</option>
-        ${Object.entries(ALIMENTS).map(([n,a])=>`<option value="${n}">${a.emoji} ${n}</option>`).join('')}
+      <select id="free-select" style="flex:2">
+        <option value="">Choisir...</option>
+        ${catOptions}
       </select>
       <input type="number" id="free-qty" placeholder="g" style="width:60px" min="1">
     </div>
-    <button onclick="addFreeItem('${ST.nutSlot}')" style="width:100%;padding:8px;border-radius:8px;border:none;background:#374151;color:#F1F1F5;font-size:12px;font-weight:600">Ajouter ✓</button>
+    <button onclick="addFreeItem('${ST.nutSlot}')" style="width:100%;padding:8px;border-radius:8px;border:none;background:#374151;color:#F1F1F5;font-size:12px;font-weight:600">Ajouter depuis la liste ✓</button>
+  </div>
+
+  <div style="margin-top:10px;padding-top:10px;border-top:1px solid #2D2D3F">
+    <div style="font-size:10px;color:#6B7280;margin-bottom:6px">🆕 Créer un aliment personnalisé</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
+      <div style="grid-column:1/-1"><input type="text" id="custom-name" placeholder="Nom de l'aliment" style="width:100%"></div>
+      <div><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Kcal</div><input type="number" id="custom-kcal" placeholder="ex: 150" min="0"></div>
+      <div><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Protéines (g)</div><input type="number" id="custom-prot" placeholder="ex: 12" min="0" step="0.1"></div>
+      <div><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Glucides (g)</div><input type="number" id="custom-gluc" placeholder="ex: 8" min="0" step="0.1"></div>
+      <div><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Lipides (g)</div><input type="number" id="custom-lip" placeholder="ex: 3" min="0" step="0.1"></div>
+    </div>
+    <button onclick="addCustomItem('${ST.nutSlot}')" style="width:100%;padding:8px;border-radius:8px;border:none;background:#8B5CF6;color:#fff;font-size:12px;font-weight:600">Ajouter l'aliment personnalisé ✓</button>
   </div>`;
 
   h += `</div>`;
@@ -669,10 +720,59 @@ function renderNut(){
     }
   }
 
+  // Date selector + save button
+  const today = new Date().toISOString().split('T')[0];
+  const nutDate = ST.nutDate || today;
+  const savedDay = (S.get('nutJournal')||{})[nutDate];
+
+  h += `<div class="card" style="margin-top:4px">
+    <div class="slbl">📅 Date du repas</div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
+      <input type="date" id="nut-date" value="${nutDate}" onchange="setNutDate(this.value)" style="flex:1">
+      <button onclick="saveDay()" style="padding:8px 12px;border-radius:9px;border:none;background:#10B981;color:#fff;font-size:12px;font-weight:700;white-space:nowrap">
+        💾 Enregistrer
+      </button>
+    </div>
+    ${savedDay ? `<div style="font-size:11px;color:#10B981;text-align:center">✓ Journée enregistrée — ${savedDay.totalK} kcal · ${savedDay.totalP}g prot</div>` : ''}
+  </div>`;
+
   document.getElementById('t-nutrition').innerHTML = h;
 }
 
 function setNutSlot(s){ ST.nutSlot=s; ST.nutShowReco=null; renderNut(); }
+
+function setNutDate(d){
+  ST.nutDate = d;
+  // Load saved data for this date if exists
+  const saved = (S.get('nutJournal')||{})[d];
+  if(saved && saved.selections){
+    ST.nutSelections = JSON.parse(JSON.stringify(saved.selections));
+    ST.nutManual = JSON.parse(JSON.stringify(saved.manual||{}));
+  } else {
+    ST.nutSelections = {};
+    ST.nutManual = {};
+  }
+  renderNut();
+}
+
+function saveDay(){
+  const date = ST.nutDate || new Date().toISOString().split('T')[0];
+  const dayT = getDayTotals();
+  const journal = S.get('nutJournal') || {};
+  journal[date] = {
+    date,
+    selections: JSON.parse(JSON.stringify(ST.nutSelections)),
+    manual: JSON.parse(JSON.stringify(ST.nutManual||{})),
+    totalK: dayT.k,
+    totalP: dayT.p,
+    savedAt: new Date().toLocaleTimeString('fr-FR')
+  };
+  S.set('nutJournal', journal);
+  renderNut();
+  // Petit flash de confirmation
+  const btn = document.querySelector('#t-nutrition button[onclick="saveDay()"]');
+  if(btn){ btn.textContent = '✓ Sauvegardé !'; setTimeout(()=>{ btn.textContent = '💾 Enregistrer'; }, 2000); }
+}
 
 function togFood(slot, name, defaultQty){
   if(!ST.nutSelections[slot]) ST.nutSelections[slot]={};
@@ -695,13 +795,40 @@ function addFreeItem(slot){
   const sel = document.getElementById('free-select');
   const qty = parseFloat(document.getElementById('free-qty').value);
   if(!sel.value || !qty || qty<=0) return;
-  if(!ST.nutSelections[slot]) ST.nutSelections[slot]={};
-  ST.nutSelections[slot][sel.value] = (ST.nutSelections[slot][sel.value]||0) + qty;
+  if(!ST.nutManual[slot]) ST.nutManual[slot]=[];
+  ST.nutManual[slot].push({n:sel.value, qty:qty});
   ST.nutShowReco=null;
   renderNut();
 }
 
+function updateManualQty(slot, idx, val){
+  if(!ST.nutManual[slot]) return;
+  ST.nutManual[slot][idx].qty = parseFloat(val)||0;
+  renderNut();
+}
+
+function removeManual(slot, idx){
+  if(!ST.nutManual[slot]) return;
+  ST.nutManual[slot].splice(idx,1);
+  renderNut();
+}
+
 function showReco(slot){ ST.nutShowReco=slot; renderNut(); }
+
+function addCustomItem(slot){
+  const name = document.getElementById('custom-name').value.trim();
+  const kcal = parseFloat(document.getElementById('custom-kcal').value);
+  const prot = parseFloat(document.getElementById('custom-prot').value)||0;
+  const gluc = parseFloat(document.getElementById('custom-gluc').value)||0;
+  const lip  = parseFloat(document.getElementById('custom-lip').value)||0;
+  if(!name || isNaN(kcal)) return;
+  // Add to ALIMENTS dynamically
+  ALIMENTS[name] = {k:kcal, p:prot, g:gluc, l:lip, emoji:"🍽️", cat:"Personnalisé"};
+  if(!ST.nutManual[slot]) ST.nutManual[slot]=[];
+  ST.nutManual[slot].push({n:name, qty:100, custom:true, kcal, prot, gluc, lip});
+  ST.nutShowReco=null;
+  renderNut();
+}
 
 function applyReco(slot){
   const reco = genReco(slot);
@@ -1025,10 +1152,136 @@ function renderEx(){
 function setET(t){ST.exTab=t;ST.exOpen=null;renderEx();}
 function togEx(k){ST.exOpen=ST.exOpen===k?null:k;renderEx();}
 
+// ─── JOURNAL ─────────────────────────────────────────────────────────────────
+function renderJournal(){
+  const journal = S.get('nutJournal') || {};
+  const days = Object.values(journal).sort((a,b)=>b.date.localeCompare(a.date));
+
+  let h = `<div style="font-size:13px;color:#9CA3AF;margin-bottom:14px;line-height:1.5">
+    Historique de tes journées alimentaires. Enregistre chaque soir depuis l'onglet Nutrition.
+  </div>`;
+
+  if(days.length === 0){
+    h += `<div class="gbox">💡 Aucune journée enregistrée pour l'instant. Va dans l'onglet Nutrition, saisis tes repas et appuie sur 💾 Enregistrer.</div>`;
+    document.getElementById('t-journal').innerHTML = h;
+    return;
+  }
+
+  // Résumé hebdo si assez de données
+  if(days.length >= 3){
+    const last7 = days.slice(0,7);
+    const avgK = Math.round(last7.reduce((s,d)=>s+d.totalK,0)/last7.length);
+    const avgP = Math.round(last7.reduce((s,d)=>s+d.totalP,0)/last7.length);
+    h += `<div class="card" style="margin-bottom:12px">
+      <div class="slbl">📊 Moyenne (${last7.length} derniers jours)</div>
+      <div style="display:flex;gap:7px">
+        <div class="sbox"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Calories moy.</div>
+          <div style="font-size:20px;font-weight:800;color:#F59E0B">${avgK}<span style="font-size:11px;color:#6B7280"> kcal</span></div>
+          <div style="font-size:9px;color:${avgK>2400?'#EF4444':'#10B981'}">${avgK>2400?'⚠ au-dessus':'✓ dans l'objectif'}</div>
+        </div>
+        <div class="sbox"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Protéines moy.</div>
+          <div style="font-size:20px;font-weight:800;color:#3B82F6">${avgP}g</div>
+          <div style="font-size:9px;color:${avgP<165?'#F59E0B':'#10B981'}">${avgP<165?'↗ vise 165g':'✓ objectif atteint'}</div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // Rappel dimanche 22h
+  const now = new Date();
+  const isSunday = now.getDay() === 0;
+  const isEvening = now.getHours() >= 20;
+  if(isSunday && isEvening){
+    h += `<div class="ybox">📋 Dimanche soir — récap de ta semaine ci-dessous !</div>`;
+  }
+
+  // Liste des journées
+  days.forEach(day => {
+    const date = new Date(day.date);
+    const dateStr = date.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'});
+    const kPct = Math.min((day.totalK/2400)*100,100);
+    const pPct = Math.min((day.totalP/165)*100,100);
+    const kColor = day.totalK > 2500 ? '#EF4444' : day.totalK < 2000 ? '#F59E0B' : '#10B981';
+    const pColor = day.totalP < 140 ? '#F59E0B' : '#10B981';
+
+    h += `<div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <div>
+          <div style="font-weight:800;font-size:14px;color:#F1F1F5;text-transform:capitalize">${dateStr}</div>
+          <div style="font-size:10px;color:#6B7280">Enregistré à ${day.savedAt||'—'}</div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button onclick="loadDay('${day.date}')" style="padding:5px 8px;border-radius:7px;border:none;background:#1E3A5F;color:#93C5FD;font-size:10px;font-weight:700">Recharger</button>
+          <button onclick="deleteDay('${day.date}')" style="padding:5px 8px;border-radius:7px;border:none;background:#3A1A1A;color:#EF4444;font-size:10px;font-weight:700">✕</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:7px;margin-bottom:10px">
+        <div style="flex:1;background:#14141F;border-radius:9px;padding:9px;border:1px solid ${kColor}30">
+          <div style="font-size:9px;color:#6B7280;margin-bottom:2px">Calories</div>
+          <div style="font-size:18px;font-weight:800;color:${kColor}">${day.totalK}</div>
+          <div class="pb-bg" style="margin-top:4px"><div class="pb-fill" style="width:${kPct}%;background:${kColor}"></div></div>
+        </div>
+        <div style="flex:1;background:#14141F;border-radius:9px;padding:9px;border:1px solid ${pColor}30">
+          <div style="font-size:9px;color:#6B7280;margin-bottom:2px">Protéines</div>
+          <div style="font-size:18px;font-weight:800;color:${pColor}">${day.totalP}g</div>
+          <div class="pb-bg" style="margin-top:4px"><div class="pb-fill" style="width:${pPct}%;background:${pColor}"></div></div>
+        </div>
+      </div>
+      ${renderDayMeals(day)}
+    </div>`;
+  });
+
+  document.getElementById('t-journal').innerHTML = h;
+}
+
+function renderDayMeals(day){
+  if(!day.selections) return '';
+  const slots = {pdj:'☀️ Petit déj', dej:'🍽️ Déjeuner', snack:'💪 Snack', diner:'🌙 Dîner'};
+  let h = '<div style="border-top:1px solid #2D2D3F;padding-top:8px">';
+  let hasAny = false;
+  Object.entries(slots).forEach(([id, lbl])=>{
+    const sel = day.selections[id]||{};
+    const manual = (day.manual||{})[id]||[];
+    const items = [...Object.entries(sel).map(([n,q])=>({n,q})), ...manual.map(m=>({n:m.n,q:m.qty}))];
+    if(items.length === 0) return;
+    hasAny = true;
+    h += `<div style="margin-bottom:6px">
+      <div style="font-size:10px;font-weight:700;color:#9CA3AF;margin-bottom:3px">${lbl}</div>
+      <div style="font-size:11px;color:#6B7280;line-height:1.6">
+        ${items.map(i => {
+          const a = ALIMENTS[i.n];
+          const m = calcMacros(i.n, i.q);
+          return `${a?.emoji||'🍽️'} ${i.n} ${i.q}g <span style="color:#4B5563">(${m.k}kcal)</span>`;
+        }).join(' · ')}
+      </div>
+    </div>`;
+  });
+  h += '</div>';
+  return hasAny ? h : '';
+}
+
+function loadDay(date){
+  ST.nutDate = date;
+  const saved = (S.get('nutJournal')||{})[date];
+  if(saved){
+    ST.nutSelections = JSON.parse(JSON.stringify(saved.selections||{}));
+    ST.nutManual = JSON.parse(JSON.stringify(saved.manual||{}));
+  }
+  nav('nutrition', document.querySelector('.nbtn:nth-child(2)'));
+}
+
+function deleteDay(date){
+  const journal = S.get('nutJournal')||{};
+  delete journal[date];
+  S.set('nutJournal', journal);
+  renderJournal();
+}
+
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 function render(t){
   if(t==='semaine')renderSem();
   else if(t==='nutrition')renderNut();
+  else if(t==='journal')renderJournal();
   else if(t==='ecarts')renderEc();
   else if(t==='tracker')renderTr();
   else if(t==='exercices')renderEx();
