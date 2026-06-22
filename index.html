@@ -1180,7 +1180,7 @@ function renderJournal(){
     const avgP = Math.round(last7.reduce(function(s,d){return s+d.totalP;},0)/last7.length);
     const avgKColor = avgK>2400?'#EF4444':'#10B981';
     const avgPColor = avgP<165?'#F59E0B':'#10B981';
-    const avgKTxt = avgK>2400?'⚠ au-dessus':'✓ dans l'objectif';
+    const avgKTxt = avgK>2400?"⚠ au-dessus":"✓ objectif ok";
     const avgPTxt = avgP<165?'↗ vise 165g':'✓ objectif atteint';
     h += '<div class="card" style="margin-bottom:12px">';
     h += '<div class="slbl">📊 Moyenne (' + last7.length + ' derniers jours)</div>';
@@ -1219,8 +1219,8 @@ function renderJournal(){
     h += '<div style="font-size:10px;color:#6B7280">Enregistré à ' + (day.savedAt||'—') + '</div>';
     h += '</div>';
     h += '<div style="display:flex;gap:6px">';
-    h += '<button onclick="loadDay('' + day.date + '')" style="padding:5px 8px;border-radius:7px;border:none;background:#1E3A5F;color:#93C5FD;font-size:10px;font-weight:700">Recharger</button>';
-    h += '<button onclick="deleteDay('' + day.date + '')" style="padding:5px 8px;border-radius:7px;border:none;background:#3A1A1A;color:#EF4444;font-size:10px;font-weight:700">✕</button>';
+    h += '<button data-date="' + day.date + '" onclick="loadDayBtn(this)" style="padding:5px 8px;border-radius:7px;border:none;background:#1E3A5F;color:#93C5FD;font-size:10px;font-weight:700">Recharger</button>';
+    h += '<button data-date="' + day.date + '" onclick="deleteDayBtn(this)" style="padding:5px 8px;border-radius:7px;border:none;background:#3A1A1A;color:#EF4444;font-size:10px;font-weight:700">✕</button>';
     h += '</div></div>';
     h += '<div style="display:flex;gap:7px;margin-bottom:10px">';
     h += '<div style="flex:1;background:#14141F;border-radius:9px;padding:9px;border:1px solid ' + kColor + '30">';
@@ -1280,12 +1280,16 @@ function loadDay(date){
   nav('nutrition', document.querySelector('.nbtn:nth-child(2)'));
 }
 
+function loadDayBtn(btn){ loadDay(btn.getAttribute('data-date')); }
+
 function deleteDay(date){
   const journal = S.get('nutJournal')||{};
   delete journal[date];
   S.set('nutJournal', journal);
   renderJournal();
 }
+
+function deleteDayBtn(btn){ deleteDay(btn.getAttribute('data-date')); }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 function render(t){
