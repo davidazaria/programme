@@ -228,6 +228,7 @@ const ALIMENTS = {
   "Challah (pain de chabbat)":  {k:320,p:9,  g:54, l:6,   emoji:"🍞", cat:"Féculents"},
   "Saumon fumé":                {k:142,p:20, g:0,  l:7,   emoji:"🐟", cat:"Protéines"},
   "Café latte (200ml)":         {k:80, p:4,  g:8,  l:3,   emoji:"☕", cat:"Boissons", note:"200ml lait demi-écrémé"},
+  "Starbucks Latte Décaf Tall + protéines": {k:151,p:10.9,g:15,l:5.2,emoji:"☕", cat:"Boissons", note:"Grande 473ml — valeurs officielles Starbucks FR"},
   "Pita (pain)":                {k:275,p:9,  g:55, l:2,   emoji:"🫓", cat:"Féculents"},
   "Couscous cuit":              {k:112,p:3.8,g:23, l:0.6, emoji:"🌾", cat:"Féculents"},
   "Plat de couscous (portion)": {k:380,p:18, g:40, l:14,  emoji:"🍲", cat:"Féculents", note:"~350g avec viande/légumes"},
@@ -467,6 +468,7 @@ const SEANCES={
 let ST={
   week:1, day:0, jshow:false, jinp:{},
   isSportDay: true,
+  showGuide: false,
   showEcarts: false,
   show24h: false,
   nutSlot: 'pdj',
@@ -747,15 +749,11 @@ function renderNut(){
 
   h += `</div>`;
 
-  // Bouton reconfigurer
-  if(Object.keys(sel).length > 0){
-    h += `<button onclick="showReco('${ST.nutSlot}')" style="width:100%;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#10B981,#3B82F6);color:#fff;font-size:13px;font-weight:800;margin-bottom:8px">
-      🔄 Reconfigurer mes prochains repas
-    </button>`;
-    h += `<button onclick="showAdvice24h()" style="width:100%;padding:12px;border-radius:12px;border:1.5px solid #8B5CF6;background:#14141F;color:#C4B5FD;font-size:13px;font-weight:800;margin-bottom:12px">
-      🧠 Conseils nutrition 24h suivantes
-    </button>`;
-  }
+  // Boutons permanents
+  h += '<div style="display:flex;gap:8px;margin-bottom:12px">';
+  h += '<button data-slot="'+ST.nutSlot+'" onclick="showRecoBtn(this)" style="flex:1;padding:12px 8px;border-radius:12px;border:none;background:linear-gradient(135deg,#10B981,#3B82F6);color:#fff;font-size:12px;font-weight:800">🔄 Reconfigurer<br><span style=\'font-size:9px;font-weight:400;opacity:.8\'>le reste de la journée</span></button>';
+  h += '<button onclick="showAdvice24h()" style="flex:1;padding:12px 8px;border-radius:12px;border:1.5px solid #8B5CF6;background:#14141F;color:#C4B5FD;font-size:12px;font-weight:800">🧠 Conseils 24h<br><span style=\'font-size:9px;font-weight:400;opacity:.8\'>suivantes</span></button>';
+  h += '</div>';
 
   // Reco affichée
   if(ST.nutShowReco === ST.nutSlot){
@@ -956,6 +954,7 @@ function removeManual(slot, idx){
 }
 
 function showReco(slot){ ST.nutShowReco=slot; renderNut(); }
+function showRecoBtn(btn){ showReco(btn.getAttribute('data-slot')); }
 
 function addCustomItem(slot){
   const name = document.getElementById('custom-name').value.trim();
@@ -1137,152 +1136,221 @@ function selEcBtn(btn){
 function renderTr(){
   const wl=S.get('wLog')||[];
   const il=S.get('iLog')||[];
-  let h=`<div class="pill-row">`;
-  [{k:'poids',l:'Poids',e:'⚖️'},{k:'impedance',l:'Impédance',e:'📊'},{k:'gras',l:'Perte gras',e:'🔥'}].forEach(t=>{
-    h+=`<button class="pill ${ST.trTab===t.k?'act':''}" onclick="setTT('${t.k}')"><div class="pe">${t.e}</div><div class="pl">${t.l}</div></button>`;
+  let h='<div class="pill-row">';
+  [{k:'poids',l:'Poids',e:'⚖️'},{k:'impedance',l:'Impédance',e:'📊'},{k:'gras',l:'Perte gras',e:'🔥'}].forEach(function(t){
+    h+='<button class="pill '+(ST.trTab===t.k?'act':'')+'" data-tab="'+t.k+'" onclick="setTTBtn(this)"><div class="pe">'+t.e+'</div><div class="pl">'+t.l+'</div></button>';
   });
-  h+=`</div>`;
+  h+='</div>';
+
+  // ── POIDS ──────────────────────────────────────────────────────────────────
   if(ST.trTab==='poids'){
     const last=wl.length?wl[wl.length-1]:null;
     const first=wl.length>1?wl[0]:null;
     const diff=last&&first?(last.p-first.p).toFixed(1):null;
-    h+=`<div style="display:flex;gap:7px;margin-bottom:14px">
-      <div class="sbox"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Poids actuel</div><div style="font-size:22px;font-weight:800">${last?last.p:'—'}<span style="font-size:12px;color:#6B7280"> kg</span></div></div>
-      <div class="sbox"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Variation</div><div style="font-size:22px;font-weight:800;color:${diff===null?'#6B7280':parseFloat(diff)<0?'#10B981':'#EF4444'}">${diff!==null?(parseFloat(diff)<0?diff:'+'+diff):'—'}<span style="font-size:12px;color:#6B7280"> kg</span></div></div>
-      <div class="sbox"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Objectif</div><div style="font-size:22px;font-weight:800;color:#3B82F6">−4<span style="font-size:12px;color:#6B7280"> kg</span></div></div>
-    </div>`;
+    h+='<div style="display:flex;gap:7px;margin-bottom:14px">';
+    h+='<div class="sbox"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Poids actuel</div><div style="font-size:22px;font-weight:800">'+( last?last.p:'—')+'<span style="font-size:12px;color:#6B7280"> kg</span></div></div>';
+    h+='<div class="sbox"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Variation</div><div style="font-size:22px;font-weight:800;color:'+(diff===null?'#6B7280':parseFloat(diff)<0?'#10B981':'#EF4444')+'">'+(diff!==null?(parseFloat(diff)<0?diff:'+'+diff):'—')+'<span style="font-size:12px;color:#6B7280"> kg</span></div></div>';
+    h+='<div class="sbox"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Objectif</div><div style="font-size:22px;font-weight:800;color:#3B82F6">−4<span style="font-size:12px;color:#6B7280"> kg</span></div></div>';
+    h+='</div>';
     if(wl.length>1){
-      const cMax=Math.max(...wl.map(w=>w.p))+1,cMin=Math.min(...wl.map(w=>w.p))-1;
+      const cMax=Math.max.apply(null,wl.map(function(w){return w.p;}))+1;
+      const cMin=Math.min.apply(null,wl.map(function(w){return w.p;}))-1;
       const tgtY=last?((cMax-(last.p-4))/(cMax-cMin))*80+5:50;
-      const pts=wl.map((w,i)=>{const x=(i/(wl.length-1))*290+5,y=((cMax-w.p)/(cMax-cMin))*80+5;return x+','+y;}).join(' ');
-      h+=`<div class="card"><div class="slbl">Courbe de poids</div>
-        <svg width="100%" height="100" viewBox="0 0 300 100">
-          <line x1="0" y1="${tgtY}" x2="300" y2="${tgtY}" stroke="#10B98150" stroke-width="1" stroke-dasharray="4,3"/>
-          <polyline points="${pts}" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          ${wl.map((w,i)=>{const x=(i/(wl.length-1))*290+5,y=((cMax-w.p)/(cMax-cMin))*80+5;return`<circle cx="${x}" cy="${y}" r="4" fill="#3B82F6" stroke="#0F0F1A" stroke-width="2"/>`;}).join('')}
-        </svg>
-        <div style="display:flex;justify-content:space-between;margin-top:4px">
-          <span style="font-size:9px;color:#4B5563">${wl[0].d}</span><span style="font-size:9px;color:#10B981">— objectif −4 kg</span><span style="font-size:9px;color:#4B5563">${wl[wl.length-1].d}</span>
-        </div></div>`;
+      const pts=wl.map(function(w,i){var x=(i/(wl.length-1))*290+5,y=((cMax-w.p)/(cMax-cMin))*80+5;return x+','+y;}).join(' ');
+      const circles=wl.map(function(w,i){var x=(i/(wl.length-1))*290+5,y=((cMax-w.p)/(cMax-cMin))*80+5;return '<circle cx="'+x+'" cy="'+y+'" r="4" fill="#3B82F6" stroke="#0F0F1A" stroke-width="2"/>';}).join('');
+      h+='<div class="card"><div class="slbl">Courbe de poids</div>';
+      h+='<svg width="100%" height="100" viewBox="0 0 300 100"><line x1="0" y1="'+tgtY+'" x2="300" y2="'+tgtY+'" stroke="#10B98150" stroke-width="1" stroke-dasharray="4,3"/><polyline points="'+pts+'" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'+circles+'</svg>';
+      h+='<div style="display:flex;justify-content:space-between;margin-top:4px"><span style="font-size:9px;color:#4B5563">'+wl[0].d+'</span><span style="font-size:9px;color:#10B981">— objectif −4 kg</span><span style="font-size:9px;color:#4B5563">'+wl[wl.length-1].d+'</span></div></div>';
     }
-    h+=`<div class="card"><div class="slbl">Ajouter une mesure</div>
-      <div style="display:flex;gap:8px;margin-bottom:8px"><input type="date" id="wd" style="flex:1"><input type="number" id="wv" placeholder="kg" step="0.1" style="width:70px"></div>
-      <button class="btn-p" onclick="addW()">Ajouter ✓</button></div>`;
+    h+='<div class="card"><div class="slbl">Ajouter une mesure</div>';
+    h+='<div style="display:flex;gap:8px;margin-bottom:8px"><input type="date" id="wd" style="flex:1"><input type="number" id="wv" placeholder="kg" step="0.1" style="width:70px"></div>';
+    h+='<button class="btn-p" onclick="addW()">Ajouter ✓</button></div>';
     if(wl.length){
-      h+=`<div class="card"><div class="slbl">Historique</div>`;
-      [...wl].reverse().slice(0,8).forEach(w=>{h+=`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #2D2D3F"><span style="font-size:11px;color:#9CA3AF">${w.d}</span><span style="font-size:12px;font-weight:700">${w.p} kg</span></div>`;});
-      h+=`</div>`;
+      const dow=new Date().getDay();
+      if(dow===1||dow===5) h+='<div style="padding:9px 12px;border-radius:9px;background:#1E3A5F;border:1px solid #3B82F640;font-size:11px;color:#93C5FD;margin-bottom:10px">⚖️ <b>Rappel</b> — Aujourd-hui: jour de pesée ! Rentre ton poids ci-dessus.</div>';
+      h+='<div class="card"><div class="slbl">Historique</div>';
+      [...wl].reverse().slice(0,10).forEach(function(w){ h+='<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #2D2D3F"><span style="font-size:11px;color:#9CA3AF">'+w.d+'</span><span style="font-size:12px;font-weight:700">'+w.p+' kg</span></div>'; });
+      h+='</div>';
+    } else {
+      h+='<div class="gbox">💡 Commence le monitoring dès le lundi 22 juin — pèse-toi <b>lundi et vendredi matin</b>, à jeun, après les toilettes.</div>';
     }
-    if(!wl.length){h+='<div class="gbox">💡 Commence le monitoring dès le lundi 22 juin — pèse-toi <b>lundi et vendredi matin</b>, à jeun, après les toilettes, toujours dans les mêmes conditions.</div>';}
-  else {
-    const today2 = new Date();
-    const dow = today2.getDay(); // 0=dim, 1=lun, 5=ven
-    if(dow===1||dow===5){
-      h+='<div style="padding:9px 12px;border-radius:9px;background:#1E3A5F;border:1px solid #3B82F640;font-size:11px;color:#93C5FD;margin-bottom:10px">⚖️ <b>Rappel</b> — Aujourd\'hui c\'est jour de pesée ! Rentre ton poids ci-dessous.</div>';
-    }
-  }
+
+  // ── IMPÉDANCE ──────────────────────────────────────────────────────────────
   } else if(ST.trTab==='impedance'){
-    const last=il.length?il[il.length-1]:null;
-    if(last){
-      h+=`<div class="card"><div class="slbl">Dernière mesure · ${last.d}</div><div class="igrid">`;
-      const imc = last.p ? (86/(1.85*1.85)).toFixed(1) : (parseFloat(last.p)/(1.85*1.85)).toFixed(1);
-      const imcCalc = last.p ? (parseFloat(last.p)/(1.85*1.85)).toFixed(1) : '—';
-      [{l:"Masse grasse",v:last.mg,u:"%",c:"#EF4444",t:"10–20%"},{l:"Masse muscu",v:last.mm,u:"%",c:"#3B82F6",t:"40–50%"},{l:"Eau",v:last.eau,u:"%",c:"#06B6D4",t:"55–65%"},{l:"IMC (calculé)",v:imcCalc,u:"",c:"#8B5CF6",t:"< 25"},{l:"Poids",v:last.p,u:"kg",c:"#10B981",t:"82 kg"}].forEach(m=>{
-        h+=`<div class="icell" style="border:1px solid ${m.c}30"><div class="ilbl">${m.l}</div><div class="ival" style="color:${m.c}">${m.v||'—'}<span style="font-size:9px">${m.u}</span></div><div class="itgt">Cible : ${m.t}</div></div>`;
+    // Formulaire ajout
+    h+='<div class="card"><div class="slbl">Ajouter une mesure</div>';
+    h+='<div class="ybox">💡 Toujours le matin à jeun, après les toilettes, sans sport la veille.</div>';
+    h+='<input type="date" id="id" style="margin-bottom:7px">';
+    h+='<div class="igform">';
+    h+='<div><div class="iflbl">Poids (kg)</div><input type="number" id="ip" step="0.1" placeholder="86.0" oninput="updateImcPreview()"></div>';
+    h+='<div><div class="iflbl">IMC (auto)</div><div id="imc-preview" style="background:#14141F;border:1px solid #2D2D3F;border-radius:8px;color:#8B5CF6;padding:8px 10px;font-size:14px;font-weight:700;text-align:center">—</div></div>';
+    h+='<div><div class="iflbl">Masse grasse (%)</div><input type="number" id="img" step="0.1" placeholder="18.0"></div>';
+    h+='<div><div class="iflbl">Masse muscu (%)</div><input type="number" id="imm" step="0.1" placeholder="42.0"></div>';
+    h+='<div style="grid-column:1/-1"><div class="iflbl">Eau (%)</div><input type="number" id="ie" step="0.1" placeholder="58.0"></div>';
+    h+='</div>';
+    h+='<button style="width:100%;padding:10px;border-radius:10px;border:none;background:#8B5CF6;color:#fff;font-size:12px;font-weight:700" onclick="addI()">Enregistrer la mesure ✓</button></div>';
+
+    if(!il.length){
+      h+='<div class="gbox">💡 Commence la balance à impédance dès le 22 juin.</div>';
+    } else {
+      // Dernière mesure
+      const last=il[il.length-1];
+      const imcCalc=last.p?(parseFloat(last.p)/(1.85*1.85)).toFixed(1):'—';
+      h+='<div class="card"><div class="slbl">Dernière mesure · '+last.d+'</div><div class="igrid">';
+      [{l:"Masse grasse",v:last.mg,u:"%",c:"#EF4444",t:"10–20%"},{l:"Masse muscu",v:last.mm,u:"%",c:"#3B82F6",t:"40–50%"},{l:"Eau",v:last.eau,u:"%",c:"#06B6D4",t:"55–65%"},{l:"IMC (auto)",v:imcCalc,u:"",c:"#8B5CF6",t:"< 25"},{l:"Poids",v:last.p,u:"kg",c:"#10B981",t:"82 kg"}].forEach(function(m){
+        h+='<div class="icell" style="border:1px solid '+m.c+'30"><div class="ilbl">'+m.l+'</div><div class="ival" style="color:'+m.c+'">'+(m.v||'—')+'<span style="font-size:9px">'+m.u+'</span></div><div class="itgt">Cible : '+m.t+'</div></div>';
       });
-      h+=`</div></div>`;
+      h+='</div></div>';
+
+      // Évolution chiffrée
+      if(il.length>1){
+        const first=il[0];
+        const firstImcCalc=first.p?(parseFloat(first.p)/(1.85*1.85)).toFixed(1):'—';
+        const evolItems=[
+          {l:"Masse grasse",v1:parseFloat(first.mg)||0,v2:parseFloat(last.mg)||0,u:"%",c:"#EF4444",good:"down"},
+          {l:"Masse muscu",v1:parseFloat(first.mm)||0,v2:parseFloat(last.mm)||0,u:"%",c:"#3B82F6",good:"up"},
+          {l:"Hydratation",v1:parseFloat(first.eau)||0,v2:parseFloat(last.eau)||0,u:"%",c:"#06B6D4",good:"stable"},
+          {l:"IMC",v1:parseFloat(firstImcCalc)||0,v2:parseFloat(imcCalc)||0,u:"",c:"#8B5CF6",good:"down"},
+          {l:"Poids",v1:parseFloat(first.p)||0,v2:parseFloat(last.p)||0,u:" kg",c:"#10B981",good:"down"},
+        ];
+        h+='<div class="card"><div class="slbl">Évolution depuis le début</div>';
+        evolItems.forEach(function(e){
+          var diff=(e.v2-e.v1).toFixed(1);
+          var isGood=(e.good==='down'&&diff<0)||(e.good==='up'&&diff>0)||(e.good==='stable'&&Math.abs(diff)<1);
+          var diffColor=isGood?'#10B981':'#EF4444';
+          var arrow=diff>0?'↑':diff<0?'↓':'→';
+          h+='<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #2D2D3F">';
+          h+='<span style="font-size:12px;color:#9CA3AF;font-weight:600">'+e.l+'</span>';
+          h+='<div style="display:flex;align-items:center;gap:10px">';
+          h+='<span style="font-size:11px;color:#4B5563">'+e.v1+e.u+' → '+e.v2+e.u+'</span>';
+          h+='<span style="font-size:13px;font-weight:800;color:'+diffColor+'">'+arrow+' '+(diff>0?'+':'')+diff+e.u+'</span>';
+          h+='</div></div>';
+        });
+        h+='</div>';
+
+        // Graphiques par indicateur
+        var indicators=[
+          {key:'mg',label:'Masse grasse (%)',c:'#EF4444',good:'down'},
+          {key:'mm',label:'Masse musculaire (%)',c:'#3B82F6',good:'up'},
+          {key:'eau',label:'Hydratation (%)',c:'#06B6D4',good:'stable'},
+          {key:'p',label:'Poids (kg)',c:'#10B981',good:'down'},
+        ];
+        h+='<div class="card"><div class="slbl">Graphiques par indicateur</div>';
+        indicators.forEach(function(ind){
+          var vals=il.map(function(r){return parseFloat(r[ind.key])||0;});
+          var maxV=Math.max.apply(null,vals)+1;
+          var minV=Math.min.apply(null,vals)-1;
+          if(maxV===minV){maxV+=1;minV-=1;}
+          var pts=vals.map(function(v,i){var x=(i/(il.length-1))*280+10,y=((maxV-v)/(maxV-minV))*60+10;return x+','+y;}).join(' ');
+          var circles=vals.map(function(v,i){
+            var x=(i/(il.length-1))*280+10,y=((maxV-v)/(maxV-minV))*60+10;
+            return '<circle cx="'+x+'" cy="'+y+'" r="3.5" fill="'+ind.c+'" stroke="#0F0F1A" stroke-width="1.5"/>'+
+                   '<text x="'+x+'" y="'+(y-7)+'" fill="#9CA3AF" font-size="7" text-anchor="middle">'+v+'</text>';
+          }).join('');
+          var diff2=vals[vals.length-1]-vals[0];
+          var isGood2=(ind.good==='down'&&diff2<0)||(ind.good==='up'&&diff2>0)||(ind.good==='stable'&&Math.abs(diff2)<1);
+          h+='<div style="margin-bottom:14px">';
+          h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">';
+          h+='<span style="font-size:10px;font-weight:700;color:'+ind.c+'">'+ind.label+'</span>';
+          h+='<span style="font-size:10px;font-weight:700;color:'+(isGood2?'#10B981':'#EF4444')+'">'+(diff2>0?'+':'')+diff2.toFixed(1)+'</span>';
+          h+='</div>';
+          h+='<svg width="100%" height="80" viewBox="0 0 300 80">';
+          h+='<polyline points="'+pts+'" fill="none" stroke="'+ind.c+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'+circles;
+          h+='</svg>';
+          h+='<div style="display:flex;justify-content:space-between"><span style="font-size:8px;color:#4B5563">'+il[0].d+'</span><span style="font-size:8px;color:#4B5563">'+il[il.length-1].d+'</span></div>';
+          h+='</div>';
+        });
+        h+='</div>';
+      }
+
+      // Historique complet
+      h+='<div class="card"><div class="slbl">Historique complet</div>';
+      [...il].reverse().forEach(function(r){
+        const imc=(parseFloat(r.p)/(1.85*1.85)).toFixed(1);
+        h+='<div style="padding:8px 0;border-bottom:1px solid #2D2D3F">';
+        h+='<div style="display:flex;justify-content:space-between;margin-bottom:4px">';
+        h+='<span style="font-size:11px;font-weight:700;color:#F1F1F5">'+r.d+'</span>';
+        h+='<button data-impdate="'+r.d+'" onclick="delImpedance(this)" style="padding:2px 8px;border-radius:6px;border:none;background:#3A1A1A;color:#EF4444;font-size:10px">✕</button>';
+        h+='</div>';
+        h+='<div style="display:flex;flex-wrap:wrap;gap:6px">';
+        [{l:"Poids",v:r.p,u:"kg",c:"#10B981"},{l:"Gras",v:r.mg,u:"%",c:"#EF4444"},{l:"Muscle",v:r.mm,u:"%",c:"#3B82F6"},{l:"Eau",v:r.eau,u:"%",c:"#06B6D4"},{l:"IMC",v:imc,u:"",c:"#8B5CF6"}].forEach(function(m){
+          h+='<span style="font-size:10px;font-weight:700;color:'+m.c+';background:'+m.c+'18;padding:2px 6px;border-radius:4px">'+m.l+' : '+(m.v||'—')+m.u+'</span>';
+        });
+        h+='</div></div>';
+      });
+      h+='</div>';
     }
-    h+=`<div class="card"><div style="font-size:11px;color:#F59E0B;font-weight:700;margin-bottom:10px">📖 Comment lire ta balance</div>`;
-    [{l:"Masse grasse %",i:"10–20%",d:"> 25% = surpoids",c:"#EF4444",t:"Fond en premier avec déficit + course."},{l:"Masse musculaire %",i:"40–50%",d:"< 35% = masse maigre faible",c:"#3B82F6",t:"Doit rester stable. Si ça baisse → plus de protéines."},{l:"Hydratation %",i:"55–65%",d:"< 50% = déshydraté",c:"#06B6D4",t:"Mesure toujours à jeun le matin, sans sport la veille."},{l:"IMC",i:"18,5–25",d:"> 25 = surpoids",c:"#8B5CF6",t:"Calculé automatiquement depuis ton poids. Objectif : passer sous 25 (~85 kg)."}].forEach(it=>{
-      h+=`<div style="margin-bottom:10px;padding:10px;background:#14141F;border-radius:9px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:11px;font-weight:700;color:${it.c}">${it.l}</span><span style="font-size:10px;color:#10B981">${it.i}</span></div><div style="font-size:10px;color:#6B7280;margin-bottom:3px">${it.t}</div><div style="font-size:9px;color:#EF4444">⚠ ${it.d}</div></div>`;
-    });
-    h+=`</div>`;
-    h+=`<div class="card"><div class="slbl">Ajouter une mesure</div>
-      <div class="ybox">💡 Toujours le matin à jeun, après les toilettes, sans sport la veille.</div>
-      <input type="date" id="id" style="margin-bottom:7px">
-      <div class="igform">
-        <div><div class="iflbl">Poids (kg)</div><input type="number" id="ip" step="0.1" placeholder="86.0" oninput="updateImcPreview()"></div>
-        <div><div class="iflbl">IMC (auto)</div><div id="imc-preview" style="background:#14141F;border:1px solid #2D2D3F;border-radius:8px;color:#8B5CF6;padding:8px 10px;font-size:14px;font-weight:700;text-align:center">—</div></div>
-        <div><div class="iflbl">Masse grasse (%)</div><input type="number" id="img" step="0.1" placeholder="18.0"></div>
-        <div><div class="iflbl">Masse muscu (%)</div><input type="number" id="imm" step="0.1" placeholder="42.0"></div>
-        <div style="grid-column:1/-1"><div class="iflbl">Eau (%)</div><input type="number" id="ie" step="0.1" placeholder="58.0"></div>
-      </div>
-      <button style="width:100%;padding:10px;border-radius:10px;border:none;background:#8B5CF6;color:#fff;font-size:12px;font-weight:700" onclick="addI()">Enregistrer la mesure ✓</button></div>`;
-    if(il.length>1){
-      const maxG=Math.max(...il.map(r=>parseFloat(r.mg)||0))+2,minG=Math.min(...il.map(r=>parseFloat(r.mg)||0))-2;
-      const maxM=Math.max(...il.map(r=>parseFloat(r.mm)||0))+2,minM=Math.min(...il.map(r=>parseFloat(r.mm)||0))-2;
-      const pG=il.map((r,i)=>{const x=(i/(il.length-1))*290+5,y=((maxG-(parseFloat(r.mg)||0))/(maxG-minG))*80+5;return x+','+y;}).join(' ');
-      const pM=il.map((r,i)=>{const x=(i/(il.length-1))*290+5,y=((maxM-(parseFloat(r.mm)||0))/(maxM-minM))*80+5;return x+','+y;}).join(' ');
-      h+=`<div class="card"><div class="slbl">Masse grasse vs musculaire</div>
-        <svg width="100%" height="90" viewBox="0 0 300 90">
-          <polyline points="${pG}" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <polyline points="${pM}" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <div style="display:flex;gap:12px;margin-top:6px"><span style="font-size:9px;color:#EF4444">● Masse grasse</span><span style="font-size:9px;color:#3B82F6">● Masse musculaire</span></div></div>`;
+
+    // Guide lecture balance — dépliable tout en bas
+    h+='<div class="card" style="margin-top:4px">';
+    h+='<div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="ST.showGuide=!ST.showGuide;renderTr()">';
+    h+='<div style="font-weight:700;font-size:13px;color:#F59E0B">📖 Comment lire ta balance</div>';
+    h+='<span style="color:#6B7280;font-size:14px;display:inline-block;transform:'+(ST.showGuide?'rotate(180deg)':'none')+'">▾</span>';
+    h+='</div>';
+    if(ST.showGuide){
+      [{l:"Masse grasse %",i:"10–20%",d:"> 25% = surpoids",c:"#EF4444",t:"Fond en premier avec déficit + course. Indicateur principal."},{l:"Masse musculaire %",i:"40–50%",d:"< 35% = masse maigre faible",c:"#3B82F6",t:"Doit rester stable ou augmenter. Si baisse → augmente les proteines."},{l:"Hydratation %",i:"55–65%",d:"< 50% = déshydraté",c:"#06B6D4",t:"Mesure toujours a jeun le matin, sans sport la veille. L-hydratation fausse tout."},{l:"IMC",i:"< 25",d:"> 25 = surpoids (toi : 25,1 → objectif 85 kg)",c:"#8B5CF6",t:"Calculé automatiquement depuis ton poids. Objectif : passer sous 25 à ~85 kg."}].forEach(function(it){
+        h+='<div style="margin-top:10px;padding:10px;background:#14141F;border-radius:9px">';
+        h+='<div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:11px;font-weight:700;color:'+it.c+'">'+it.l+'</span><span style="font-size:10px;color:#10B981">'+it.i+'</span></div>';
+        h+='<div style="font-size:10px;color:#6B7280;margin-bottom:3px">'+it.t+'</div>';
+        h+='<div style="font-size:9px;color:#EF4444">⚠ '+it.d+'</div></div>';
+      });
     }
-    if(!il.length){h+=`<div class="gbox">💡 Commence la balance à impédance dès le 22 juin.</div>`;}
+    h+='</div>';
+
+  // ── PERTE DE GRAS ──────────────────────────────────────────────────────────
   } else {
-    // PERTE DE GRAS
     const lastI=il.length?il[il.length-1]:null;
     const firstI=il.length>1?il[0]:null;
     const lastW=wl.length?wl[wl.length-1]:null;
     const firstW=wl.length>1?wl[0]:null;
-    let grasDiff=null,muscDiff=null,poidsTotal=null;
+    var grasDiff=null,muscDiff=null,poidsTotal=null;
     if(lastI&&firstI){
-      const mgKgS=(parseFloat(firstI.mg)||0)/100*(parseFloat(firstI.p)||86);
-      const mgKgE=(parseFloat(lastI.mg)||0)/100*(parseFloat(lastI.p)||86);
+      var mgKgS=(parseFloat(firstI.mg)||0)/100*(parseFloat(firstI.p)||86);
+      var mgKgE=(parseFloat(lastI.mg)||0)/100*(parseFloat(lastI.p)||86);
       grasDiff=(mgKgE-mgKgS).toFixed(1);
-      const mmKgS=(parseFloat(firstI.mm)||0)/100*(parseFloat(firstI.p)||86);
-      const mmKgE=(parseFloat(lastI.mm)||0)/100*(parseFloat(lastI.p)||86);
+      var mmKgS=(parseFloat(firstI.mm)||0)/100*(parseFloat(firstI.p)||86);
+      var mmKgE=(parseFloat(lastI.mm)||0)/100*(parseFloat(lastI.p)||86);
       muscDiff=(mmKgE-mmKgS).toFixed(1);
     }
     if(lastW&&firstW) poidsTotal=(lastW.p-firstW.p).toFixed(1);
-    const grasPct=grasDiff?Math.min(Math.abs(parseFloat(grasDiff))/2*100,100):0;
-    h+=`<div class="card">
-      <div class="slbl">🔥 Indicateur perte de gras</div>
-      <div style="text-align:center;margin-bottom:16px">
-        <svg viewBox="0 0 120 120" width="120" height="120" style="display:block;margin:0 auto">
-          <circle cx="60" cy="60" r="50" fill="none" stroke="#2D2D3F" stroke-width="12"/>
-          <circle cx="60" cy="60" r="50" fill="none" stroke="url(#grad2)" stroke-width="12"
-            stroke-dasharray="${grasPct*3.14}" stroke-dashoffset="78.5" stroke-linecap="round"
-            transform="rotate(-90 60 60)"/>
-          <defs><linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" style="stop-color:#10B981"/><stop offset="100%" style="stop-color:#EF4444"/>
-          </linearGradient></defs>
-          <text x="60" y="56" text-anchor="middle" fill="#F1F1F5" font-size="20" font-weight="900">${grasPct.toFixed(0)}%</text>
-          <text x="60" y="70" text-anchor="middle" fill="#6B7280" font-size="9">objectif</text>
-        </svg>
-      </div>
-      <div style="display:flex;gap:7px;margin-bottom:12px">
-        <div class="sbox" style="border:1px solid #EF444430"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Gras perdu</div><div style="font-size:20px;font-weight:800;color:#EF4444">${grasDiff!==null?grasDiff:'—'}<span style="font-size:11px;color:#6B7280"> kg</span></div></div>
-        <div class="sbox" style="border:1px solid #3B82F630"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Muscle gagné</div><div style="font-size:20px;font-weight:800;color:#3B82F6">${muscDiff!==null?(parseFloat(muscDiff)>=0?'+':'')+muscDiff:'—'}<span style="font-size:11px;color:#6B7280"> kg</span></div></div>
-        <div class="sbox" style="border:1px solid #6B728030"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Poids total</div><div style="font-size:20px;font-weight:800;color:${poidsTotal===null?'#6B7280':parseFloat(poidsTotal)<0?'#10B981':'#EF4444'}">${poidsTotal!==null?(parseFloat(poidsTotal)<0?poidsTotal:'+'+poidsTotal):'—'}<span style="font-size:11px;color:#6B7280"> kg</span></div></div>
-      </div>`;
+    // Objectif : 3 kg de gras perdu (plus réaliste sur 10 semaines)
+    var grasPct=grasDiff?Math.min(Math.abs(parseFloat(grasDiff))/3*100,100):0;
+    var dashArray=grasPct*3.14;
+
+    h+='<div class="card">';
+    h+='<div class="slbl">🔥 Indicateur perte de gras</div>';
+    h+='<div style="font-size:10px;color:#6B7280;text-align:center;margin-bottom:8px">Objectif : perdre 3 kg de masse grasse pure (hors eau et muscle)</div>';
+    h+='<div style="text-align:center;margin-bottom:16px">';
+    h+='<svg viewBox="0 0 120 120" width="130" height="130" style="display:block;margin:0 auto">';
+    h+='<circle cx="60" cy="60" r="50" fill="none" stroke="#2D2D3F" stroke-width="12"/>';
+    h+='<circle cx="60" cy="60" r="50" fill="none" stroke="url(#grad2)" stroke-width="12" stroke-dasharray="'+dashArray+'" stroke-dashoffset="78.5" stroke-linecap="round" transform="rotate(-90 60 60)"/>';
+    h+='<defs><linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#10B981"/><stop offset="100%" style="stop-color:#EF4444"/></linearGradient></defs>';
+    h+='<text x="60" y="54" text-anchor="middle" fill="#F1F1F5" font-size="22" font-weight="900">'+grasPct.toFixed(0)+'%</text>';
+    h+='<text x="60" y="70" text-anchor="middle" fill="#6B7280" font-size="9">sur 3 kg</text>';
+    h+='</svg></div>';
+
+    h+='<div style="display:flex;gap:7px;margin-bottom:12px">';
+    h+='<div class="sbox" style="border:1px solid #EF444430"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Gras perdu</div><div style="font-size:20px;font-weight:800;color:#EF4444">'+(grasDiff!==null?grasDiff:'—')+'<span style="font-size:11px;color:#6B7280"> kg</span></div></div>';
+    h+='<div class="sbox" style="border:1px solid #3B82F630"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Muscle gagné</div><div style="font-size:20px;font-weight:800;color:#3B82F6">'+(muscDiff!==null?(parseFloat(muscDiff)>=0?'+':'')+muscDiff:'—')+'<span style="font-size:11px;color:#6B7280"> kg</span></div></div>';
+    h+='<div class="sbox" style="border:1px solid #6B728030"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Poids total</div><div style="font-size:20px;font-weight:800;color:'+(poidsTotal===null?'#6B7280':parseFloat(poidsTotal)<0?'#10B981':'#EF4444')+'">'+(poidsTotal!==null?(parseFloat(poidsTotal)<0?poidsTotal:'+'+poidsTotal):'—')+'<span style="font-size:11px;color:#6B7280"> kg</span></div></div>';
+    h+='</div>';
+
     if(grasDiff!==null){
-      h+=`<div style="padding:10px 12px;border-radius:9px;background:#14141F;font-size:11px;color:#D1D5DB;line-height:1.7">`;
-      if(parseFloat(grasDiff)<0&&parseFloat(muscDiff||0)>=0) h+=`✅ <b style="color:#10B981">Recomposition en cours !</b> Tu perds du gras tout en maintenant ou gagnant du muscle. C'est exactement l'objectif.`;
-      else if(parseFloat(grasDiff)<0) h+=`📉 Tu perds du gras — bonne trajectoire. Surveille que la masse musculaire ne baisse pas trop.`;
-      else h+=`⏳ Continue — les premières semaines sont souvent silencieuses.`;
-      h+=`</div>`;
+      var msg='';
+      if(parseFloat(grasDiff)<0&&parseFloat(muscDiff||0)>=0) msg='✅ <b style="color:#10B981">Recomposition en cours !</b> Tu perds du gras tout en maintenant ou gagnant du muscle.';
+      else if(parseFloat(grasDiff)<0) msg='📉 Tu perds du gras — bonne trajectoire. Surveille la masse musculaire.';
+      else msg='⏳ Continue — les premières semaines sont souvent silencieuses.';
+      h+='<div style="padding:10px 12px;border-radius:9px;background:#14141F;font-size:11px;color:#D1D5DB;line-height:1.7">'+msg+'</div>';
     } else {
-      h+=`<div class="gbox">💡 Commence tes mesures d'impédance le 22 juin pour voir l'évolution ici.</div>`;
+      h+='<div class="gbox">💡 Commence tes mesures le 22 juin. Le cercle se remplira au fur et à mesure.</div>';
     }
-    h+=`</div>`;
-    if(il.length>1){
-      const maxG=Math.max(...il.map(r=>parseFloat(r.mg)||0))+2,minG=Math.min(...il.map(r=>parseFloat(r.mg)||0))-2;
-      const pG=il.map((r,idx)=>{const x=(idx/(il.length-1))*290+5,y=((maxG-(parseFloat(r.mg)||0))/(maxG-minG))*70+5;return x+','+y;}).join(' ');
-      h+=`<div class="card"><div class="slbl">Courbe masse grasse (%)</div>
-        <svg width="100%" height="90" viewBox="0 0 300 90">
-          <polyline points="${pG}" fill="none" stroke="#EF4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-          ${il.map((r,idx)=>{const x=(idx/(il.length-1))*290+5,y=((maxG-(parseFloat(r.mg)||0))/(maxG-minG))*70+5;return`<circle cx="${x}" cy="${y}" r="4" fill="#EF4444" stroke="#0F0F1A" stroke-width="2"/><text x="${x}" y="${y-8}" fill="#9CA3AF" font-size="8" text-anchor="middle">${r.mg}%</text>`;}).join('')}
-        </svg>
-        <div style="display:flex;justify-content:space-between;margin-top:4px"><span style="font-size:9px;color:#4B5563">${il[0].d}</span><span style="font-size:9px;color:#EF4444">● Masse grasse</span><span style="font-size:9px;color:#4B5563">${il[il.length-1].d}</span></div>
-      </div>`;
-    }
+    h+='</div>';
   }
+
   document.getElementById('t-tracker').innerHTML=h;
 }
 function setTT(t){ST.trTab=t;renderTr();}
+function setTTBtn(btn){setTT(btn.getAttribute('data-tab'));}
 function addW(){
   const d=document.getElementById('wd').value,v=parseFloat(document.getElementById('wv').value);
   if(!d||isNaN(v))return;
@@ -1300,6 +1368,14 @@ function updateImcPreview(){
   const p=parseFloat(document.getElementById('ip')?.value)||0;
   const el=document.getElementById('imc-preview');
   if(el) el.textContent = p>0 ? (p/(1.85*1.85)).toFixed(1) : '—';
+}
+
+function delImpedance(btn){
+  const date=btn.getAttribute('data-impdate');
+  const l=S.get('iLog')||[];
+  const updated=l.filter(function(r){return r.d!==date;});
+  S.set('iLog',updated);
+  renderTr();
 }
 
 // ─── EXERCICES ───────────────────────────────────────────────────────────────
