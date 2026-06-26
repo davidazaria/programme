@@ -1319,15 +1319,27 @@ function renderTr(){
         h+='</div>';
 
         // Graphiques par indicateur
+        // Pre-compute kg values for charts
+        var ilKg = il.map(function(r){
+          var pw=parseFloat(r.p)||86;
+          return {
+            d:r.d,
+            mg:((parseFloat(r.mg)||0)/100*pw).toFixed(1),
+            mm:((parseFloat(r.mm)||0)/100*pw).toFixed(1),
+            eau:r.eau,
+            p:r.p
+          };
+        });
         var indicators=[
-          {key:'mg',label:'Masse grasse (%)',c:'#EF4444',good:'down'},
-          {key:'mm',label:'Masse musculaire (%)',c:'#3B82F6',good:'up'},
-          {key:'eau',label:'Hydratation (%)',c:'#06B6D4',good:'stable'},
-          {key:'p',label:'Poids (kg)',c:'#10B981',good:'down'},
+          {key:'mg',label:'Masse grasse (kg)',c:'#EF4444',good:'down',src:'ilKg'},
+          {key:'mm',label:'Masse musculaire (kg)',c:'#3B82F6',good:'up',src:'ilKg'},
+          {key:'eau',label:'Hydratation (%)',c:'#06B6D4',good:'stable',src:'il'},
+          {key:'p',label:'Poids (kg)',c:'#10B981',good:'down',src:'il'},
         ];
         h+='<div class="card"><div class="slbl">Graphiques par indicateur</div>';
         indicators.forEach(function(ind){
-          var vals=il.map(function(r){return parseFloat(r[ind.key])||0;});
+          var src = ind.src==='ilKg' ? ilKg : il;
+          var vals=src.map(function(r){return parseFloat(r[ind.key])||0;});
           var maxV=Math.max.apply(null,vals)+1;
           var minV=Math.min.apply(null,vals)-1;
           if(maxV===minV){maxV+=1;minV-=1;}
@@ -1448,32 +1460,7 @@ function renderTr(){
       h+='<div class="gbox" style="margin-bottom:12px">💡 Commence tes mesures le 22 juin. Le cercle se remplira au fur et à mesure.</div>';
     }
 
-    // Conseils forme / nutrition / lifestyle
-    h+='<div class="card">';
-    h+='<div style="font-weight:800;font-size:14px;color:#F1F1F5;margin-bottom:12px">💡 Conseils pour optimiser la perte de gras</div>';
-    var conseils=[
-      {emoji:"🥩",titre:"Protéines en priorité",txt:"Vise 165g/jour sans exception, meme les jours de repos. Les proteines preservent la masse musculaire en deficit et augmentent la satiete. Levier n1.",cat:"Nutrition",c:"#3B82F6"},
-      {emoji:"💧",titre:"Hydratation : 2L minimum",txt:"La déshydratation ralentit la lipolyse (brûlage des graisses) et fausse les mesures d'impédance. Commence chaque journée par un grand verre d'eau avant le café.",cat:"Lifestyle",c:"#06B6D4"},
-      {emoji:"😴",titre:"Sommeil : 7-8h non négociable",txt:"La privation de sommeil augmente le cortisol, qui favorise le stockage de gras abdominal. Pendant le sommeil la GH (hormone de croissance) est secretee — essentielle a la recuperation musculaire.",cat:"Lifestyle",c:"#8B5CF6"},
-      {emoji:"🏃",titre:"La course le dimanche est clé",txt:"Le cardio en zone moderee (8-10 km/h) sur 1h optimise l oxydation des graisses. Les Breguieres avec le denivele activent en plus les fibres musculaires de type I — parfaites pour la perte de gras.",cat:"Sport",c:"#10B981"},
-      {emoji:"⏰",titre:"Ne saute pas de repas",txt:"Sauter un repas augmente le cortisol et favorise le stockage lors du repas suivant. Mieux vaut un petit repas proteine qu aucun repas — meme en deficit.",cat:"Nutrition",c:"#F59E0B"},
-      {emoji:"📊",titre:"Pèse-toi lundi et vendredi",txt:"La pesee bihebdomadaire lisse les variations d eau et de digestion. Regarde la tendance sur 2-3 semaines, pas les fluctuations jour a jour. 0,3 a 0,5 kg/semaine = objectif parfait.",cat:"Suivi",c:"#EF4444"},
-      {emoji:"🧠",titre:"Gère le stress actif",txt:"Le cortisol chronique stimule la lipogenese abdominale. 10 min de marche lente apres le dejeuner, coupure des ecrans 1h avant le coucher — ca aide autant que l entrainement.",cat:"Lifestyle",c:"#8B5CF6"},
-      {emoji:"🍽️",titre:"Timing post-entraînement",txt:"Dans les 30-45 min apres la seance, consomme 25-30g de proteines rapides (whey, skyr). La fenetre anabolique est reelle — elle optimise la recuperation et limite le catabolisme.",cat:"Nutrition",c:"#3B82F6"},
-    ];
-    var catColors={"Nutrition":"#3B82F6","Lifestyle":"#8B5CF6","Sport":"#10B981","Suivi":"#EF4444"};
-    conseils.forEach(function(c){
-      h+='<div style="display:flex;gap:10px;padding:10px;background:#14141F;border-radius:10px;margin-bottom:8px;border-left:3px solid '+catColors[c.cat]+'">';
-      h+='<span style="font-size:22px;flex-shrink:0">'+c.emoji+'</span>';
-      h+='<div>';
-      h+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">';
-      h+='<span style="font-size:12px;font-weight:700;color:#F1F1F5">'+c.titre+'</span>';
-      h+='<span style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:4px;background:'+catColors[c.cat]+'22;color:'+catColors[c.cat]+'">'+c.cat+'</span>';
-      h+='</div>';
-      h+='<div style="font-size:11px;color:#9CA3AF;line-height:1.6">'+c.txt+'</div>';
-      h+='</div></div>';
-    });
-    h+='</div>';
+
 
     h+='</div>';
   }
@@ -1540,6 +1527,34 @@ function renderEx(){
     h+='<span style="font-size:9px;color:#4B5563">⏱ Repos après chaque série :</span>';
     h+='<span style="font-size:10px;font-weight:700;color:'+ex.c+'">'+ex.rest+'</span>';
     h+='</div>';
+
+    // Conseils forme / nutrition / lifestyle
+    h+='<div class="card" style="border-color:#F59E0B40">';
+    h+='<div style="font-weight:800;font-size:14px;color:#F59E0B;margin-bottom:12px">💡 Conseils pour optimiser la perte de gras</div>';
+    var conseils=[
+      {emoji:"🥩",titre:"Protéines en priorité",txt:"Vise 165g/jour sans exception, meme les jours de repos. Les proteines preservent la masse musculaire en deficit et augmentent la satiete. Levier n1.",cat:"Nutrition",c:"#3B82F6"},
+      {emoji:"💧",titre:"Hydratation : 2L minimum",txt:"La déshydratation ralentit la lipolyse (brûlage des graisses) et fausse les mesures d'impédance. Commence chaque journée par un grand verre d'eau avant le café.",cat:"Lifestyle",c:"#06B6D4"},
+      {emoji:"😴",titre:"Sommeil : 7-8h non négociable",txt:"La privation de sommeil augmente le cortisol, qui favorise le stockage de gras abdominal. Pendant le sommeil la GH (hormone de croissance) est secretee — essentielle a la recuperation musculaire.",cat:"Lifestyle",c:"#8B5CF6"},
+      {emoji:"🏃",titre:"La course le dimanche est clé",txt:"Le cardio en zone moderee (8-10 km/h) sur 1h optimise l oxydation des graisses. Les Breguieres avec le denivele activent en plus les fibres musculaires de type I — parfaites pour la perte de gras.",cat:"Sport",c:"#10B981"},
+      {emoji:"⏰",titre:"Ne saute pas de repas",txt:"Sauter un repas augmente le cortisol et favorise le stockage lors du repas suivant. Mieux vaut un petit repas proteine qu aucun repas — meme en deficit.",cat:"Nutrition",c:"#F59E0B"},
+      {emoji:"📊",titre:"Pèse-toi lundi et vendredi",txt:"La pesee bihebdomadaire lisse les variations d eau et de digestion. Regarde la tendance sur 2-3 semaines, pas les fluctuations jour a jour. 0,3 a 0,5 kg/semaine = objectif parfait.",cat:"Suivi",c:"#EF4444"},
+      {emoji:"🧠",titre:"Gère le stress actif",txt:"Le cortisol chronique stimule la lipogenese abdominale. 10 min de marche lente apres le dejeuner, coupure des ecrans 1h avant le coucher — ca aide autant que l entrainement.",cat:"Lifestyle",c:"#8B5CF6"},
+      {emoji:"🍽️",titre:"Timing post-entraînement",txt:"Dans les 30-45 min apres la seance, consomme 25-30g de proteines rapides (whey, skyr). La fenetre anabolique est reelle — elle optimise la recuperation et limite le catabolisme.",cat:"Nutrition",c:"#3B82F6"},
+    ];
+    var catColors={"Nutrition":"#3B82F6","Lifestyle":"#8B5CF6","Sport":"#10B981","Suivi":"#EF4444"};
+    conseils.forEach(function(c){
+      h+='<div style="display:flex;gap:10px;padding:10px;background:#14141F;border-radius:10px;margin-bottom:8px;border-left:3px solid '+catColors[c.cat]+'">';
+      h+='<span style="font-size:22px;flex-shrink:0">'+c.emoji+'</span>';
+      h+='<div>';
+      h+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">';
+      h+='<span style="font-size:12px;font-weight:700;color:#F1F1F5">'+c.titre+'</span>';
+      h+='<span style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:4px;background:'+catColors[c.cat]+'22;color:'+catColors[c.cat]+'">'+c.cat+'</span>';
+      h+='</div>';
+      h+='<div style="font-size:11px;color:#9CA3AF;line-height:1.6">'+c.txt+'</div>';
+      h+='</div></div>';
+    });
+    h+='</div>';
+
     h+='</div>';
   });
   document.getElementById('t-exercices').innerHTML=h;
