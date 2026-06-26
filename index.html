@@ -394,7 +394,7 @@ const WEEK=[
   {day:"Sam",fullDay:"Samedi",type:"repos",tag:"Repos",c:"#374151",emoji:"🥖",exercises:[],note:"Midi : 8 navettes thon 🥖 (1 680 kcal) → mange très léger le soir"},
   {day:"Dim",fullDay:"Dimanche",type:"course",tag:"Course",c:"#10B981",emoji:"🏃",
     exercises:[{name:"Course fractionnée",sets:"1h15",load:"voir format",muscles:"Cardio · Endurance",desc:"S1–4 : 10 min éch. + 5×(8 min à 9,5 km/h / 2 min marche) + 15 min retour calme. S5–6 : 6×(6 min à 10 km/h / 90 sec marche)."}],
-    note:"C'est parti ! 💪"},
+    note:"C est parti ! 💪"},
 ];
 const WEEK_VAC=[
   {day:"Lun",fullDay:"Lundi",type:"repos",tag:"Repos",c:"#374151",emoji:"😴",exercises:[]},
@@ -432,13 +432,13 @@ const ECARTS=[
   {id:"quart_pasteque",lbl:"Quart de pastèque (~500g)",emoji:"🍉",k:150,p:3,reel:"150 kcal · 3g prot · 34g gluc · 1g lip",c:"Quasiment rien. Zéro impact. Journée 100% normale.",repas:"Rien à changer."},
   {id:"demi_pasteque",lbl:"Demi pastèque (~1 kg)",emoji:"🍉",k:300,p:6,reel:"300 kcal · 6g prot · 68g gluc · 2g lip",c:"Léger. Journée normale avec -300 kcal sur un repas. Évite les féculents au repas suivant.",repas:"Repas suivant : protéines + légumes, pas de riz ni pâtes."},
   {id:"raisin",lbl:"Grappe de raisin (~300g)",emoji:"🍇",k:195,p:2,reel:"195 kcal · 2g prot · 50g gluc · 0g lip",c:"Sucres rapides mais raisonnable. Évite les féculents au repas suivant.",repas:"Repas suivant : protéines maigres + légumes."},
-  {id:"chocolat_2",lbl:"2 carreaux chocolat 85%",emoji:"🍫",k:110,p:2,reel:"110 kcal · 2g prot · 6g gluc · 9g lip",c:"Anecdotique. Le 85% est excellent nutritionnellement. Zéro impact. Programme normal.",repas:"Rien à changer. C'est un bon snack."},
+  {id:"chocolat_2",lbl:"2 carreaux chocolat 85%",emoji:"🍫",k:110,p:2,reel:"110 kcal · 2g prot · 6g gluc · 9g lip",c:"Anecdotique. Le 85% est excellent nutritionnellement. Zéro impact. Programme normal.",repas:"Rien à changer. C est un bon snack."},
   {id:"exces_sucre",lbl:"Excès sucrés (gâteaux, bonbons...)",emoji:"🍰",k:600,p:5,reel:"~600 kcal · 5g prot · 90g gluc · 20g lip",c:"Pic insulinique + glucides vides. Demain : petit déj sans sucre, évite féculents toute la journée. Séance sport idéale.",repas:"Lendemain : 4 œufs + fromage blanc le matin. Midi et soir : protéines + légumes."},
 ];
 
 const SEANCES={
   A:[
-    {name:"Squat barre",        sets:"4×8", load:"50 kg", rest:"2 min", c:"#3B82F6", muscles:"Quadriceps · Fessiers · Ischio", desc:"Barre sur les trapèzes, pieds largeur épaules. Descends dos droit, genoux dans l'axe des orteils. Pousse dans le sol pour remonter. C'est le roi des exercices — concentre-toi sur la technique."},
+    {name:"Squat barre",        sets:"4×8", load:"50 kg", rest:"2 min", c:"#3B82F6", muscles:"Quadriceps · Fessiers · Ischio", desc:"Barre sur les trapèzes, pieds largeur épaules. Descends dos droit, genoux dans l'axe des orteils. Pousse dans le sol pour remonter. C est le roi des exercices — concentre-toi sur la technique."},
     {name:"Soulevé de terre roumain", sets:"3×8", load:"55 kg", rest:"2 min", c:"#10B981", muscles:"Ischio-jambiers · Fessiers · Bas du dos", desc:"Haltères devant les cuisses, penche le buste dos plat jusqu'à mi-tibia. Sens l'étirement dans les ischio. Reviens en contractant les fessiers."},
     {name:"Leg curl machine",   sets:"3×12", load:"30 kg", rest:"90 sec", c:"#8B5CF6", muscles:"Ischio-jambiers", desc:"Allongé sur le ventre. Fléchis les genoux pour ramener le coussin vers les fesses. Contrôle la descente, amplitude complète."},
     {name:"Tractions assistées", sets:"3×8", load:"contrepoids 50 kg", rest:"2 min", c:"#06B6D4", muscles:"Grand dorsal · Biceps · Épaules", desc:"Règle le contrepoids (plus il est lourd, plus c'est facile). Barre large, paumes vers l'avant, amène le menton au-dessus de la barre. Descends lentement."},
@@ -471,6 +471,8 @@ let ST={
   showGuide: false,
   showEcarts: false,
   show24h: false,
+  showPlanner: false,
+  plannerSelections: {},
   nutSlot: 'pdj',
   nutSelections: {},
   nutManual: {},            // {pdj:[{n,qty}], ...} aliments ajoutés manuellement
@@ -789,7 +791,7 @@ function renderNut(){
       </div>
       </div>`;
     } else {
-      h += `<div class="reco-card"><div style="color:#6EE7B7;font-size:12px">🎉 C'est le dernier repas de la journée — objectif atteint !</div></div>`;
+      h += `<div class="reco-card"><div style="color:#6EE7B7;font-size:12px">🎉 C est le dernier repas de la journée — objectif atteint !</div></div>`;
     }
   }
 
@@ -826,6 +828,78 @@ function renderNut(){
       </div>
     </div>`;
   }
+
+  // ── PLANIFICATEUR 24H ──
+  h += '<div class="card" style="margin-bottom:12px">';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;margin-bottom:'+(ST.showPlanner?'10px':'0')+';" onclick="ST.showPlanner=!ST.showPlanner;renderNut()">';
+  h += '<div><div style="font-weight:800;font-size:14px;color:#F1F1F5">🗓️ Planifier mes prochains repas</div>';
+  h += '<div style="font-size:10px;color:#6B7280">Coche ce que tu prévois de manger</div></div>';
+  h += '<span style="color:#6B7280;font-size:14px;display:inline-block;transform:'+(ST.showPlanner?'rotate(180deg)':'none')+'">▾</span>';
+  h += '</div>';
+  if(ST.showPlanner){
+    // Calculate already eaten today
+    var eatenK = getDayTotals().k;
+    var eatenP = getDayTotals().p;
+    // Calculate planned macros
+    var plannedK=0, plannedP=0;
+    Object.entries(ST.plannerSelections).forEach(function(e){
+      var m=calcMacros(e[0],e[1]); plannedK+=m.k; plannedP+=m.p;
+    });
+    var totalK=eatenK+plannedK, totalP=eatenP+plannedP;
+    var targetK=getTargetKcal();
+    var remainK=Math.max(0,targetK-totalK), remainP=Math.max(0,TARGET_PROT-totalP);
+    var statusColor=totalK>targetK+200?'#EF4444':totalK>targetK?'#F59E0B':'#10B981';
+
+    // Summary bar
+    h += '<div style="background:#14141F;border-radius:10px;padding:10px;margin-bottom:10px">';
+    h += '<div style="display:flex;justify-content:space-between;margin-bottom:6px">';
+    h += '<span style="font-size:10px;color:#6B7280">Mangé + prévu</span>';
+    h += '<span style="font-size:11px;font-weight:700;color:'+statusColor+'">'+totalK+' / '+targetK+' kcal · '+totalP.toFixed(0)+'g / '+TARGET_PROT+'g prot</span>';
+    h += '</div>';
+    var pct=Math.min((totalK/targetK)*100,100);
+    h += '<div class="pb-bg"><div class="pb-fill" style="width:'+pct+'%;background:'+statusColor+'"></div></div>';
+    if(remainK>0) h += '<div style="font-size:10px;color:#6B7280;margin-top:4px">Encore à prévoir : <b style="color:#F59E0B">'+remainK+' kcal</b> · <b style="color:#3B82F6">'+remainP.toFixed(0)+'g prot</b></div>';
+    else h += '<div style="font-size:10px;color:#10B981;margin-top:4px">✅ Objectif atteint avec ce plan !</div>';
+    h += '</div>';
+
+    // Food selector for planner
+    var catOptionsP = ALIMENT_CATS.map(function(cat){
+      var items=Object.entries(ALIMENTS).filter(function(e){return e[1].cat===cat;});
+      return '<optgroup label="── '+cat+' ──">'+items.map(function(e){return '<option value="'+e[0]+'">'+e[1].emoji+' '+e[0]+(e[1].note?' ('+e[1].note+')':'')+'</option>';}).join('')+'</optgroup>';
+    }).join('');
+
+    h += '<div style="display:flex;gap:6px;margin-bottom:8px">';
+    h += '<select id="plan-select" style="flex:2"><option value="">Choisir un aliment...</option>'+catOptionsP+'</select>';
+    h += '<input type="number" id="plan-qty" placeholder="g" style="width:60px" min="1">';
+    h += '</div>';
+    h += '<button onclick="addToPlanner()" style="width:100%;padding:8px;border-radius:8px;border:none;background:#374151;color:#F1F1F5;font-size:12px;font-weight:600;margin-bottom:10px">Ajouter au plan ✓</button>';
+
+    // Show planned items
+    var planEntries=Object.entries(ST.plannerSelections);
+    if(planEntries.length>0){
+      h += '<div style="margin-bottom:8px">';
+      h += '<div style="font-size:10px;color:#6B7280;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">Aliments prévus</div>';
+      planEntries.forEach(function(e){
+        var m=calcMacros(e[0],e[1]);
+        var a=ALIMENTS[e[0]];
+        h += '<div style="display:flex;align-items:center;gap:8px;padding:7px;background:#14141F;border-radius:8px;margin-bottom:5px">';
+        h += '<span style="font-size:14px">'+(a&&a.emoji?a.emoji:'🍽️')+'</span>';
+        h += '<div style="flex:1"><div style="font-size:11px;color:#F1F1F5;font-weight:600">'+e[0]+'</div>';
+        h += '<div style="font-size:10px;color:#6B7280">'+e[1]+'g · '+m.k+' kcal · '+m.p+'g prot</div></div>';
+        h += '<button data-plan="'+e[0]+'" onclick="removePlanner(this)" style="background:none;border:none;color:#EF4444;font-size:14px;padding:0 4px">✕</button>';
+        h += '</div>';
+      });
+      h += '</div>';
+      // Advice based on plan
+      h += '<div style="padding:10px;background:#0F2B1F;border-radius:9px;border:1px solid #10B98130;font-size:11px;color:#A7F3D0;line-height:1.6">';
+      h += '💡 <b>Bilan prévisionnel</b> : ';
+      if(totalP < 130) h += 'Attention, plan pauvre en proteines ('+totalP.toFixed(0)+'g). Ajoute un shaker whey ou du fromage blanc.';
+      else if(totalK > targetK+300) h += 'Plan au-dessus de l-objectif ('+totalK+' kcal). Réduis les féculents ce soir.';
+      else h += 'Bonne trajectoire — '+totalK+' kcal / '+totalP.toFixed(0)+'g prot prevus. Continue comme ca.';
+      h += '</div>';
+    }
+  }
+  h += '</div>';
 
   // Écarts section in nutrition
   h += '<div class="card" style="margin-bottom:12px">';
@@ -957,17 +1031,41 @@ function showReco(slot){ ST.nutShowReco=slot; renderNut(); }
 function showRecoBtn(btn){ showReco(btn.getAttribute('data-slot')); }
 
 function addCustomItem(slot){
-  const name = document.getElementById('custom-name').value.trim();
-  const kcal = parseFloat(document.getElementById('custom-kcal').value);
-  const prot = parseFloat(document.getElementById('custom-prot').value)||0;
-  const gluc = parseFloat(document.getElementById('custom-gluc').value)||0;
-  const lip  = parseFloat(document.getElementById('custom-lip').value)||0;
+  var name = document.getElementById('custom-name').value.trim();
+  var kcal = parseFloat(document.getElementById('custom-kcal').value);
+  var prot = parseFloat(document.getElementById('custom-prot').value)||0;
+  var gluc = parseFloat(document.getElementById('custom-gluc').value)||0;
+  var lip  = parseFloat(document.getElementById('custom-lip').value)||0;
   if(!name || isNaN(kcal)) return;
   // Add to ALIMENTS dynamically
-  ALIMENTS[name] = {k:kcal, p:prot, g:gluc, l:lip, emoji:"🍽️", cat:"Personnalisé"};
+  ALIMENTS[name] = {k:kcal, p:prot, g:gluc, l:lip, emoji:'🍽️', cat:'Mes aliments'};
+  // Save to localStorage permanently
+  var custom = S.get('customAliments') || {};
+  custom[name] = {k:kcal, p:prot, g:gluc, l:lip};
+  S.set('customAliments', custom);
+  // Add cat to list if needed
+  if(ALIMENT_CATS.indexOf('Mes aliments') < 0) ALIMENT_CATS.unshift('Mes aliments');
+  // Add to current slot
   if(!ST.nutManual[slot]) ST.nutManual[slot]=[];
-  ST.nutManual[slot].push({n:name, qty:100, custom:true, kcal, prot, gluc, lip});
+  ST.nutManual[slot].push({n:name, qty:100});
   ST.nutShowReco=null;
+  renderNut();
+}
+
+function goToNutrition(){
+  var btn = document.querySelector('.nbtn:nth-child(2)');
+  if(btn) nav('nutrition', btn);
+}
+function addToPlanner(){
+  var sel=document.getElementById('plan-select');
+  var qty=parseFloat(document.getElementById('plan-qty').value);
+  if(!sel||!sel.value||!qty||qty<=0) return;
+  ST.plannerSelections[sel.value]=(ST.plannerSelections[sel.value]||0)+qty;
+  renderNut();
+}
+function removePlanner(btn){
+  var name=btn.getAttribute('data-plan');
+  delete ST.plannerSelections[name];
   renderNut();
 }
 
@@ -1177,19 +1275,6 @@ function renderTr(){
 
   // ── IMPÉDANCE ──────────────────────────────────────────────────────────────
   } else if(ST.trTab==='impedance'){
-    // Formulaire ajout
-    h+='<div class="card"><div class="slbl">Ajouter une mesure</div>';
-    h+='<div class="ybox">💡 Toujours le matin à jeun, après les toilettes, sans sport la veille.</div>';
-    h+='<input type="date" id="id" style="margin-bottom:7px">';
-    h+='<div class="igform">';
-    h+='<div><div class="iflbl">Poids (kg)</div><input type="number" id="ip" step="0.1" placeholder="86.0" oninput="updateImcPreview()"></div>';
-    h+='<div><div class="iflbl">IMC (auto)</div><div id="imc-preview" style="background:#14141F;border:1px solid #2D2D3F;border-radius:8px;color:#8B5CF6;padding:8px 10px;font-size:14px;font-weight:700;text-align:center">—</div></div>';
-    h+='<div><div class="iflbl">Masse grasse (%)</div><input type="number" id="img" step="0.1" placeholder="18.0"></div>';
-    h+='<div><div class="iflbl">Masse muscu (%)</div><input type="number" id="imm" step="0.1" placeholder="42.0"></div>';
-    h+='<div style="grid-column:1/-1"><div class="iflbl">Eau (%)</div><input type="number" id="ie" step="0.1" placeholder="58.0"></div>';
-    h+='</div>';
-    h+='<button style="width:100%;padding:10px;border-radius:10px;border:none;background:#8B5CF6;color:#fff;font-size:12px;font-weight:700" onclick="addI()">Enregistrer la mesure ✓</button></div>';
-
     if(!il.length){
       h+='<div class="gbox">💡 Commence la balance à impédance dès le 22 juin.</div>';
     } else {
@@ -1206,24 +1291,29 @@ function renderTr(){
       if(il.length>1){
         const first=il[0];
         const firstImcCalc=first.p?(parseFloat(first.p)/(1.85*1.85)).toFixed(1):'—';
-        const evolItems=[
-          {l:"Masse grasse",v1:parseFloat(first.mg)||0,v2:parseFloat(last.mg)||0,u:"%",c:"#EF4444",good:"down"},
-          {l:"Masse muscu",v1:parseFloat(first.mm)||0,v2:parseFloat(last.mm)||0,u:"%",c:"#3B82F6",good:"up"},
-          {l:"Hydratation",v1:parseFloat(first.eau)||0,v2:parseFloat(last.eau)||0,u:"%",c:"#06B6D4",good:"stable"},
-          {l:"IMC",v1:parseFloat(firstImcCalc)||0,v2:parseFloat(imcCalc)||0,u:"",c:"#8B5CF6",good:"down"},
-          {l:"Poids",v1:parseFloat(first.p)||0,v2:parseFloat(last.p)||0,u:" kg",c:"#10B981",good:"down"},
+        // Convert % to kg for gras and muscle
+        var p1=parseFloat(first.p)||86, p2=parseFloat(last.p)||86;
+        var grasKg1=((parseFloat(first.mg)||0)/100*p1).toFixed(1);
+        var grasKg2=((parseFloat(last.mg)||0)/100*p2).toFixed(1);
+        var muscKg1=((parseFloat(first.mm)||0)/100*p1).toFixed(1);
+        var muscKg2=((parseFloat(last.mm)||0)/100*p2).toFixed(1);
+        var evolItems=[
+          {l:"Masse grasse",v1:grasKg1,v2:grasKg2,u:" kg",good:"down"},
+          {l:"Masse musculaire",v1:muscKg1,v2:muscKg2,u:" kg",good:"up"},
+          {l:"Hydratation",v1:parseFloat(first.eau)||0,v2:parseFloat(last.eau)||0,u:"%",good:"stable"},
+          {l:"IMC",v1:parseFloat(firstImcCalc)||0,v2:parseFloat(imcCalc)||0,u:"",good:"down"},
+          {l:"Poids",v1:parseFloat(first.p)||0,v2:parseFloat(last.p)||0,u:" kg",good:"down"},
         ];
-        h+='<div class="card"><div class="slbl">Évolution depuis le début</div>';
+        h+='<div class="card"><div class="slbl">Evolution depuis le debut</div>';
         evolItems.forEach(function(e){
-          var diff=(e.v2-e.v1).toFixed(1);
-          var isGood=(e.good==='down'&&diff<0)||(e.good==='up'&&diff>0)||(e.good==='stable'&&Math.abs(diff)<1);
+          var diff=(parseFloat(e.v2)-parseFloat(e.v1)).toFixed(1);
+          var isGood=(e.good==="down"&&parseFloat(diff)<0)||(e.good==="up"&&parseFloat(diff)>0)||(e.good==="stable"&&Math.abs(parseFloat(diff))<1);
           var diffColor=isGood?'#10B981':'#EF4444';
-          var arrow=diff>0?'↑':diff<0?'↓':'→';
           h+='<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #2D2D3F">';
           h+='<span style="font-size:12px;color:#9CA3AF;font-weight:600">'+e.l+'</span>';
           h+='<div style="display:flex;align-items:center;gap:10px">';
           h+='<span style="font-size:11px;color:#4B5563">'+e.v1+e.u+' → '+e.v2+e.u+'</span>';
-          h+='<span style="font-size:13px;font-weight:800;color:'+diffColor+'">'+arrow+' '+(diff>0?'+':'')+diff+e.u+'</span>';
+          h+='<span style="font-size:13px;font-weight:800;color:'+diffColor+'">'+(parseFloat(diff)>0?'+':'')+diff+e.u+'</span>';
           h+='</div></div>';
         });
         h+='</div>';
@@ -1262,6 +1352,19 @@ function renderTr(){
         });
         h+='</div>';
       }
+
+      // Formulaire ajout (bas de page)
+      h+='<div class="card"><div class="slbl">Ajouter une mesure</div>';
+      h+='<div class="ybox">💡 Toujours le matin à jeun, après les toilettes, sans sport la veille.</div>';
+      h+='<input type="date" id="id" style="margin-bottom:7px">';
+      h+='<div class="igform">';
+      h+='<div><div class="iflbl">Poids (kg)</div><input type="number" id="ip" step="0.1" placeholder="86.0" oninput="updateImcPreview()"></div>';
+      h+='<div><div class="iflbl">IMC (auto)</div><div id="imc-preview" style="background:#14141F;border:1px solid #2D2D3F;border-radius:8px;color:#8B5CF6;padding:8px 10px;font-size:14px;font-weight:700;text-align:center">—</div></div>';
+      h+='<div><div class="iflbl">Masse grasse (%)</div><input type="number" id="img" step="0.1" placeholder="18.0"></div>';
+      h+='<div><div class="iflbl">Masse muscu (%)</div><input type="number" id="imm" step="0.1" placeholder="42.0"></div>';
+      h+='<div style="grid-column:1/-1"><div class="iflbl">Eau (%)</div><input type="number" id="ie" step="0.1" placeholder="58.0"></div>';
+      h+="</div>";
+      h+='<button style="width:100%;padding:10px;border-radius:10px;border:none;background:#8B5CF6;color:#fff;font-size:12px;font-weight:700" onclick="addI()">Enregistrer la mesure ✓</button></div>';
 
       // Historique complet
       h+='<div class="card"><div class="slbl">Historique complet</div>';
@@ -1314,19 +1417,19 @@ function renderTr(){
     }
     if(lastW&&firstW) poidsTotal=(lastW.p-firstW.p).toFixed(1);
     // Objectif : 3 kg de gras perdu (plus réaliste sur 10 semaines)
-    var grasPct=grasDiff?Math.min(Math.abs(parseFloat(grasDiff))/3*100,100):0;
+    var grasPct=grasDiff?Math.min(Math.abs(parseFloat(grasDiff))/4*100,100):0;
     var dashArray=grasPct*3.14;
 
     h+='<div class="card">';
     h+='<div class="slbl">🔥 Indicateur perte de gras</div>';
-    h+='<div style="font-size:10px;color:#6B7280;text-align:center;margin-bottom:8px">Objectif : perdre 3 kg de masse grasse pure (hors eau et muscle)</div>';
+    h+='<div style="font-size:10px;color:#6B7280;text-align:center;margin-bottom:8px">Objectif : perdre 4 kg de masse grasse pure (hors eau et muscle)</div>';
     h+='<div style="text-align:center;margin-bottom:16px">';
     h+='<svg viewBox="0 0 120 120" width="130" height="130" style="display:block;margin:0 auto">';
     h+='<circle cx="60" cy="60" r="50" fill="none" stroke="#2D2D3F" stroke-width="12"/>';
     h+='<circle cx="60" cy="60" r="50" fill="none" stroke="url(#grad2)" stroke-width="12" stroke-dasharray="'+dashArray+'" stroke-dashoffset="78.5" stroke-linecap="round" transform="rotate(-90 60 60)"/>';
     h+='<defs><linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#10B981"/><stop offset="100%" style="stop-color:#EF4444"/></linearGradient></defs>';
     h+='<text x="60" y="54" text-anchor="middle" fill="#F1F1F5" font-size="22" font-weight="900">'+grasPct.toFixed(0)+'%</text>';
-    h+='<text x="60" y="70" text-anchor="middle" fill="#6B7280" font-size="9">sur 3 kg</text>';
+    h+='<text x="60" y="70" text-anchor="middle" fill="#6B7280" font-size="9">sur 4 kg</text>';
     h+='</svg></div>';
 
     h+='<div style="display:flex;gap:7px;margin-bottom:12px">';
@@ -1340,10 +1443,38 @@ function renderTr(){
       if(parseFloat(grasDiff)<0&&parseFloat(muscDiff||0)>=0) msg='✅ <b style="color:#10B981">Recomposition en cours !</b> Tu perds du gras tout en maintenant ou gagnant du muscle.';
       else if(parseFloat(grasDiff)<0) msg='📉 Tu perds du gras — bonne trajectoire. Surveille la masse musculaire.';
       else msg='⏳ Continue — les premières semaines sont souvent silencieuses.';
-      h+='<div style="padding:10px 12px;border-radius:9px;background:#14141F;font-size:11px;color:#D1D5DB;line-height:1.7">'+msg+'</div>';
+      h+='<div style="padding:10px 12px;border-radius:9px;background:#14141F;font-size:11px;color:#D1D5DB;line-height:1.7;margin-bottom:12px">'+msg+'</div>';
     } else {
-      h+='<div class="gbox">💡 Commence tes mesures le 22 juin. Le cercle se remplira au fur et à mesure.</div>';
+      h+='<div class="gbox" style="margin-bottom:12px">💡 Commence tes mesures le 22 juin. Le cercle se remplira au fur et à mesure.</div>';
     }
+
+    // Conseils forme / nutrition / lifestyle
+    h+='<div class="card">';
+    h+='<div style="font-weight:800;font-size:14px;color:#F1F1F5;margin-bottom:12px">💡 Conseils pour optimiser la perte de gras</div>';
+    var conseils=[
+      {emoji:"🥩",titre:"Protéines en priorité",txt:"Vise 165g/jour sans exception, meme les jours de repos. Les proteines preservent la masse musculaire en deficit et augmentent la satiete. Levier n1.",cat:"Nutrition",c:"#3B82F6"},
+      {emoji:"💧",titre:"Hydratation : 2L minimum",txt:"La déshydratation ralentit la lipolyse (brûlage des graisses) et fausse les mesures d'impédance. Commence chaque journée par un grand verre d'eau avant le café.",cat:"Lifestyle",c:"#06B6D4"},
+      {emoji:"😴",titre:"Sommeil : 7-8h non négociable",txt:"La privation de sommeil augmente le cortisol, qui favorise le stockage de gras abdominal. Pendant le sommeil la GH (hormone de croissance) est secretee — essentielle a la recuperation musculaire.",cat:"Lifestyle",c:"#8B5CF6"},
+      {emoji:"🏃",titre:"La course le dimanche est clé",txt:"Le cardio en zone moderee (8-10 km/h) sur 1h optimise l oxydation des graisses. Les Breguieres avec le denivele activent en plus les fibres musculaires de type I — parfaites pour la perte de gras.",cat:"Sport",c:"#10B981"},
+      {emoji:"⏰",titre:"Ne saute pas de repas",txt:"Sauter un repas augmente le cortisol et favorise le stockage lors du repas suivant. Mieux vaut un petit repas proteine qu aucun repas — meme en deficit.",cat:"Nutrition",c:"#F59E0B"},
+      {emoji:"📊",titre:"Pèse-toi lundi et vendredi",txt:"La pesee bihebdomadaire lisse les variations d eau et de digestion. Regarde la tendance sur 2-3 semaines, pas les fluctuations jour a jour. 0,3 a 0,5 kg/semaine = objectif parfait.",cat:"Suivi",c:"#EF4444"},
+      {emoji:"🧠",titre:"Gère le stress actif",txt:"Le cortisol chronique stimule la lipogenese abdominale. 10 min de marche lente apres le dejeuner, coupure des ecrans 1h avant le coucher — ca aide autant que l entrainement.",cat:"Lifestyle",c:"#8B5CF6"},
+      {emoji:"🍽️",titre:"Timing post-entraînement",txt:"Dans les 30-45 min apres la seance, consomme 25-30g de proteines rapides (whey, skyr). La fenetre anabolique est reelle — elle optimise la recuperation et limite le catabolisme.",cat:"Nutrition",c:"#3B82F6"},
+    ];
+    var catColors={"Nutrition":"#3B82F6","Lifestyle":"#8B5CF6","Sport":"#10B981","Suivi":"#EF4444"};
+    conseils.forEach(function(c){
+      h+='<div style="display:flex;gap:10px;padding:10px;background:#14141F;border-radius:10px;margin-bottom:8px;border-left:3px solid '+catColors[c.cat]+'">';
+      h+='<span style="font-size:22px;flex-shrink:0">'+c.emoji+'</span>';
+      h+='<div>';
+      h+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">';
+      h+='<span style="font-size:12px;font-weight:700;color:#F1F1F5">'+c.titre+'</span>';
+      h+='<span style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:4px;background:'+catColors[c.cat]+'22;color:'+catColors[c.cat]+'">'+c.cat+'</span>';
+      h+='</div>';
+      h+='<div style="font-size:11px;color:#9CA3AF;line-height:1.6">'+c.txt+'</div>';
+      h+='</div></div>';
+    });
+    h+='</div>';
+
     h+='</div>';
   }
 
@@ -1425,8 +1556,46 @@ function renderJournal(){
     Historique de tes journées alimentaires. Enregistre chaque soir depuis l'onglet Nutrition.
   </div>`;
 
+  const todayStr = new Date().toISOString().split('T')[0];
+  const todayData = (S.get('nutJournal')||{})[todayStr];
+
+  // Today pinned at top
+  if(todayData){
+    const todayDate = new Date(todayStr);
+    const todayLabel = todayDate.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'});
+    const kPctT = Math.min((todayData.totalK/2400)*100,100);
+    const pPctT = Math.min((todayData.totalP/165)*100,100);
+    const kColT = todayData.totalK > 2500 ? '#EF4444' : todayData.totalK < 1800 ? '#F59E0B' : '#10B981';
+    const pColT = todayData.totalP < 140 ? '#F59E0B' : '#10B981';
+    h += '<div style="background:linear-gradient(135deg,#1E3A5F,#0F2B2B);border-radius:14px;padding:14px;border:1.5px solid #3B82F6;margin-bottom:14px">';
+    h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">';
+    h += '<span style="font-size:18px">📅</span>';
+    h += '<div><div style="font-weight:800;font-size:15px;color:#F1F1F5;text-transform:capitalize">'+todayLabel+'</div>';
+    h += '<div style="font-size:10px;color:#3B82F6;font-weight:700">Journée en cours</div></div>';
+    h += '<button onclick="goToNutrition()" style="margin-left:auto;padding:6px 10px;border-radius:8px;border:none;background:#3B82F6;color:#fff;font-size:11px;font-weight:700">Modifier</button>';
+    h += '</div>';
+    h += '<div style="display:flex;gap:7px;margin-bottom:8px">';
+    h += '<div style="flex:1;background:#14141F;border-radius:9px;padding:10px">';
+    h += '<div style="font-size:9px;color:#6B7280;margin-bottom:2px">Calories</div>';
+    h += '<div style="font-size:20px;font-weight:800;color:'+kColT+'">'+todayData.totalK+'<span style="font-size:11px;color:#6B7280"> / 2400</span></div>';
+    h += '<div class="pb-bg" style="margin-top:4px"><div class="pb-fill" style="width:'+kPctT+'%;background:'+kColT+'"></div></div></div>';
+    h += '<div style="flex:1;background:#14141F;border-radius:9px;padding:10px">';
+    h += '<div style="font-size:9px;color:#6B7280;margin-bottom:2px">Protéines</div>';
+    h += '<div style="font-size:20px;font-weight:800;color:'+pColT+'">'+todayData.totalP+'g<span style="font-size:11px;color:#6B7280"> / 165</span></div>';
+    h += '<div class="pb-bg" style="margin-top:4px"><div class="pb-fill" style="width:'+pPctT+'%;background:'+pColT+'"></div></div></div>';
+    h += '</div>';
+    h += renderDayMeals(todayData);
+    h += '</div>';
+  } else {
+    h += '<div style="background:#1E1E2E;border-radius:14px;padding:14px;border:1px solid #2D2D3F;margin-bottom:14px;text-align:center">';
+    h += '<div style="font-size:28px;margin-bottom:6px">📅</div>';
+    h += '<div style="font-size:13px;color:#9CA3AF;margin-bottom:10px">Rien de saisi pour aujourd hui encore.</div>';
+    h += '<button onclick="goToNutrition()" style="padding:8px 16px;border-radius:9px;border:none;background:#3B82F6;color:#fff;font-size:12px;font-weight:700">Saisir mes repas</button>';
+    h += '</div>';
+  }
+
   if(days.length === 0){
-    h += `<div class="gbox">💡 Aucune journée enregistrée pour l'instant. Va dans l'onglet Nutrition, saisis tes repas et appuie sur 💾 Enregistrer.</div>`;
+    h += '<div class="gbox">💡 Aucune journée enregistrée. Va dans Nutrition, saisis tes repas et appuie sur 💾 Enregistrer.</div>';
     document.getElementById('t-journal').innerHTML = h;
     return;
   }
@@ -1557,6 +1726,19 @@ function render(t){
   else if(t==='tracker')renderTr();
   else if(t==='exercices')renderEx();
 }
+
+// Load custom aliments from localStorage into ALIMENTS
+(function loadCustomAliments(){
+  var custom = S.get('customAliments') || {};
+  Object.keys(custom).forEach(function(name){
+    var a = custom[name];
+    ALIMENTS[name] = {k:a.k, p:a.p, g:a.g, l:a.l, emoji:'🍽️', cat:'Mes aliments'};
+  });
+  // Add 'Mes aliments' to cats if not there
+  if(ALIMENT_CATS.indexOf('Mes aliments') < 0 && Object.keys(custom).length > 0){
+    ALIMENT_CATS.unshift('Mes aliments');
+  }
+})();
 
 // Auto-load today's nutrition data on startup
 (function initNutrition(){
