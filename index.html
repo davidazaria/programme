@@ -1173,7 +1173,7 @@ function renderSem(){
   h+=`</div>`;
   document.getElementById('t-semaine').innerHTML=h;
 }
-function selW(w){ST.week=w;ST.day=0;ST.jshow=false;renderSem();}
+function selW(w){ST.week=w;ST.day=0;ST.jshow=false;S.set('lastWeek',w);renderSem();}
 function selD(d){ST.day=d;ST.jshow=false;renderSem();}
 function togJ(){
   const j=S.get('journal')||{};
@@ -1743,6 +1743,10 @@ function render(t){
 // Auto-load today's nutrition data on startup
 (function initNutrition(){
   const today = new Date().toISOString().split('T')[0];
+  // Restore last selected week
+  var savedWeek = S.get('lastWeek');
+  if(savedWeek && savedWeek >= 1 && savedWeek <= 10) ST.week = savedWeek;
+
   ST.nutDate = today;
   const saved = (S.get('nutJournal')||{})[today];
   if(saved && saved.selections){
