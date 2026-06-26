@@ -469,6 +469,8 @@ let ST={
   week:1, day:0, jshow:false, jinp:{},
   isSportDay: true,
   showGuide: false,
+  conseilsShown: [],
+  conseilsSeed: 0,
   showEcarts: false,
   show24h: false,
   showPlanner: false,
@@ -1235,7 +1237,7 @@ function renderTr(){
   const wl=S.get('wLog')||[];
   const il=S.get('iLog')||[];
   let h='<div class="pill-row">';
-  [{k:'poids',l:'Poids',e:'⚖️'},{k:'impedance',l:'Impédance',e:'📊'},{k:'gras',l:'Perte gras',e:'🔥'}].forEach(function(t){
+  [{k:'poids',l:'Poids',e:'⚖️'},{k:'impedance',l:'Impédance',e:'📊'},{k:'gras',l:'Perte gras',e:'🔥'},{k:'conseils',l:'Conseils',e:'💡'}].forEach(function(t){
     h+='<button class="pill '+(ST.trTab===t.k?'act':'')+'" data-tab="'+t.k+'" onclick="setTTBtn(this)"><div class="pe">'+t.e+'</div><div class="pl">'+t.l+'</div></button>';
   });
   h+='</div>';
@@ -1465,9 +1467,67 @@ function renderTr(){
     h+='</div>';
   }
 
+  // ── CONSEILS TAB ────────────────────────────────────────────────────────
+  if(ST.trTab==='conseils'){
+    var data = computeConseilsData();
+    // Init shown conseils if empty
+    if(!ST.conseilsShown || ST.conseilsShown.length === 0){
+      ST.conseilsShown = getTopConseils([]).map(function(c){return c.id;});
+      ST.conseilsMode = 'top'; // 'top' or 'random'
+    }
+    var shownItems = ALL_CONSEILS.filter(function(c){ return ST.conseilsShown.indexOf(c.id) >= 0; });
+    // Sort by category order
+    shownItems.sort(function(a,b){
+      return CONSEIL_CATS.indexOf(a.cat) - CONSEIL_CATS.indexOf(b.cat);
+    });
+
+    // Header
+    h += '<div style="margin-bottom:14px">';
+    h += '<div style="font-size:13px;color:#9CA3AF;line-height:1.5;margin-bottom:10px">Conseils selectionnes en fonction de ton programme, ta nutrition et ton suivi.</div>';
+
+    // Context chips
+    if(data.avgProt < 150) h += '<div style="display:inline-block;padding:4px 10px;border-radius:20px;background:#3B82F622;border:1px solid #3B82F640;font-size:10px;color:#93C5FD;margin-bottom:8px;margin-right:6px">⚠ Proteines moyennes basses : '+Math.round(data.avgProt)+'g</div>';
+    if(data.weightCount < 2) h += '<div style="display:inline-block;padding:4px 10px;border-radius:20px;background:#F59E0B22;border:1px solid #F59E0B40;font-size:10px;color:#FCD34D;margin-bottom:8px;margin-right:6px">⚠ Peu de pesees enregistrees</div>';
+    if(data.impCount < 2) h += '<div style="display:inline-block;padding:4px 10px;border-radius:20px;background:#8B5CF622;border:1px solid #8B5CF640;font-size:10px;color:#C4B5FD;margin-bottom:8px;margin-right:6px">⚠ Peu de mesures impedance</div>';
+    h += '</div>';
+
+    // Conseil cards
+    var catColors = {"Nutrition":"#3B82F6","Lifestyle":"#8B5CF6","Sport":"#10B981","Suivi":"#EF4444","Conscience":"#F59E0B","Sante mentale":"#06B6D4"};
+    shownItems.forEach(function(c){
+      var cc = catColors[c.cat] || '#6B7280';
+      h += '<div style="background:#1E1E2E;border-radius:14px;padding:14px;margin-bottom:10px;border-left:4px solid '+cc+'">';
+      h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">';
+      h += '<span style="font-size:22px">'+c.emoji+'</span>';
+      h += '<div style="flex:1">';
+      h += '<div style="font-size:12px;font-weight:700;color:#F1F1F5">'+c.titre+'</div>';
+      h += '<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;background:'+cc+'22;color:'+cc+'">'+c.cat+'</span>';
+      h += '</div></div>';
+      h += '<div style="font-size:11px;color:#9CA3AF;line-height:1.7">'+c.txt+'</div>';
+      h += '</div>';
+    });
+
+    // Bouton 3 autres conseils
+    h += '<button onclick="loadMoreConseils()" style="width:100%;padding:13px;border-radius:12px;border:1.5px solid #374151;background:#1E1E2E;color:#9CA3AF;font-size:13px;font-weight:700;margin-top:4px">🎲 3 autres conseils</button>';
+  }
+
   document.getElementById('t-tracker').innerHTML=h;
 }
-function setTT(t){ST.trTab=t;renderTr();}
+function setTT(t){
+  ST.trTab=t;
+  if(t==='conseils' && (!ST.conseilsShown || ST.conseilsShown.length===0)){
+    ST.conseilsShown = getTopConseils([]).map(function(c){return c.id;});
+  }
+  renderTr();
+}
+
+function loadMoreConseils(){
+  var current = ST.conseilsShown || [];
+  var newItems = getRandomConseils(current, 3);
+  var newIds = newItems.map(function(c){return c.id;});
+  // Replace shown with new random ones (keep the concept fresh)
+  ST.conseilsShown = newIds;
+  renderTr();
+}
 function setTTBtn(btn){setTT(btn.getAttribute('data-tab'));}
 function addW(){
   const d=document.getElementById('wd').value,v=parseFloat(document.getElementById('wv').value);
@@ -1528,32 +1588,7 @@ function renderEx(){
     h+='<span style="font-size:10px;font-weight:700;color:'+ex.c+'">'+ex.rest+'</span>';
     h+='</div>';
 
-    // Conseils forme / nutrition / lifestyle
-    h+='<div class="card" style="border-color:#F59E0B40">';
-    h+='<div style="font-weight:800;font-size:14px;color:#F59E0B;margin-bottom:12px">💡 Conseils pour optimiser la perte de gras</div>';
-    var conseils=[
-      {emoji:"🥩",titre:"Protéines en priorité",txt:"Vise 165g/jour sans exception, meme les jours de repos. Les proteines preservent la masse musculaire en deficit et augmentent la satiete. Levier n1.",cat:"Nutrition",c:"#3B82F6"},
-      {emoji:"💧",titre:"Hydratation : 2L minimum",txt:"La déshydratation ralentit la lipolyse (brûlage des graisses) et fausse les mesures d'impédance. Commence chaque journée par un grand verre d'eau avant le café.",cat:"Lifestyle",c:"#06B6D4"},
-      {emoji:"😴",titre:"Sommeil : 7-8h non négociable",txt:"La privation de sommeil augmente le cortisol, qui favorise le stockage de gras abdominal. Pendant le sommeil la GH (hormone de croissance) est secretee — essentielle a la recuperation musculaire.",cat:"Lifestyle",c:"#8B5CF6"},
-      {emoji:"🏃",titre:"La course le dimanche est clé",txt:"Le cardio en zone moderee (8-10 km/h) sur 1h optimise l oxydation des graisses. Les Breguieres avec le denivele activent en plus les fibres musculaires de type I — parfaites pour la perte de gras.",cat:"Sport",c:"#10B981"},
-      {emoji:"⏰",titre:"Ne saute pas de repas",txt:"Sauter un repas augmente le cortisol et favorise le stockage lors du repas suivant. Mieux vaut un petit repas proteine qu aucun repas — meme en deficit.",cat:"Nutrition",c:"#F59E0B"},
-      {emoji:"📊",titre:"Pèse-toi lundi et vendredi",txt:"La pesee bihebdomadaire lisse les variations d eau et de digestion. Regarde la tendance sur 2-3 semaines, pas les fluctuations jour a jour. 0,3 a 0,5 kg/semaine = objectif parfait.",cat:"Suivi",c:"#EF4444"},
-      {emoji:"🧠",titre:"Gère le stress actif",txt:"Le cortisol chronique stimule la lipogenese abdominale. 10 min de marche lente apres le dejeuner, coupure des ecrans 1h avant le coucher — ca aide autant que l entrainement.",cat:"Lifestyle",c:"#8B5CF6"},
-      {emoji:"🍽️",titre:"Timing post-entraînement",txt:"Dans les 30-45 min apres la seance, consomme 25-30g de proteines rapides (whey, skyr). La fenetre anabolique est reelle — elle optimise la recuperation et limite le catabolisme.",cat:"Nutrition",c:"#3B82F6"},
-    ];
-    var catColors={"Nutrition":"#3B82F6","Lifestyle":"#8B5CF6","Sport":"#10B981","Suivi":"#EF4444"};
-    conseils.forEach(function(c){
-      h+='<div style="display:flex;gap:10px;padding:10px;background:#14141F;border-radius:10px;margin-bottom:8px;border-left:3px solid '+catColors[c.cat]+'">';
-      h+='<span style="font-size:22px;flex-shrink:0">'+c.emoji+'</span>';
-      h+='<div>';
-      h+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">';
-      h+='<span style="font-size:12px;font-weight:700;color:#F1F1F5">'+c.titre+'</span>';
-      h+='<span style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:4px;background:'+catColors[c.cat]+'22;color:'+catColors[c.cat]+'">'+c.cat+'</span>';
-      h+='</div>';
-      h+='<div style="font-size:11px;color:#9CA3AF;line-height:1.6">'+c.txt+'</div>';
-      h+='</div></div>';
-    });
-    h+='</div>';
+
 
     h+='</div>';
   });
@@ -1561,6 +1596,100 @@ function renderEx(){
 }
 function setET(t){ST.exTab=t;ST.exOpen=null;renderEx();}
 function togEx(k){ST.exOpen=(ST.exOpen===k?null:k);renderEx();}
+
+// ─── CONSEILS DATABASE ────────────────────────────────────────────────────────
+const ALL_CONSEILS = [
+  // NUTRITION
+  {id:"n1",cat:"Nutrition",emoji:"🥩",titre:"Protéines : 165g/jour sans exception",txt:"Meme les jours de repos. Les proteines preservent la masse musculaire en deficit et augmentent la satiete. Un deficit calorique sans proteines suffisantes = perte de muscle, pas de gras.",score:function(data){return data.avgProt<140?10:data.avgProt<160?6:2;}},
+  {id:"n2",cat:"Nutrition",emoji:"⏰",titre:"Timing post-entrainement",txt:"Dans les 30-45 min apres la seance, consomme 25-30g de proteines rapides (whey, skyr). La fenetre anabolique optimise la recuperation et limite le catabolisme.",score:function(data){return data.hasWorkouts?8:3;}},
+  {id:"n3",cat:"Nutrition",emoji:"🚫",titre:"Ne saute pas de repas",txt:"Sauter un repas augmente le cortisol et favorise le stockage lors du repas suivant. Mieux vaut un petit repas proteine que rien — meme en deficit.",score:function(data){return data.avgKcal<1800?9:3;}},
+  {id:"n4",cat:"Nutrition",emoji:"🥗",titre:"Legumes a chaque repas",txt:"Les fibres des legumes ralentissent l absorption des glucides, prolongent la satiete et nourrissent le microbiome. Vise 400-500g de legumes par jour.",score:function(data){return 4;}},
+  {id:"n5",cat:"Nutrition",emoji:"🍫",titre:"Sucres : qualite avant quantite",txt:"Le chocolat 85% Lindt que tu as dans ta liste = 1,9g gluc par carre. 2 carres apres le diner = plaisir zero culpabilite. Le sucre liquide (jus, sodas) est bien plus problematique.",score:function(data){return 3;}},
+  {id:"n6",cat:"Nutrition",emoji:"🌅",titre:"Petit dejeuner proteIne",txt:"Commencer la journee avec 30-40g de proteines (3 oeufs + skyr) stabilise la glycemie pour toute la matinee et reduit les fringales de 16h.",score:function(data){return data.avgProt<150?7:3;}},
+  {id:"n7",cat:"Nutrition",emoji:"📊",titre:"Jours de sport vs repos",txt:"Tu as bien configure l app : 2400 kcal les jours de sport, 2200 les jours de repos. Ce delta de 200 kcal sur 3 jours de repos par semaine = 600 kcal de deficit supplementaire par semaine.",score:function(data){return 4;}},
+  // LIFESTYLE
+  {id:"l1",cat:"Lifestyle",emoji:"😴",titre:"Sommeil : 7-8h non negociable",txt:"La privation de sommeil augmente le cortisol, qui favorise le stockage de gras abdominal. Pendant le sommeil la GH est secretee — essentielle a la recuperation musculaire.",score:function(data){return 7;}},
+  {id:"l2",cat:"Lifestyle",emoji:"💧",titre:"2L d eau minimum par jour",txt:"La deshydratation ralentit la lipolyse et fausse les mesures d impedance. Commence chaque journee par un grand verre d eau avant le cafe.",score:function(data){return 6;}},
+  {id:"l3",cat:"Lifestyle",emoji:"🧠",titre:"Gere le stress actif",txt:"Le cortisol chronique stimule la lipogenese abdominale. 10 min de marche lente apres le dejeuner, coupure des ecrans 1h avant le coucher.",score:function(data){return 5;}},
+  {id:"l4",cat:"Lifestyle",emoji:"📱",titre:"Ecrans et sommeil",txt:"La lumiere bleue des ecrans supprime la melatonine. Mode nuit sur ton iPhone, et si possible ne plus regarder l ecran 45 min avant de dormir. Qualite de sommeil = qualite de recuperation.",score:function(data){return 4;}},
+  {id:"l5",cat:"Lifestyle",emoji:"🚶",titre:"Marche active quotidienne",txt:"10 000 pas par jour = environ 400 kcal supplementaires bruless sans effort. Un trajet a pied de 20 min matin et soir suffit. Chaque pas compte dans le deficit.",score:function(data){return 5;}},
+  {id:"l6",cat:"Lifestyle",emoji:"☀️",titre:"Exposition matinale a la lumiere",txt:"10-15 min de lumiere naturelle le matin regulise le rythme circadien, ameliore la qualite du sommeil le soir et booste la serotonine — moins de fringales sucrEes.",score:function(data){return 3;}},
+  // SPORT
+  {id:"s1",cat:"Sport",emoji:"🏔️",titre:"Les Breguieres : seance jambes gratuite",txt:"Le cardio vallonne active les fibres musculaires de type I et optimise l oxydation des graisses. Le denivele stimule quadriceps et fessiers sans charger les articulations comme le squat.",score:function(data){return data.hasWorkouts?6:8;}},
+  {id:"s2",cat:"Sport",emoji:"📈",titre:"Progression double en salle",txt:"Regle simple : 2 seances de suite avec toutes tes reps propres = +2,5 kg haut du corps, +5 kg bas du corps. C est le seul indicateur qui compte en salle.",score:function(data){return data.hasWorkouts?8:4;}},
+  {id:"s3",cat:"Sport",emoji:"🔄",titre:"Semaine de decharge S4",txt:"La semaine 4 avec -15% de charges n est pas optionnelle. La surcompensation apres une decharge produit souvent les meilleures progressions. Ne la saute pas.",score:function(data){return 5;}},
+  {id:"s4",cat:"Sport",emoji:"🔥",titre:"Echauffement : 5 min obligatoires",txt:"5 min de velo ou tapis + 1 serie legere a 50% sur le premier exercice. Cela augmente la temperature musculaire, reduit le risque de blessure et ameliore la performance.",score:function(data){return data.hasWorkouts?6:3;}},
+  {id:"s5",cat:"Sport",emoji:"😴",titre:"Recuperation = partie du programme",txt:"Les muscles ne grandissent pas pendant la seance mais pendant la recuperation. Les jours de repos ne sont pas des jours perdus — ils sont essentiels.",score:function(data){return 5;}},
+  {id:"s6",cat:"Sport",emoji:"🎯",titre:"Varier les series",txt:"Apres 4-5 semaines avec le meme programme, le corps s adapte. Essaie de passer de 4x8 a 3x12 sur certains exercices — le changement de volume stimule de nouveaux gains.",score:function(data){return 3;}},
+  // SUIVI
+  {id:"sv1",cat:"Suivi",emoji:"⚖️",titre:"Pesee bihebdomadaire",txt:"Lundi et vendredi matin, a jeun, apres les toilettes. Regarde la tendance sur 2-3 semaines, pas les variations jour a jour. 0,3-0,5 kg/semaine = rythme ideal.",score:function(data){return data.weightCount<3?10:4;}},
+  {id:"sv2",cat:"Suivi",emoji:"📊",titre:"Balance a impedance : protocole strict",txt:"Toujours le matin a jeun, meme heure, sans sport la veille. Une seule variation de protocole fausse toute la comparaison. La regularite vaut plus que la frequence.",score:function(data){return data.impCount<2?9:4;}},
+  {id:"sv3",cat:"Suivi",emoji:"📓",titre:"Journal alimentaire : honnetete totale",txt:"L erreur la plus commune : oublier de noter les petites choses (sauce, huile, cafe latte, carres de chocolat). Ces oublis representent souvent 200-400 kcal/jour.",score:function(data){return data.journalDays<5?8:3;}},
+  {id:"sv4",cat:"Suivi",emoji:"📸",titre:"Photo de progression",txt:"Une photo par semaine, meme eclairage, meme heure, meme pose. Les changements de composition corporelle sont souvent invisibles sur la balance mais visibles sur les photos.",score:function(data){return 5;}},
+  {id:"sv5",cat:"Suivi",emoji:"💪",titre:"Note tes charges en seance",txt:"Le journal de seance dans l app est la pour ca. Si tu ne notes pas, tu n es pas sur de progresser. La progression de charge est la preuve objective que tu gagnes du muscle.",score:function(data){return data.hasWorkouts&&data.journalDays<3?9:4;}},
+  // CONSCIENCE
+  {id:"c1",cat:"Conscience",emoji:"🎯",titre:"L ecart isole ne change rien",txt:"Un fondant le vendredi soir, des navettes le samedi midi — ca ne change rien sur 10 semaines. Ce qui compte c est la consistance des 6 autres jours. Arrete de culpabiliser.",score:function(data){return 6;}},
+  {id:"c2",cat:"Conscience",emoji:"🔄",titre:"Recomposition vs perte de poids",txt:"Si la balance ne bouge pas mais que tu perds du gras ET gagnes du muscle, c est une victoire. Le poids seul est un tres mauvais indicateur — regarde la composition corporelle.",score:function(data){return data.impCount>0?7:3;}},
+  {id:"c3",cat:"Conscience",emoji:"📅",titre:"Le long terme gagne toujours",txt:"10 semaines = premiers resultats visibles. 6 mois = transformation reelle. 1 an = nouveau setpoint metabolique. Ne juge pas les resultats a la semaine — juge-les au mois.",score:function(data){return 5;}},
+  {id:"c4",cat:"Conscience",emoji:"🧩",titre:"Systeme > motivation",txt:"La motivation est episodique. Le systeme (programme fixe, heures de seance planifiees, repas prepares) fonctionne meme les jours sans envie. Construis des routines, pas des intentions.",score:function(data){return 6;}},
+  {id:"c5",cat:"Conscience",emoji:"🏆",titre:"Celebre les petites victoires",txt:"Premier kilo perdu, premiere traction sans assistance, premiere semaine complete : chaque milestone compte. Le cerveau a besoin de feedback positif pour maintenir la motivation longue duree.",score:function(data){return data.weightLost>0?8:4;}},
+  // SANTE MENTALE
+  {id:"sm1",cat:"Sante mentale",emoji:"🧘",titre:"Stress et cortisol : le lien direct",txt:"Un niveau de stress chronique eleve = cortisol eleve = retention d eau + stockage de gras abdominal + envies sucrEes. Gerer le stress n est pas optionnel dans un programme de recompo.",score:function(data){return 7;}},
+  {id:"sm2",cat:"Sante mentale",emoji:"💬",titre:"Parle de ton programme",txt:"Partager ses objectifs avec quelqu un augmente significativement le taux d adherence. Que ce soit un ami, un collegue ou ton assistante Sephora — verbaliser l engagement le renforce.",score:function(data){return 5;}},
+  {id:"sm3",cat:"Sante mentale",emoji:"🎵",titre:"Musique en seance",txt:"Des etudes montrent que la musique a tempo eleve (120-140 BPM) augmente les performances sportives de 15% en moyenne. Cree une playlist dediee seance — ca change vraiment.",score:function(data){return data.hasWorkouts?6:3;}},
+  {id:"sm4",cat:"Sante mentale",emoji:"🌿",titre:"Nature et recuperation mentale",txt:"La route des Breguieres n est pas que du sport — c est aussi de la therapie. La marche en nature reduit le cortisol plus efficacement que la meditation interieure pour la plupart des gens.",score:function(data){return 6;}},
+  {id:"sm5",cat:"Sante mentale",emoji:"😤",titre:"La frustration fait partie du process",txt:"Il y aura des semaines sans resultats, des seances ratees, des ecarts. C est normal et prevu. Ce qui distingue ceux qui reussissent : ils reprennent le lendemain sans dramatiser.",score:function(data){return 5;}},
+];
+
+const CONSEIL_CATS = ["Nutrition","Lifestyle","Sport","Suivi","Conscience","Sante mentale"];
+
+function computeConseilsData(){
+  var journal = S.get('nutJournal') || {};
+  var wLog = S.get('wLog') || [];
+  var iLog = S.get('iLog') || [];
+  var jDays = Object.values(journal);
+  var avgKcal = jDays.length ? jDays.reduce(function(s,d){return s+d.totalK;},0)/jDays.length : 2400;
+  var avgProt = jDays.length ? jDays.reduce(function(s,d){return s+d.totalP;},0)/jDays.length : 165;
+  var weightLost = wLog.length > 1 ? wLog[0].p - wLog[wLog.length-1].p : 0;
+  var sessionJournal = S.get('journal') || {};
+  var doneWorkouts = Object.values(sessionJournal).filter(function(s){return s.done;}).length;
+  return {
+    avgKcal: avgKcal,
+    avgProt: avgProt,
+    journalDays: jDays.length,
+    weightCount: wLog.length,
+    impCount: iLog.length,
+    hasWorkouts: doneWorkouts > 0,
+    weightLost: weightLost
+  };
+}
+
+function getTopConseils(excluded){
+  excluded = excluded || [];
+  var data = computeConseilsData();
+  // Get one best conseil per category
+  var result = [];
+  CONSEIL_CATS.forEach(function(cat){
+    var catItems = ALL_CONSEILS.filter(function(c){
+      return c.cat === cat && excluded.indexOf(c.id) < 0;
+    });
+    if(!catItems.length) return;
+    catItems.sort(function(a,b){ return b.score(data) - a.score(data); });
+    result.push(catItems[0]);
+  });
+  return result;
+}
+
+function getRandomConseils(excluded, count){
+  excluded = excluded || [];
+  var data = computeConseilsData();
+  var available = ALL_CONSEILS.filter(function(c){ return excluded.indexOf(c.id) < 0; });
+  // Shuffle with score weighting
+  available.sort(function(a,b){
+    return (b.score(data) + Math.random()*4) - (a.score(data) + Math.random()*4);
+  });
+  return available.slice(0, count || 3);
+}
 
 // ─── JOURNAL ─────────────────────────────────────────────────────────────────
 function renderJournal(){
