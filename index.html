@@ -129,6 +129,22 @@ textarea{background:#14141F;border:1px solid #2D2D3F;border-radius:8px;color:#F1
 // ─── STORAGE ──────────────────────────────────────────────────────────────────
 const S={get(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch{return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}};
 
+// ─── DATE PARIS ───────────────────────────────────────────────────────────────
+function parisDateStr(){
+  return new Date().toLocaleDateString('fr-CA',{timeZone:'Europe/Paris'});
+  // fr-CA retourne le format YYYY-MM-DD, identique a toISOString mais en heure Paris
+}
+function parisHour(){
+  return parseInt(new Date().toLocaleString('fr-FR',{timeZone:'Europe/Paris',hour:'2-digit',hour12:false}),10);
+}
+function parisDay(){
+  // 0=dimanche, 1=lundi ... 6=samedi — identique a getDay() mais en heure Paris
+  var days = ['dim','lun','mar','mer','jeu','ven','sam'];
+  var dayStr = new Date().toLocaleDateString('fr-FR',{timeZone:'Europe/Paris',weekday:'short'});
+  var idx = days.indexOf(dayStr.toLowerCase().replace('.',''));
+  return idx >= 0 ? idx : new Date().getDay();
+}
+
 // ─── SVGs ─────────────────────────────────────────────────────────────────────
 const SVG={
 "Squat barre":`<svg viewBox="0 0 80 90" width="44" height="44"><rect x="5" y="18" width="70" height="5" rx="2" fill="#6B7280"/><rect x="2" y="15" width="9" height="11" rx="2" fill="#374151"/><rect x="69" y="15" width="9" height="11" rx="2" fill="#374151"/><circle cx="40" cy="10" r="7" fill="#FBBF24"/><rect x="36" y="20" width="8" height="18" rx="3" fill="#FBBF24"/><line x1="40" y1="38" x2="24" y2="62" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="40" y1="38" x2="56" y2="62" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="24" y1="62" x2="16" y2="76" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="56" y1="62" x2="64" y2="76" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/><line x1="36" y1="24" x2="18" y2="20" stroke="#FBBF24" stroke-width="4" stroke-linecap="round"/><line x1="44" y1="24" x2="62" y2="20" stroke="#FBBF24" stroke-width="4" stroke-linecap="round"/></svg>`,
@@ -611,7 +627,7 @@ function renderNut(){
   </div>`;
 
   // Alerte 18h protéines
-  const nowH = new Date().getHours();
+  const nowH = parisHour();
   if(nowH >= 14 && nowH < 17){
     const protMissing = Math.max(0, TARGET_PROT - dayT.p);
     if(protMissing > 20){
@@ -978,7 +994,7 @@ function renderNut(){
   h += '</div>';
 
   // Date selector + save button
-  const today = new Date().toISOString().split('T')[0];
+  const today = parisDateStr();
   const nutDate = ST.nutDate || today;
   const savedDay = (S.get('nutJournal')||{})[nutDate];
 
@@ -1013,7 +1029,7 @@ function setNutDate(d){
 }
 
 function saveDay(){
-  const date = ST.nutDate || new Date().toISOString().split('T')[0];
+  const date = ST.nutDate || parisDateStr();
   const dayT = getDayTotals();
   const journal = S.get('nutJournal') || {};
   journal[date] = {
@@ -1307,7 +1323,7 @@ function renderTr(){
     h+='<div style="display:flex;gap:8px;margin-bottom:8px"><input type="date" id="wd" style="flex:1"><input type="number" id="wv" placeholder="kg" step="0.1" style="width:70px"></div>';
     h+='<button class="btn-p" onclick="addW()">Ajouter ✓</button></div>';
     if(wl.length){
-      const dow=new Date().getDay();
+      const dow=parisDay();
       if(dow===1||dow===5) h+='<div style="padding:9px 12px;border-radius:9px;background:#1E3A5F;border:1px solid #3B82F640;font-size:11px;color:#93C5FD;margin-bottom:10px">⚖️ <b>Rappel</b> — Aujourd-hui: jour de pesée ! Rentre ton poids ci-dessus.</div>';
       h+='<div class="card"><div class="slbl">Historique</div>';
       [...wl].reverse().slice(0,10).forEach(function(w){ h+='<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #2D2D3F"><span style="font-size:11px;color:#9CA3AF">'+w.d+'</span><span style="font-size:12px;font-weight:700">'+w.p+' kg</span></div>'; });
@@ -1511,10 +1527,23 @@ function renderTr(){
   // ── CONSEILS TAB ────────────────────────────────────────────────────────
   if(ST.trTab==='conseils'){
     var data = computeConseilsData();
-    // Init shown conseils if empty
-    if(!ST.conseilsShown || ST.conseilsShown.length === 0){
-      ST.conseilsShown = getTopConseils([]).map(function(c){return c.id;});
-      ST.conseilsMode = 'top'; // 'top' or 'random'
+    // Rotation 24h : un conseil aleatoire par categorie, change chaque jour a minuit
+    var todayKey = parisDateStr();
+    var savedDay = S.get('conseilsDay');
+    if(!ST.conseilsShown || ST.conseilsShown.length === 0 || savedDay !== todayKey){
+      // Nouveau tirage : 1 conseil aleatoire par categorie
+      var dailyItems = [];
+      CONSEIL_CATS.forEach(function(cat){
+        var catItems = ALL_CONSEILS.filter(function(c){ return c.cat === cat; });
+        if(!catItems.length) return;
+        // Tirage pondere par score + aleatoire
+        catItems.sort(function(a,b){
+          return (b.score(data) + Math.random()*5) - (a.score(data) + Math.random()*5);
+        });
+        dailyItems.push(catItems[0].id);
+      });
+      ST.conseilsShown = dailyItems;
+      S.set('conseilsDay', todayKey);
     }
     var shownItems = ALL_CONSEILS.filter(function(c){ return ST.conseilsShown.indexOf(c.id) >= 0; });
     // Sort by category order
@@ -1524,7 +1553,10 @@ function renderTr(){
 
     // Header
     h += '<div style="margin-bottom:14px">';
-    h += '<div style="font-size:13px;color:#9CA3AF;line-height:1.5;margin-bottom:10px">Conseils selectionnes en fonction de ton programme, ta nutrition et ton suivi.</div>';
+    h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
+    h += '<div style="font-size:13px;color:#9CA3AF;line-height:1.5">6 conseils du jour — renouvellement automatique a minuit.</div>';
+    h += '<div style="font-size:9px;color:#4B5563;white-space:nowrap;margin-left:8px">'+ALL_CONSEILS.length+' conseils en base</div>';
+    h += '</div>';
 
     // Context chips
     if(data.avgProt < 150) h += '<div style="display:inline-block;padding:4px 10px;border-radius:20px;background:#3B82F622;border:1px solid #3B82F640;font-size:10px;color:#93C5FD;margin-bottom:8px;margin-right:6px">⚠ Proteines moyennes basses : '+Math.round(data.avgProt)+'g</div>';
@@ -1555,18 +1587,27 @@ function renderTr(){
 }
 function setTT(t){
   ST.trTab=t;
-  if(t==='conseils' && (!ST.conseilsShown || ST.conseilsShown.length===0)){
-    ST.conseilsShown = getTopConseils([]).map(function(c){return c.id;});
-  }
   renderTr();
 }
 
 function loadMoreConseils(){
+  var data = computeConseilsData();
   var current = ST.conseilsShown || [];
-  var newItems = getRandomConseils(current, 3);
-  var newIds = newItems.map(function(c){return c.id;});
-  // Replace shown with new random ones (keep the concept fresh)
-  ST.conseilsShown = newIds;
+  var newItems = [];
+  CONSEIL_CATS.forEach(function(cat){
+    var catItems = ALL_CONSEILS.filter(function(c){ return c.cat === cat && current.indexOf(c.id) < 0; });
+    // Si tous les conseils de cette cat ont ete vus, reprendre depuis le debut (hors affichage courant)
+    if(!catItems.length){
+      catItems = ALL_CONSEILS.filter(function(c){ return c.cat === cat; });
+    }
+    if(!catItems.length) return;
+    catItems.sort(function(a,b){
+      return (b.score(data) + Math.random()*5) - (a.score(data) + Math.random()*5);
+    });
+    newItems.push(catItems[0].id);
+  });
+  ST.conseilsShown = newItems;
+  // On ne met PAS a jour conseilsDay — le tirage du jour reste valide jusqu a minuit
   renderTr();
 }
 function setTTBtn(btn){setTT(btn.getAttribute('data-tab'));}
@@ -1680,6 +1721,31 @@ const ALL_CONSEILS = [
   {id:"sm3",cat:"Sante mentale",emoji:"🎵",titre:"Musique en seance",txt:"Des etudes montrent que la musique a tempo eleve (120-140 BPM) augmente les performances sportives de 15% en moyenne. Cree une playlist dediee seance — ca change vraiment.",score:function(data){return data.hasWorkouts?6:3;}},
   {id:"sm4",cat:"Sante mentale",emoji:"🌿",titre:"Nature et recuperation mentale",txt:"La route des Breguieres n est pas que du sport — c est aussi de la therapie. La marche en nature reduit le cortisol plus efficacement que la meditation interieure pour la plupart des gens.",score:function(data){return 6;}},
   {id:"sm5",cat:"Sante mentale",emoji:"😤",titre:"La frustration fait partie du process",txt:"Il y aura des semaines sans resultats, des seances ratees, des ecarts. C est normal et prevu. Ce qui distingue ceux qui reussissent : ils reprennent le lendemain sans dramatiser.",score:function(data){return 5;}},
+  // NUTRITION (suite)
+  {id:"n8",cat:"Nutrition",emoji:"🥚",titre:"Les oeufs entiers : stop a la peur du jaune",txt:"Le jaune d oeuf contient choline, vitamine D et graisses satures de qualite. 3 oeufs entiers par jour n ont aucun impact negatif prouve sur la sante cardiovasculaire pour un sportif actif.",score:function(data){return 4;}},
+  {id:"n9",cat:"Nutrition",emoji:"🍚",titre:"Glucides le soir : pas d ennemi",txt:"Manger des glucides le soir (riz, pates, patate douce) ne fait pas grossir. Ce qui compte c est le total calorique journalier. Les glucides le soir favorisent meme la production de serotonine et un meilleur sommeil.",score:function(data){return 4;}},
+  {id:"n10",cat:"Nutrition",emoji:"🧂",titre:"Sodium apres le run",txt:"Apres 1h de fractionne par forte chaleur, tu peux perdre 1 a 2g de sodium dans la sueur. Ne bois pas uniquement de l eau plate : une pincee de sel dans ta gourde ou un bouillon chaud evitent les crampes et la fatigue post-run.",score:function(data){return data.hasWorkouts?7:3;}},
+  {id:"n11",cat:"Nutrition",emoji:"🥣",titre:"Fromage blanc 0% : le hack proteines",txt:"150g de fromage blanc 0% = 15g de proteines pour 80 kcal et pratiquement zero lipide. C est l aliment le plus rentable de ta liste pour atteindre 165g de proteines sans exploser les calories.",score:function(data){return data.avgProt<155?8:3;}},
+  {id:"n12",cat:"Nutrition",emoji:"🍋",titre:"Pre-repas : le verre d eau",txt:"Boire 500ml d eau 20 min avant les repas principaux reduit l apport calorique spontane de 13% en moyenne. Simple, gratuit, efficace — surtout les jours de repos quand la satiete est plus difficile.",score:function(data){return data.avgKcal>2300?7:3;}},
+  // LIFESTYLE (suite)
+  {id:"l7",cat:"Lifestyle",emoji:"🌡",titre:"Chaleur et hydratation en ete",txt:"A 30 degres, les besoins en eau augmentent de 500ml a 1L. Ton urine doit rester claire pendant la journee. Une deshydratation de 2% du poids corporel reduit les performances cognitives et sportives de 20%.",score:function(data){return 6;}},
+  {id:"l8",cat:"Lifestyle",emoji:"☕",titre:"Cafe pre-workout : bon timing",txt:"La cafeine prise 45-60 min avant une seance augmente les performances de force et d endurance. 1 a 2 cafes suffisent. Evite apres 15h si tu as du mal a t endormir.",score:function(data){return data.hasWorkouts?5:2;}},
+  {id:"l9",cat:"Lifestyle",emoji:"🛁",titre:"Douche froide post-seance",txt:"2 min d eau froide apres l entrainement reduit l inflammation musculaire et accelere la recuperation. Ca choque au debut mais apres 3-4 fois tu ne peux plus t en passer.",score:function(data){return data.hasWorkouts?5:2;}},
+  {id:"l10",cat:"Lifestyle",emoji:"🧳",titre:"Vacances ne veut pas dire pause",txt:"A Breguieres tu as un programme adapte : circuits poids de corps + course vallonnee. Maintenir 4 seances par semaine pendant les vacances preservera 100% de tes gains musculaires.",score:function(data){return 5;}},
+  // SPORT (suite)
+  {id:"s7",cat:"Sport",emoji:"💪",titre:"Connexion neuromusculaire",txt:"Avant chaque exercice, fais 1 serie de 5 reps tres legere en te concentrant uniquement sur les muscles cibles. Cette activation mentale ameliore le recrutement des fibres et la qualite des series de travail.",score:function(data){return data.hasWorkouts?6:3;}},
+  {id:"s8",cat:"Sport",emoji:"🧊",titre:"Crampes en course : prevention",txt:"Les crampes en run par chaleur sont souvent un mix de deshydratation + manque de sodium + fatigue musculaire. Bois 400ml avec une pincee de sel 1h avant le depart. Et ne commence pas trop vite.",score:function(data){return data.hasWorkouts?6:3;}},
+  {id:"s9",cat:"Sport",emoji:"🏃",titre:"Allure fractionnee : qualite > quantite",txt:"En fractionne, les 2 min de marche ne sont pas du temps perdu — elles permettent de maintenir la qualite des efforts. Mieux vaut 5 blocs parfaits que 7 blocs ou tu baisses d allure.",score:function(data){return data.hasWorkouts?5:3;}},
+  {id:"s10",cat:"Sport",emoji:"📐",titre:"Amplitude de mouvement",txt:"Sur le squat et le soulevé de terre, une amplitude complete (cuisse parallele au sol minimum) recrute bien plus de fibres qu une amplitude partielle avec plus de charge. Reduis la charge si necessaire.",score:function(data){return data.hasWorkouts?6:3;}},
+  // SUIVI (suite)
+  {id:"sv6",cat:"Suivi",emoji:"📏",titre:"Tour de taille : un marqueur cle",txt:"Le tour de taille est un meilleur indicateur de gras visceral que le poids. Mesure chaque semaine au niveau du nombril, le matin a jeun. Une baisse de 1-2 cm sur 5 semaines = bonne trajectoire.",score:function(data){return 5;}},
+  {id:"sv7",cat:"Suivi",emoji:"🔢",titre:"Semaine de decharge : mesure le lendemain",txt:"Apres la semaine 4 de decharge, prends une mesure d impedance. La reduction du volume d entrainement + bonne nutrition = conditions ideales pour une mesure de composition corporelle fiable.",score:function(data){return data.impCount<3?7:3;}},
+  // CONSCIENCE (suite)
+  {id:"c6",cat:"Conscience",emoji:"🧪",titre:"Le corps s adapte : c est une feature",txt:"Si les seances semblent plus faciles apres 3 semaines, c est normal et voulu. L adaptation neuromusculaire precede toujours l hypertrophie. La progression de charge confirme que l adaptation a eu lieu.",score:function(data){return data.hasWorkouts?5:3;}},
+  {id:"c7",cat:"Conscience",emoji:"⚡",titre:"L effet compoundant de la consistance",txt:"3 seances par semaine sur 10 semaines = 30 seances. 30 seances serieuses transforment un corps bien plus que 50 seances inconsistantes. La regularite bat l intensite sur le long terme.",score:function(data){return 6;}},
+  // SANTE MENTALE (suite)
+  {id:"sm6",cat:"Sante mentale",emoji:"🎯",titre:"Visualisation pre-seance",txt:"Avant d entrer en salle, 2 min de visualisation de ta seance (series, charges, rythme) augmentent la performance. Les athletes de haut niveau le font systematiquement. Essaie une semaine.",score:function(data){return data.hasWorkouts?5:2;}},
+  {id:"sm7",cat:"Sante mentale",emoji:"🌊",titre:"Respiration 4-7-8 anti-stress",txt:"Inspire 4 sec, retiens 7 sec, expire 8 sec. Repete 3 fois. Active le systeme parasympathique, baisse le cortisol en 5 minutes. Utile avant une seance stressante ou avant de dormir.",score:function(data){return 5;}},
 ];
 
 const CONSEIL_CATS = ["Nutrition","Lifestyle","Sport","Suivi","Conscience","Sante mentale"];
@@ -1741,7 +1807,7 @@ function renderJournal(){
     Historique de tes journées alimentaires. Enregistre chaque soir depuis l'onglet Nutrition.
   </div>`;
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = parisDateStr();
   const todayData = (S.get('nutJournal')||{})[todayStr];
 
   // Today pinned at top
@@ -1808,8 +1874,8 @@ function renderJournal(){
 
   // Rappel dimanche 22h
   const now = new Date();
-  const isSunday = now.getDay() === 0;
-  const isEvening = now.getHours() >= 20;
+  const isSunday = parisDay() === 0;
+  const isEvening = parisHour() >= 20;
   if(isSunday && isEvening){
     h += `<div class="ybox">📋 Dimanche soir — récap de ta semaine ci-dessous !</div>`;
   }
@@ -1927,7 +1993,7 @@ function render(t){
 
 // Auto-load today's nutrition data on startup
 (function initNutrition(){
-  const today = new Date().toISOString().split('T')[0];
+  const today = parisDateStr();
   // Restore last selected week
   var savedWeek = S.get('lastWeek');
   if(savedWeek && savedWeek >= 1 && savedWeek <= 10) ST.week = savedWeek;
@@ -1940,9 +2006,9 @@ function render(t){
   }
   // Purge entries older than 7 days
   const journal = S.get('nutJournal')||{};
-  const cutoff = new Date();
-  cutoff.setDate(cutoff.getDate()-7);
-  const cutoffStr = cutoff.toISOString().split('T')[0];
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate()-7);
+  const cutoffStr = cutoffDate.toLocaleDateString('fr-CA',{timeZone:'Europe/Paris'});
   let purged = false;
   Object.keys(journal).forEach(function(d){
     if(d < cutoffStr){ delete journal[d]; purged=true; }
