@@ -220,6 +220,9 @@ const ALIMENTS = {
   "Courgettes":                 {k:17, p:1.2,g:3.1,l:0.3,emoji:"🥒", cat:"Légumes", abs:"-"},
   "Champignons":                {k:22, p:3.1,g:3.3,l:0.3,emoji:"🍄", cat:"Légumes", abs:"-"},
   "Lentilles cuites":           {k:116,p:9, g:20, l:0.4, emoji:"🫘", cat:"Légumes", abs:"L"},
+  "Tofu ferme":                  {k:144,p:15.5,g:3, l:8.7, emoji:"🧈", cat:"Légumes", abs:"L"},
+  "Pois chiches cuits":          {k:139,p:8.9,g:22.5,l:2.6,emoji:"🫛", cat:"Légumes", abs:"L"},
+  "Edamame":                     {k:121,p:11, g:9.9, l:5.2, emoji:"🫛", cat:"Légumes", abs:"L"},
   "Pomme":                      {k:52, p:0.3,g:14, l:0.2, emoji:"🍎", cat:"Fruits"},
   "Poire":                      {k:57, p:0.4,g:15, l:0.1, emoji:"🍐", cat:"Fruits"},
   "Banane":                     {k:89, p:1.1,g:23, l:0.3, emoji:"🍌", cat:"Fruits"},
@@ -398,7 +401,7 @@ const WEEK=[
   {day:"Mar",fullDay:"Mardi",type:"repos",tag:"Repos",c:"#374151",emoji:"😴",exercises:[]},
   {day:"Mer",fullDay:"Mercredi",type:"repos",tag:"Repos",c:"#374151",emoji:"😴",exercises:[]},
   {day:"Jeu",fullDay:"Jeudi",type:"salle",tag:"Séance B",c:"#EF4444",emoji:"🏋️",exercises:[
-    {name:"Développé militaire haltères",sets:"4×10",load:"12 kg/main",muscles:"Épaules · Triceps · Trapèzes",desc:"Debout, haltères à hauteur des épaules. Pousse vers le haut. Redescends lentement."},
+    {name:"Développé militaire haltères",sets:"4×10",load:"10 kg/main",muscles:"Épaules · Triceps · Trapèzes",desc:"Debout, haltères à hauteur des épaules. Pousse vers le haut. Redescends lentement."},
     {name:"Élévations latérales haltères",sets:"3×12",load:"8 kg/main",muscles:"Deltoïdes latéraux",desc:"Debout, monte les bras sur les côtés jusqu'aux épaules. Contrôle la descente."},
     {name:"Curl marteau haltères",sets:"3×12",load:"12 kg/main",muscles:"Biceps · Avant-bras",desc:"Prise neutre (paumes face à face), fléchis les coudes en alternant. Coudes collés au corps."},
     {name:"Hammer Strength Pec Deck",sets:"4×12",load:"machine",muscles:"Pectoraux · Grand dentelé",desc:"Machine Hammer Strength. Ramène les bras vers le centre en contractant les pectoraux. Reviens lentement."},
@@ -462,7 +465,7 @@ const SEANCES={
     {name:"Curl barre",         sets:"4×10", load:"30 kg", rest:"90 sec", c:"#F59E0B", muscles:"Biceps · Avant-bras", desc:"Debout, prise supination (paumes vers le haut). Fléchis les coudes vers les épaules, coudes collés au corps. Redescends lentement."},
   ],
   B:[
-    {name:"Développé militaire haltères", sets:"4×10", load:"12 kg/main", rest:"90 sec", c:"#3B82F6", muscles:"Épaules · Triceps · Trapèzes", desc:"Debout ou assis, haltères à hauteur des épaules paumes vers l'avant. Tu pousses les deux haltères vers le haut jusqu'à tendre les bras. Tu redescends lentement jusqu'aux épaules."},
+    {name:"Développé militaire haltères", sets:"4×10", load:"10 kg/main", rest:"90 sec", c:"#3B82F6", muscles:"Épaules · Triceps · Trapèzes", desc:"Debout ou assis, haltères à hauteur des épaules paumes vers l'avant. Tu pousses les deux haltères vers le haut jusqu'à tendre les bras. Tu redescends lentement jusqu'aux épaules."},
     {name:"Élévations latérales haltères", sets:"3×12", load:"8 kg/main", rest:"60 sec", c:"#06B6D4", muscles:"Deltoïdes latéraux · Épaules", desc:"Debout, haltères le long du corps. Tu montes les bras sur les côtés jusqu'à hauteur des épaules, coudes légèrement fléchis. Tu contrôles la descente. Ne balance pas le buste."},
     {name:"Curl marteau haltères", sets:"3×12", load:"12 kg/main", rest:"60 sec", c:"#F59E0B", muscles:"Biceps · Brachial · Avant-bras", desc:"Debout, haltères paumes face à face (prise neutre). Tu fléchis les coudes en alternant les bras. Le pouce pointe vers le haut. Coudes collés au corps."},
     {name:"Hammer Strength Pec Deck", sets:"4×12", load:"machine", rest:"90 sec", c:"#EF4444", muscles:"Pectoraux · Grand dentelé", desc:"Machine Hammer Strength. Assis, dos bien calé contre le dossier. Tu ramènes les bras vers le centre en contractant les pectoraux. Tu reviens lentement sans laisser les coudes partir en arrière. Amplitude complète."},
@@ -508,6 +511,8 @@ function nav(t,btn){
   document.getElementById('t-'+t).classList.add('act');
   btn.classList.add('act');
   render(t);
+  // Toujours remonter en haut de page au changement d'onglet (le jour en cours est épinglé en haut du Journal)
+  window.scrollTo(0,0);
 }
 
 // ─── NUTRITION HELPERS ────────────────────────────────────────────────────────
@@ -546,7 +551,9 @@ function getDayTotals(){
   return {k: Math.round(tk), p: Math.round(tp*10)/10};
 }
 
-function genReco(slotId){
+function genReco(slotId, variant){
+  // variant: 'poisson' | 'viande' | 'vegetal'
+  variant = variant || 'poisson';
   // Calcule ce qui reste à manger après ce slot
   const slots = ['pdj','dej','gouter','snack','diner'];
   const idx = slots.indexOf(slotId);
@@ -562,50 +569,108 @@ function genReco(slotId){
 
   // Génère suggestions pour chaque slot restant
   const recos = {};
-  if(nextSlots.length === 0) return recos;
+  if(nextSlots.length === 0) return {resteK, resteP, nextSlots, recos, variant};
 
   const kPerSlot = Math.round(resteK / nextSlots.length);
   const pPerSlot = Math.round(resteP / nextSlots.length);
 
-  // Templates par slot
-  const templates = {
-    dej: (k,p) => {
-      const items = [];
-      if(p > 35) items.push({n:"Poulet (blanc, cuit)", qty:200});
-      else items.push({n:"Thon (boîte, égoutté)", qty:140});
-      if(k > 400) items.push({n:"Riz cuit", qty:150});
-      items.push({n:"Brocolis (cuit)", qty:150});
-      items.push({n:"Yaourt nature", qty:125});
-      items.push({n:"Pomme", qty:150});
-      return items;
+  // Templates par slot, déclinés en 3 variantes
+  const templatesByVariant = {
+    poisson: {
+      dej: (k,p) => {
+        const items = [];
+        items.push({n: p>35 ? "Saumon (cuit)" : "Cabillaud (cuit)", qty: p>35?180:200});
+        if(k > 400) items.push({n:"Riz cuit", qty:150});
+        items.push({n:"Brocolis (cuit)", qty:150});
+        items.push({n:"Yaourt nature", qty:125});
+        items.push({n:"Pomme", qty:150});
+        return items;
+      },
+      snack: (k,p) => {
+        const items = [];
+        if(p > 20) items.push({n:"Whey protéine", qty:30});
+        items.push({n:"Skyr", qty:150});
+        if(k > 200) items.push({n:"Banane", qty:120});
+        else items.push({n:"Kiwi", qty:80});
+        return items;
+      },
+      diner: (k,p) => {
+        const items = [];
+        items.push({n: p>35 ? "Saumon (cuit)" : "Cabillaud (cuit)", qty: p>35?180:170});
+        if(k > 400) items.push({n:"Pâtes cuites", qty:80});
+        items.push({n:"Haricots verts", qty:150});
+        items.push({n:"Tomates", qty:100});
+        items.push({n:"Kiwi", qty:80});
+        return items;
+      }
     },
-    snack: (k,p) => {
-      const items = [];
-      if(p > 20) items.push({n:"Whey protéine", qty:30});
-      items.push({n:"Skyr", qty:150});
-      if(k > 200) items.push({n:"Banane", qty:120});
-      else items.push({n:"Kiwi", qty:80});
-      return items;
+    viande: {
+      // Viande sans aucun laitage : que de la viande, féculents, légumes, fruits
+      dej: (k,p) => {
+        const items = [];
+        items.push({n: p>35 ? "Bœuf haché 5%MG" : "Poulet (blanc, cuit)", qty: 200});
+        if(k > 400) items.push({n:"Riz cuit", qty:150});
+        items.push({n:"Brocolis (cuit)", qty:150});
+        items.push({n:"Pomme", qty:150});
+        items.push({n:"Orange", qty:150});
+        return items;
+      },
+      snack: (k,p) => {
+        const items = [];
+        items.push({n:"Jambon blanc", qty:80});
+        if(k > 200) items.push({n:"Banane", qty:120});
+        else items.push({n:"Kiwi", qty:80});
+        items.push({n:"Amandes", qty:20});
+        return items;
+      },
+      diner: (k,p) => {
+        const items = [];
+        items.push({n: p>35 ? "Bœuf haché 5%MG" : "Poulet (blanc, cuit)", qty: 200});
+        if(k > 400) items.push({n:"Patate douce cuite", qty:200});
+        items.push({n:"Haricots verts", qty:150});
+        items.push({n:"Tomates", qty:100});
+        items.push({n:"Kiwi", qty:80});
+        return items;
+      }
     },
-    diner: (k,p) => {
-      const items = [];
-      if(p > 35) items.push({n:"Bœuf haché 5%MG", qty:200});
-      else if(p > 25) items.push({n:"Cabillaud (cuit)", qty:150});
-      else items.push({n:"Œuf entier", qty:200});
-      if(k > 400) items.push({n:"Pâtes cuites", qty:80});
-      items.push({n:"Brocolis (cuit)", qty:150});
-      items.push({n:"Tomates", qty:100});
-      items.push({n:"Kiwi", qty:80});
-      return items;
+    vegetal: {
+      dej: (k,p) => {
+        const items = [];
+        items.push({n:"Tofu ferme", qty: p>30?250:180});
+        items.push({n:"Pois chiches cuits", qty:150});
+        if(k > 400) items.push({n:"Quinoa cuit", qty:150});
+        items.push({n:"Épinards", qty:120});
+        items.push({n:"Pomme", qty:150});
+        return items;
+      },
+      snack: (k,p) => {
+        const items = [];
+        items.push({n:"Edamame", qty:120});
+        if(k > 200) items.push({n:"Banane", qty:120});
+        else items.push({n:"Kiwi", qty:80});
+        items.push({n:"Amandes", qty:20});
+        return items;
+      },
+      diner: (k,p) => {
+        const items = [];
+        items.push({n:"Tofu ferme", qty: p>30?220:170});
+        items.push({n:"Lentilles cuites", qty:150});
+        if(k > 400) items.push({n:"Quinoa cuit", qty:100});
+        items.push({n:"Courgettes", qty:150});
+        items.push({n:"Kiwi", qty:80});
+        return items;
+      }
     }
   };
+
+  const templates = templatesByVariant[variant] || templatesByVariant.poisson;
 
   nextSlots.forEach(s => {
     const fn = templates[s];
     recos[s] = fn ? fn(kPerSlot, pPerSlot) : [];
   });
 
-  return {resteK, resteP, nextSlots, recos};
+  return {resteK, resteP, nextSlots, recos, variant};
 }
 
 // ─── NUTRITION RENDER ─────────────────────────────────────────────────────────
@@ -811,18 +876,27 @@ function renderNut(){
   h += `</div>`;
 
   // Boutons permanents
-  h += '<div style="display:flex;gap:8px;margin-bottom:12px">';
-  h += '<button data-slot="'+ST.nutSlot+'" onclick="showRecoBtn(this)" style="flex:1;padding:12px 8px;border-radius:12px;border:none;background:linear-gradient(135deg,#10B981,#3B82F6);color:#fff;font-size:12px;font-weight:800">🔄 Reconfigurer<br><span style=\'font-size:9px;font-weight:400;opacity:.8\'>le reste de la journée</span></button>';
-  h += '<button onclick="showAdvice24h()" style="flex:1;padding:12px 8px;border-radius:12px;border:1.5px solid #8B5CF6;background:#14141F;color:#C4B5FD;font-size:12px;font-weight:800">🧠 Conseils 24h<br><span style=\'font-size:9px;font-weight:400;opacity:.8\'>suivantes</span></button>';
-  h += '</div>';
+  h += '<div style="margin-bottom:6px">';
+  h += '<div style="font-size:10px;color:#6B7280;margin-bottom:6px">🔄 Reconfigurer le reste de la journée :</div>';
+  h += '<div style="display:flex;gap:6px">';
+  h += '<button data-slot="'+ST.nutSlot+'" data-variant="poisson" onclick="showRecoBtn(this)" style="flex:1;padding:10px 4px;border-radius:10px;border:none;background:linear-gradient(135deg,#0EA5E9,#06B6D4);color:#fff;font-size:11px;font-weight:800">🐟 Poisson</button>';
+  h += '<button data-slot="'+ST.nutSlot+'" data-variant="viande" onclick="showRecoBtn(this)" style="flex:1;padding:10px 4px;border-radius:10px;border:none;background:linear-gradient(135deg,#EF4444,#F97316);color:#fff;font-size:11px;font-weight:800">🥩 Viande</button>';
+  h += '<button data-slot="'+ST.nutSlot+'" data-variant="vegetal" onclick="showRecoBtn(this)" style="flex:1;padding:10px 4px;border-radius:10px;border:none;background:linear-gradient(135deg,#10B981,#65A30D);color:#fff;font-size:11px;font-weight:800">🌱 Végétal</button>';
+  h += '</div></div>';
+  h += '<button onclick="showAdvice24h()" style="width:100%;padding:12px 8px;border-radius:12px;border:1.5px solid #8B5CF6;background:#14141F;color:#C4B5FD;font-size:12px;font-weight:800;margin-bottom:12px">🧠 Conseils 24h suivantes</button>';
 
   // Reco affichée
   if(ST.nutShowReco === ST.nutSlot){
-    const reco = genReco(ST.nutSlot);
+    const reco = genReco(ST.nutSlot, ST.nutRecoVariant || 'poisson');
+    const variantInfo = {
+      poisson: {lbl:'Plan Poisson', emoji:'🐟', color:'#06B6D4'},
+      viande: {lbl:'Plan Viande (sans laitage)', emoji:'🥩', color:'#EF4444'},
+      vegetal: {lbl:'Plan Végétal', emoji:'🌱', color:'#10B981'}
+    }[reco.variant] || {lbl:'Plan suggéré', emoji:'💡', color:'#10B981'};
     if(reco && reco.nextSlots && reco.nextSlots.length > 0){
-      h += `<div class="reco-card">
-        <div style="font-weight:800;font-size:13px;color:#10B981;margin-bottom:10px">
-          💡 Plan suggéré pour le reste de la journée
+      h += `<div class="reco-card" style="border-color:${variantInfo.color}40">
+        <div style="font-weight:800;font-size:13px;color:${variantInfo.color};margin-bottom:10px">
+          ${variantInfo.emoji} ${variantInfo.lbl} — reste de la journée
         </div>
         <div style="font-size:11px;color:#6EE7B7;margin-bottom:10px">
           Reste à manger : <b>${reco.resteK} kcal</b> · <b>${reco.resteP}g prot</b>
@@ -845,7 +919,7 @@ function renderNut(){
         h += '</div>';
       });
       h += `<div style="display:flex;gap:8px;margin-top:10px">
-        <button onclick="applyReco('${ST.nutSlot}')" class="btn-g" style="flex:2">Appliquer ce plan ✓</button>
+        <button data-slot="${ST.nutSlot}" data-variant="${reco.variant}" onclick="applyRecoBtn(this)" class="btn-g" style="flex:2">Appliquer ce plan ✓</button>
         <button onclick="ST.nutShowReco=null;renderNut()" class="btn-s" style="flex:1">Ignorer</button>
       </div>
       </div>`;
@@ -1086,8 +1160,8 @@ function removeManual(slot, idx){
   renderNut();
 }
 
-function showReco(slot){ ST.nutShowReco=slot; renderNut(); }
-function showRecoBtn(btn){ showReco(btn.getAttribute('data-slot')); }
+function showReco(slot, variant){ ST.nutShowReco=slot; ST.nutRecoVariant=variant||'poisson'; renderNut(); }
+function showRecoBtn(btn){ showReco(btn.getAttribute('data-slot'), btn.getAttribute('data-variant')); }
 
 function addCustomItem(slot){
   var name = document.getElementById('custom-name').value.trim();
@@ -1133,8 +1207,8 @@ function showAdvice24h(){
   renderNut();
 }
 
-function applyReco(slot){
-  const reco = genReco(slot);
+function applyReco(slot, variant){
+  const reco = genReco(slot, variant || 'poisson');
   if(!reco || !reco.nextSlots) return;
   reco.nextSlots.forEach(s=>{
     if(!ST.nutSelections[s]) ST.nutSelections[s]={};
@@ -1145,6 +1219,7 @@ function applyReco(slot){
   ST.nutShowReco=null;
   renderNut();
 }
+function applyRecoBtn(btn){ applyReco(btn.getAttribute('data-slot'), btn.getAttribute('data-variant')); }
 
 // ─── SEMAINE ─────────────────────────────────────────────────────────────────
 function renderSem(){
@@ -1638,13 +1713,107 @@ function delImpedance(btn){
   renderTr();
 }
 
-// ─── EXERCICES ───────────────────────────────────────────────────────────────
+// ─── ANALYSE VOLUME MUSCULAIRE ─────────────────────────────────────────────────
+const MUSCLE_GROUPS_FR = ["Dos","Pectoraux","Épaules","Biceps","Triceps","Jambes","Abdos / Gainage"];
+
+// Mots-clés (FR + EN courants) -> groupe standardisé. Sert à classer un libellé musculaire libre.
+const MUSCLE_KEYWORDS = {
+  "Dos": ["dos","dorsal","dorsaux","lat","latissimus","rhomboïde","rhomboide","trapèze","trapeze","rowing","row","pulldown","traction","tirage","back"],
+  "Pectoraux": ["pectoraux","pec","chest","pectoral","développé couché","developpe couche","press"],
+  "Épaules": ["épaule","epaule","deltoïde","deltoide","shoulder","militaire","élévation","elevation"],
+  "Biceps": ["biceps","curl","brachial"],
+  "Triceps": ["triceps","dips","extension"],
+  "Jambes": ["quadriceps","quadri","ischio","fessier","mollet","jambe","squat","leg","fente","cuisse"],
+  "Abdos / Gainage": ["abdo","abdominal","gainage","transverse","planche","core","crunch"],
+};
+
+function classifyMuscleText(text){
+  if(!text) return [];
+  var lower = text.toLowerCase();
+  var found = [];
+  MUSCLE_GROUPS_FR.forEach(function(group){
+    var kws = MUSCLE_KEYWORDS[group];
+    for(var i=0;i<kws.length;i++){
+      if(lower.indexOf(kws[i]) >= 0){ found.push(group); break; }
+    }
+  });
+  return found;
+}
+
+// Récupère TOUS les exercices connus du programme (A, B, V) avec leur texte muscles
+function getProgramExerciseMuscles(){
+  var map = {};
+  ['A','B','V'].forEach(function(k){
+    (SEANCES[k]||[]).forEach(function(ex){ map[ex.name] = ex.muscles; });
+  });
+  return map;
+}
+
+// Combine journal de séance (programme) + journal libre pour calculer le volume
+// par groupe musculaire sur les N dernières semaines / jours
+function computeMuscleVolume(){
+  var progMuscles = getProgramExerciseMuscles();
+  var counts = {}; MUSCLE_GROUPS_FR.forEach(function(g){ counts[g]=0; });
+  var exerciseHits = {}; // nom exercice -> nb d'occurrences, pour debug/affichage
+
+  // 1) Journal de séance structuré (w{week}-d{day})
+  var sessionJournal = S.get('journal') || {};
+  Object.keys(sessionJournal).forEach(function(key){
+    var entry = sessionJournal[key];
+    if(!entry || !entry.done) return;
+    Object.keys(entry).forEach(function(exName){
+      if(exName==='done' || exName==='ressenti' || exName==='notes') return;
+      var muscleTxt = progMuscles[exName];
+      if(!muscleTxt) return; // pas un nom d'exercice connu
+      var groups = classifyMuscleText(muscleTxt);
+      groups.forEach(function(g){ counts[g] = (counts[g]||0) + 1; });
+      exerciseHits[exName] = (exerciseHits[exName]||0) + 1;
+    });
+  });
+
+  // 2) Journal libre (exercices hors-programme notés manuellement)
+  var freeLog = S.get('freeExLog') || [];
+  freeLog.forEach(function(e){
+    var groups = classifyMuscleText(e.muscles || e.nom || '');
+    groups.forEach(function(g){ counts[g] = (counts[g]||0) + 1; });
+    exerciseHits[e.nom] = (exerciseHits[e.nom]||0) + 1;
+  });
+
+  return {counts: counts, exerciseHits: exerciseHits, freeLogCount: freeLog.length};
+}
+
+function getWeakestMuscleGroups(priorityGroups){
+  var vol = computeMuscleVolume();
+  var arr = MUSCLE_GROUPS_FR.map(function(g){ return {group:g, count:vol.counts[g]||0}; });
+  // Priorité : Dos et haut du corps comptent double dans le tri (plus sensibles aux trous)
+  var priority = priorityGroups || ["Dos","Épaules","Pectoraux","Biceps","Triceps"];
+  arr.sort(function(a,b){
+    var aw = (priority.indexOf(a.group)>=0 ? a.count*0.7 : a.count);
+    var bw = (priority.indexOf(b.group)>=0 ? b.count*0.7 : b.count);
+    return aw - bw;
+  });
+  return {sorted: arr, raw: vol};
+}
+
+
 function renderEx(){
-  let h='<div style="display:flex;gap:7px;margin-bottom:14px">';
-  [{k:'A',l:'Séance A',s:'Bas + Tirage',c:'#3B82F6'},{k:'B',l:'Séance B',s:'Haut + Poussée',c:'#EF4444'},{k:'V',l:'Vacances',s:'Poids corps',c:'#10B981'}].forEach(function(t){
-    h+='<button onclick="setET(\''+t.k+'\')" style="flex:1;padding:9px 4px;border-radius:11px;border:1.5px solid '+(ST.exTab===t.k?t.c:'#2D2D3F')+';background:'+(ST.exTab===t.k?t.c+'22':'#1E1E2E')+';text-align:center"><div style="font-size:11px;font-weight:700;color:'+(ST.exTab===t.k?t.c:'#9CA3AF')+'">'+t.l+'</div><div style="font-size:9px;color:#6B7280">'+t.s+'</div></button>';
+  let h='<div style="display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap">';
+  [{k:'A',l:'Séance A',s:'Bas + Tirage',c:'#3B82F6'},{k:'B',l:'Séance B',s:'Haut + Poussée',c:'#EF4444'},{k:'V',l:'Vacances',s:'Poids corps',c:'#10B981'},{k:'M',l:'🔧 Ma machine',s:'Identifier',c:'#8B5CF6'},{k:'C',l:'📓 Carnet',s:'Volume musculaire',c:'#F59E0B'}].forEach(function(t){
+    h+='<button onclick="setET(\''+t.k+'\')" style="flex:1;min-width:70px;padding:9px 4px;border-radius:11px;border:1.5px solid '+(ST.exTab===t.k?t.c:'#2D2D3F')+';background:'+(ST.exTab===t.k?t.c+'22':'#1E1E2E')+';text-align:center"><div style="font-size:11px;font-weight:700;color:'+(ST.exTab===t.k?t.c:'#9CA3AF')+'">'+t.l+'</div><div style="font-size:9px;color:#6B7280">'+t.s+'</div></button>';
   });
   h+='</div>';
+
+  if(ST.exTab === 'M'){
+    h += renderMachineFinder();
+    document.getElementById('t-exercices').innerHTML=h;
+    return;
+  }
+
+  if(ST.exTab === 'C'){
+    h += renderCarnet();
+    document.getElementById('t-exercices').innerHTML=h;
+    return;
+  }
 
   SEANCES[ST.exTab].forEach(function(ex, gi){
     const open = ST.exOpen===gi;
@@ -1676,6 +1845,274 @@ function renderEx(){
   });
   document.getElementById('t-exercices').innerHTML=h;
 }
+// ─── MACHINE FINDER (IA) ───────────────────────────────────────────────────────
+const MACHINE_BRANDS = ["Technogym","Hammer Strength","Cybex","Life Fitness","Matrix","Panatta","Gym80","Nautilus","Precor","Star Trac","Autre / je ne sais pas"];
+
+function renderMachineFinder(){
+  var brand = ST.machBrand || '';
+  var name = ST.machName || '';
+  var h = '<div class="card">';
+  h += '<div class="slbl">🔧 Identifier une machine de salle</div>';
+  h += '<div style="font-size:11px;color:#9CA3AF;line-height:1.6;margin-bottom:12px">Indique la marque et le nom inscrit sur la machine — je cherche son rôle musculaire et te propose séries / répétitions / charge de départ adaptées à ton programme.</div>';
+
+  h += '<div style="margin-bottom:8px"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Marque</div>';
+  h += '<select id="mach-brand" onchange="ST.machBrand=this.value">';
+  h += '<option value="">Choisir une marque...</option>';
+  MACHINE_BRANDS.forEach(function(b){
+    h += '<option value="'+b+'"'+(brand===b?' selected':'')+'>'+b+'</option>';
+  });
+  h += '</select></div>';
+
+  h += '<div style="margin-bottom:10px"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Nom de la machine (tel qu écrit dessus)</div>';
+  h += '<input type="text" id="mach-name" placeholder="ex: Chest Press, Leg Press 45°, Vertical Traction..." value="'+name.replace(/"/g,'&quot;')+'" oninput="ST.machName=this.value">';
+  h += '</div>';
+
+  h += '<button onclick="identifyMachine()" id="mach-btn" style="width:100%;padding:11px;border-radius:10px;border:none;background:linear-gradient(135deg,#8B5CF6,#3B82F6);color:#fff;font-size:13px;font-weight:700">🔍 Identifier et générer le plan</button>';
+  h += '</div>';
+
+  if(ST.machLoading){
+    h += '<div class="card" style="text-align:center;padding:24px"><div style="font-size:12px;color:#9CA3AF">🔎 Recherche en cours...</div></div>';
+  }
+
+  if(ST.machError){
+    h += '<div class="card" style="border-color:#EF444450"><div style="font-size:12px;color:#EF4444">⚠ '+ST.machError+'</div></div>';
+  }
+
+  if(ST.machResult){
+    var r = ST.machResult;
+    h += '<div class="card" style="border-left:4px solid #8B5CF6">';
+    h += '<div style="font-weight:800;font-size:14px;color:#F1F1F5;margin-bottom:4px">'+(r.nom||name)+'</div>';
+    h += '<div style="font-size:10px;color:#8B5CF6;font-weight:700;margin-bottom:10px">'+(r.marque||brand)+'</div>';
+    h += '<div style="font-size:9px;color:#6B7280;margin-bottom:3px">🎯 Muscles cibles</div>';
+    h += '<div style="font-size:12px;color:#D1D5DB;margin-bottom:10px">'+(r.muscles||'—')+'</div>';
+    h += '<div style="display:flex;gap:7px;margin-bottom:10px">';
+    h += '<div class="sbox"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Séries × reps</div><div style="font-size:15px;font-weight:800;color:#8B5CF6">'+(r.sets||'—')+'</div></div>';
+    h += '<div class="sbox"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Charge de départ</div><div style="font-size:15px;font-weight:800;color:#8B5CF6">'+(r.charge||'—')+'</div></div>';
+    h += '<div class="sbox"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Repos</div><div style="font-size:15px;font-weight:800;color:#8B5CF6">'+(r.repos||'—')+'</div></div>';
+    h += '</div>';
+    if(r.execution){
+      h += '<div style="font-size:9px;color:#6B7280;margin-bottom:3px">📋 Exécution</div>';
+      h += '<div style="font-size:11px;color:#9CA3AF;line-height:1.7;margin-bottom:10px">'+r.execution+'</div>';
+    }
+    if(r.conseil){
+      h += '<div class="gbox" style="margin-top:4px">💡 '+r.conseil+'</div>';
+    }
+    h += '</div>';
+  }
+
+  return h;
+}
+
+async function identifyMachine(){
+  var brand = ST.machBrand || '';
+  var name = (ST.machName || '').trim();
+  if(!name){
+    ST.machError = 'Indique au moins le nom de la machine.';
+    ST.machResult = null;
+    renderEx();
+    return;
+  }
+  ST.machLoading = true;
+  ST.machError = null;
+  ST.machResult = null;
+  renderEx();
+
+  var prompt = "Tu es coach de musculation. Identifie cette machine de salle de sport : marque \"" + (brand||"inconnue") + "\", nom \"" + name + "\". " +
+    "Si besoin, utilise la recherche web pour confirmer le role exact de cette machine specifique a cette marque. " +
+    "Le profil de l utilisateur : David, endodontiste, 86kg, 1m85, objectif perte de gras + maintien muscle, programme de musculation 2x/semaine en cours (seance haut du corps et seance bas du corps + tirage), niveau intermediaire. " +
+    "Reponds UNIQUEMENT en JSON valide, sans markdown, sans texte autour, avec exactement ces champs : " +
+    '{"nom": "nom complet de la machine", "marque": "marque", "muscles": "muscles cibles principaux et secondaires", "sets": "ex: 3x12", "charge": "charge de depart suggeree pour un homme intermediaire de 86kg, en kg ou en niveau machine", "repos": "ex: 90 sec", "execution": "description courte de l execution en 2-3 phrases", "conseil": "un conseil specifique a cette machine en 1 phrase"}';
+
+  try{
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1000,
+        messages: [{ role: "user", content: prompt }],
+        tools: [{ type: "web_search_20250305", name: "web_search" }]
+      })
+    });
+    const data = await response.json();
+    var fullText = (data.content||[]).map(function(b){ return b.type==='text'?b.text:''; }).filter(Boolean).join('\n');
+    var clean = fullText.replace(/```json|```/g,'').trim();
+    var firstBrace = clean.indexOf('{');
+    var lastBrace = clean.lastIndexOf('}');
+    if(firstBrace>=0 && lastBrace>firstBrace) clean = clean.slice(firstBrace, lastBrace+1);
+    var parsed = JSON.parse(clean);
+    ST.machResult = parsed;
+    ST.machError = null;
+  }catch(err){
+    ST.machError = "Impossible d identifier cette machine pour le moment. Reessaie ou precise mieux le nom.";
+    ST.machResult = null;
+  }
+  ST.machLoading = false;
+  renderEx();
+}
+
+// ─── CARNET : journal libre + analyse de volume musculaire ─────────────────────
+function renderCarnet(){
+  var analysis = getWeakestMuscleGroups();
+  var counts = analysis.raw.counts;
+  var maxCount = Math.max.apply(null, MUSCLE_GROUPS_FR.map(function(g){return counts[g]||0;}).concat([1]));
+  var groupColors = {"Dos":"#10B981","Pectoraux":"#EF4444","Épaules":"#06B6D4","Biceps":"#F59E0B","Triceps":"#8B5CF6","Jambes":"#3B82F6","Abdos / Gainage":"#6B7280"};
+  var groupEmoji = {"Dos":"🔙","Pectoraux":"🫁","Épaules":"🤷","Biceps":"💪","Triceps":"🦾","Jambes":"🦵","Abdos / Gainage":"🧱"};
+
+  var h = '<div class="card">';
+  h += '<div class="slbl">📊 Volume par groupe musculaire</div>';
+  h += '<div style="font-size:10px;color:#6B7280;margin-bottom:10px;line-height:1.5">Calculé sur ton journal de séance (programme) + ton carnet libre. Priorité donnée au dos et au haut du corps.</div>';
+
+  MUSCLE_GROUPS_FR.forEach(function(g){
+    var c = counts[g]||0;
+    var pct = Math.round((c/maxCount)*100);
+    var isPriority = ["Dos","Épaules","Pectoraux","Biceps","Triceps"].indexOf(g)>=0;
+    h += '<div class="pb-wrap">';
+    h += '<div class="pb-lbl"><span style="font-size:11px;color:#9CA3AF">'+groupEmoji[g]+' '+g+(isPriority?' <span style="color:#F59E0B;font-size:9px">★</span>':'')+'</span><span style="font-size:10px;font-weight:700;color:'+groupColors[g]+'">'+c+' séance(s)</span></div>';
+    h += '<div class="pb-bg"><div class="pb-fill" style="width:'+Math.max(pct,3)+'%;background:'+groupColors[g]+'"></div></div>';
+    h += '</div>';
+  });
+  h += '</div>';
+
+  // Alerte groupes les plus faibles
+  var weakest = analysis.sorted.slice(0,2).filter(function(x){return x.count < 4;});
+  if(weakest.length){
+    h += '<div class="ybox">⚠ <b>'+weakest.map(function(w){return w.group;}).join(' et ')+'</b> '+(weakest.length>1?'sont':'est')+' relativement '+(weakest.length>1?'sous-travaillés':'sous-travaillé')+' par rapport au reste. Vois les suggestions ci-dessous.</div>';
+  }
+
+  // Bouton IA
+  h += '<button onclick="analyzeMuscleGaps()" style="width:100%;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#F59E0B,#EF4444);color:#fff;font-size:13px;font-weight:800;margin-bottom:14px">🧠 Demander des suggestions d exercices</button>';
+
+  if(ST.gapLoading){
+    h += '<div class="card" style="text-align:center;padding:20px"><div style="font-size:12px;color:#9CA3AF">🔎 Analyse en cours...</div></div>';
+  }
+  if(ST.gapError){
+    h += '<div class="card" style="border-color:#EF444450"><div style="font-size:12px;color:#EF4444">⚠ '+ST.gapError+'</div></div>';
+  }
+  if(ST.gapResult){
+    var r = ST.gapResult;
+    h += '<div class="card" style="border-left:4px solid #F59E0B">';
+    h += '<div style="font-weight:800;font-size:14px;color:#F1F1F5;margin-bottom:10px">🧠 Avis personnalisé</div>';
+    if(r.synthese) h += '<div style="font-size:11px;color:#D1D5DB;line-height:1.7;margin-bottom:12px">'+r.synthese+'</div>';
+    (r.suggestions||[]).forEach(function(s){
+      h += '<div style="background:#14141F;border-radius:10px;padding:11px;margin-bottom:8px">';
+      h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">';
+      h += '<div style="font-size:12px;font-weight:700;color:#F1F1F5">'+(s.exercice||'')+'</div>';
+      h += '<span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;background:#F59E0B22;color:#FCD34D">'+(s.groupe||'')+'</span>';
+      h += '</div>';
+      h += '<div style="font-size:10px;color:#9CA3AF;margin-bottom:4px">'+(s.sets||'')+(s.materiel?' · '+s.materiel:'')+'</div>';
+      if(s.pourquoi) h += '<div style="font-size:11px;color:#A1A1B5;line-height:1.5">'+s.pourquoi+'</div>';
+      h += '</div>';
+    });
+    h += '</div>';
+  }
+
+  // ── JOURNAL LIBRE ──
+  h += '<div class="card">';
+  h += '<div class="slbl">✏️ Ajouter un exercice au carnet</div>';
+  h += '<div style="font-size:10px;color:#6B7280;margin-bottom:10px">Pour les exercices faits hors du programme A/B/Vacances — ils comptent dans l analyse de volume.</div>';
+  h += '<div style="margin-bottom:7px"><input type="text" id="free-ex-name" placeholder="Nom de l exercice" value="'+(ST.freeExName||'').replace(/"/g,'&quot;')+'" oninput="ST.freeExName=this.value"></div>';
+  h += '<div style="margin-bottom:7px"><select id="free-ex-muscle" onchange="ST.freeExMuscle=this.value">';
+  h += '<option value="">Groupe musculaire principal...</option>';
+  MUSCLE_GROUPS_FR.forEach(function(g){ h += '<option value="'+g+'"'+(ST.freeExMuscle===g?' selected':'')+'>'+groupEmoji[g]+' '+g+'</option>'; });
+  h += '</select></div>';
+  h += '<div style="display:flex;gap:6px;margin-bottom:8px">';
+  h += '<input type="text" id="free-ex-charge" placeholder="Charge (ex: 20kg, poids corps)" style="flex:1" value="'+(ST.freeExCharge||'').replace(/"/g,'&quot;')+'" oninput="ST.freeExCharge=this.value">';
+  h += '<input type="text" id="free-ex-sets" placeholder="Séries×reps" style="flex:1" value="'+(ST.freeExSets||'').replace(/"/g,'&quot;')+'" oninput="ST.freeExSets=this.value">';
+  h += '</div>';
+  h += '<button onclick="addFreeExercise()" style="width:100%;padding:10px;border-radius:9px;border:none;background:#F59E0B;color:#fff;font-size:12px;font-weight:700">Ajouter au carnet ✓</button>';
+  h += '</div>';
+
+  // Historique du journal libre
+  var freeLog = (S.get('freeExLog')||[]).slice().reverse();
+  if(freeLog.length){
+    h += '<div class="card"><div class="slbl">📖 Historique du carnet ('+freeLog.length+')</div>';
+    freeLog.slice(0,15).forEach(function(e, idx){
+      var realIdx = freeLog.length - 1 - idx;
+      h += '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #2D2D3F">';
+      h += '<div><div style="font-size:12px;font-weight:700;color:#F1F1F5">'+e.nom+'</div>';
+      h += '<div style="font-size:9px;color:#6B7280">'+(e.muscles||'—')+' · '+(e.charge||'—')+' · '+(e.sets||'—')+' · '+e.date+'</div></div>';
+      h += '<button data-idx="'+realIdx+'" onclick="delFreeExerciseBtn(this)" style="background:none;border:none;color:#EF4444;font-size:13px;padding:0 4px">✕</button>';
+      h += '</div>';
+    });
+    h += '</div>';
+  }
+
+  return h;
+}
+
+function addFreeExercise(){
+  var nom = (ST.freeExName||'').trim();
+  if(!nom) return;
+  var entry = {
+    nom: nom,
+    muscles: ST.freeExMuscle || '',
+    charge: ST.freeExCharge || '',
+    sets: ST.freeExSets || '',
+    date: parisDateStr()
+  };
+  var log = S.get('freeExLog') || [];
+  log.push(entry);
+  S.set('freeExLog', log);
+  ST.freeExName=''; ST.freeExMuscle=''; ST.freeExCharge=''; ST.freeExSets='';
+  renderEx();
+}
+
+function delFreeExerciseBtn(btn){
+  var idx = parseInt(btn.getAttribute('data-idx'),10);
+  var log = S.get('freeExLog') || [];
+  log.splice(idx,1);
+  S.set('freeExLog', log);
+  renderEx();
+}
+
+async function analyzeMuscleGaps(){
+  ST.gapLoading = true;
+  ST.gapError = null;
+  ST.gapResult = null;
+  renderEx();
+
+  var analysis = getWeakestMuscleGroups();
+  var counts = analysis.raw.counts;
+  var volumeSummary = MUSCLE_GROUPS_FR.map(function(g){ return g+': '+(counts[g]||0)+' séances loggées'; }).join(', ');
+  var freeLog = S.get('freeExLog') || [];
+  var freeLogSummary = freeLog.length ? freeLog.slice(-10).map(function(e){return e.nom+' ('+(e.muscles||'?')+')';}).join(', ') : 'aucun';
+
+  var prompt = "Tu es coach de musculation pour David, endodontiste, 86kg, 1m85, objectif perte de gras + maintien/gain muscle, niveau intermediaire. " +
+    "Sa priorite absolue est le DOS et le HAUT DU CORPS. Programme actuel : Seance A (bas du corps + tirage : squat, souleve de terre roumain, leg curl, tractions assistees, rowing 1 bras, curl barre), Seance B (epaules/pecs/dos/triceps avec machines Hammer Strength), Vacances (poids du corps). " +
+    "Voici le volume d entrainement loggé par groupe musculaire sur l historique disponible : " + volumeSummary + ". " +
+    "Exercices notes dans son carnet libre (hors programme) : " + freeLogSummary + ". " +
+    "Analyse les groupes musculaires sous-travailles, en particulier sur le dos et le haut du corps qui sont sa priorite. Propose 3 a 4 exercices complementaires precis (pas deja dans son programme actuel si possible, ou des variantes) pour combler les lacunes, adaptes a une salle de sport standard avec halteres/machines/poulies. " +
+    "Reponds UNIQUEMENT en JSON valide, sans markdown, sans texte autour, avec exactement ce format : " +
+    '{"synthese": "2-3 phrases de synthese sur les groupes sous-travailles et pourquoi", "suggestions": [{"exercice": "nom", "groupe": "groupe musculaire cible", "sets": "ex: 3x12", "materiel": "ex: poulie, halteres, machine", "pourquoi": "1 phrase expliquant pourquoi cet exercice comble le manque"}]}';
+
+  try{
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1200,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+    const data = await response.json();
+    var fullText = (data.content||[]).map(function(b){ return b.type==='text'?b.text:''; }).filter(Boolean).join('\n');
+    var clean = fullText.replace(/```json|```/g,'').trim();
+    var firstBrace = clean.indexOf('{');
+    var lastBrace = clean.lastIndexOf('}');
+    if(firstBrace>=0 && lastBrace>firstBrace) clean = clean.slice(firstBrace, lastBrace+1);
+    var parsed = JSON.parse(clean);
+    ST.gapResult = parsed;
+    ST.gapError = null;
+  }catch(err){
+    ST.gapError = "Impossible de générer l analyse pour le moment. Réessaie dans un instant.";
+    ST.gapResult = null;
+  }
+  ST.gapLoading = false;
+  renderEx();
+}
+
 function setET(t){ST.exTab=t;ST.exOpen=null;renderEx();}
 function togEx(k){ST.exOpen=(ST.exOpen===k?null:k);renderEx();}
 
