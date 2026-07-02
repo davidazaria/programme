@@ -117,6 +117,7 @@ textarea{background:#14141F;border:1px solid #2D2D3F;border-radius:8px;color:#F1
   <div id="t-journal" class="tab"></div>
   <div id="t-tracker" class="tab"></div>
   <div id="t-exercices" class="tab"></div>
+  <div id="t-jeune" class="tab"></div>
 </div>
 <nav class="bnav">
   <button class="nbtn act" onclick="nav('semaine',this)"><span class="nem">📅</span><span class="nlb">Semaine</span></button>
@@ -256,7 +257,7 @@ const ALIMENTS = {
   "Saumon mariné Picard":       {k:205,p:19, g:1,  l:14,  emoji:"🐟", cat:"Protéines", note:"émincés échalotes citron", abs:"M"},
   "Tartare saumon Picard":      {k:192,p:16, g:0.5,l:14,  emoji:"🐟", cat:"Protéines", note:"ciboulette citron — 100g", abs:"M"},
   "Siggi skyr mangue (100g)":   {k:88, p:8.9,g:8.3,l:2.2, emoji:"🥭", cat:"Laitiers", note:"pot 100g mangue-passion", abs:"L"},
-  "Fondant au chocolat":        {k:380,p:6,  g:42, l:22,  emoji:"🍫", cat:"Plaisir", note:"par pièce (~100g)"},
+  "Sandwich pain mie beurre cacahuète confiture": {k:390,p:10,g:45,l:18, emoji:"🥜", cat:"Plaisir", note:"2 tranches pain de mie + 30g beurre cacahuète + 20g confiture"},
   "Lindt 85% (1 carré 10g)":    {k:58, p:1.25,g:1.9,l:4.6, emoji:"🍫", cat:"Plaisir", note:"1 carré = 10g"},
   "Alpro Vanille (250ml)":      {k:113,p:3.5,g:17, l:3,   emoji:"🥛", cat:"Boissons", note:"250ml", abs:"L"},
   "Poulet pané (1 pièce)":      {k:220,p:14, g:16, l:11,  emoji:"🍗", cat:"Protéines", note:"~100g pièce"},
@@ -491,9 +492,19 @@ let ST={
   week:1, day:0, jshow:false, jinp:{},
   isSportDay: true,
   jeuneActif: false,
-  jeuneDebut: '',   // "HH:MM"
-  jeuneFin: '',     // "HH:MM"
-  jeuneDate: '',    // date de début du jeûne YYYY-MM-DD
+  jeuneNom: '',
+  jeuneDebut: '',
+  jeuneFin: '',
+  jeuneDate: '',
+  jeuneVille: 'Paris',
+  jeuneSelected: '',
+  jeuneSelectedNom: '',
+  jeuneSelectedDate: '',
+  jeuneHoraires: null,
+  jeuneLoading: false,
+  jeuneError: null,
+  jeuneDebutOverride: '',
+  jeuneFinOverride: '',
   showGuide: false,
   conseilsShown: [],
   conseilsSeed: 0,
@@ -682,32 +693,17 @@ function genReco(slotId, variant){
 
 // ─── NUTRITION RENDER ─────────────────────────────────────────────────────────
 // ─── JEÛNE ────────────────────────────────────────────────────────────────────
-function calcJeuneInfo(){
-  if(!ST.jeuneActif || !ST.jeuneDebut || !ST.jeuneFin) return {enCours:false, dureeMin:0, restantMin:0, pct:0};
-
-  // Construire les timestamps de début et fin
-  var now = new Date();
-  var todayStr = parisDateStr();
-  var startDate = ST.jeuneDate || todayStr;
-
-  // Début du jeûne
-  var debutParts = ST.jeuneDebut.split(':');
-  var debut = new Date(startDate + 'T' + ST.jeuneDebut + ':00');
-
-  // Fin du jeûne — peut être le lendemain si heure de fin < heure de début
-  var finParts = ST.jeuneFin.split(':');
-  var fin = new Date(startDate + 'T' + ST.jeuneFin + ':00');
-  if(fin <= debut) fin.setDate(fin.getDate() + 1); // lendemain
-
-  var dureeMin = Math.round((fin - debut) / 60000);
-  var ecoulMin = Math.round((now - debut) / 60000);
-  var restantMin = Math.max(0, Math.round((fin - now) / 60000));
-  var pct = Math.min(Math.max((ecoulMin / dureeMin) * 100, 0), 100);
-  var enCours = now >= debut && now < fin;
-  var termine = now >= fin;
-
-  return {enCours, termine, dureeMin, ecoulMin, restantMin, pct, debut, fin};
-}
+// ─── JEÛNE ────────────────────────────────────────────────────────────────────
+// Calendrier des jeûnes hébraïques 2025-2026 (dates grégoriennes)
+const JEUNES_HEBRAIQUES = [
+  {id:"yomkippour",   nom:"Yom Kippour",              duree:"25h", debut_offset:0, fin_offset:1, type:"coucher→nuit", date_2025:"2025-10-01", date_2026:"2026-09-20"},
+  {id:"tisha_beav",   nom:"Tisha BeAv",                duree:"25h", debut_offset:0, fin_offset:1, type:"coucher→nuit", date_2025:"2025-08-12", date_2026:"2026-08-01"},
+  {id:"shiva_asar",   nom:"Shiva Asar BeTammouz",      duree:"~14h",debut_offset:0, fin_offset:0, type:"aube→nuit",   date_2025:"2025-07-13", date_2026:"2026-07-02"},
+  {id:"tsomguedalia", nom:"Jeûne de Guedalia",         duree:"~13h",debut_offset:0, fin_offset:0, type:"aube→nuit",   date_2025:"2025-10-03", date_2026:"2026-09-22"},
+  {id:"esther",       nom:"Jeûne d'Esther (Ta'anit)",  duree:"~13h",debut_offset:0, fin_offset:0, type:"aube→nuit",   date_2025:"2026-03-12", date_2026:"2027-03-01"},
+  {id:"asara_betevet",nom:"Asara BeTevet",             duree:"~12h",debut_offset:0, fin_offset:0, type:"aube→nuit",   date_2025:"2026-01-01", date_2026:"2026-12-22"},
+  {id:"bechorot",     nom:"Jeûne des Premiers-nés",    duree:"~13h",debut_offset:0, fin_offset:0, type:"aube→nuit",   date_2025:"2025-04-12", date_2026:"2026-04-01"},
+];
 
 function fmtDuree(min){
   if(min <= 0) return '0 min';
@@ -718,89 +714,242 @@ function fmtDuree(min){
   return h + 'h' + (m < 10 ? '0' : '') + m;
 }
 
-function renderJeuneCard(){
-  var info = ST.jeuneActif ? calcJeuneInfo() : null;
-  var h = '';
+function calcJeuneInfo(){
+  if(!ST.jeuneActif || !ST.jeuneDebut || !ST.jeuneFin) return {enCours:false, dureeMin:0, restantMin:0, pct:0, ecoulMin:0, termine:false};
+  var now = new Date();
+  var startDate = ST.jeuneDate || parisDateStr();
+  var debut = new Date(startDate + 'T' + ST.jeuneDebut + ':00');
+  var fin = new Date(startDate + 'T' + ST.jeuneFin + ':00');
+  if(fin <= debut) fin.setDate(fin.getDate() + 1);
+  var dureeMin = Math.round((fin - debut) / 60000);
+  var ecoulMin = Math.round((now - debut) / 60000);
+  var restantMin = Math.max(0, Math.round((fin - now) / 60000));
+  var pct = Math.min(Math.max((ecoulMin / dureeMin) * 100, 0), 100);
+  var enCours = now >= debut && now < fin;
+  var termine = now >= fin;
+  return {enCours, termine, dureeMin, ecoulMin, restantMin, pct, debut, fin};
+}
 
-  if(!ST.jeuneActif){
-    // Bandeau compact pour activer le jeûne
-    h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:12px;border:1px solid #2D2D3F;background:#1E1E2E;margin-bottom:12px">';
-    h += '<div style="font-size:12px;color:#6B7280">🕍 Jeûne religieux</div>';
-    h += '<button onclick="ST.jeuneActif=true;ST.jeuneDebut=ST.jeuneDebut||\'19:00\';ST.jeuneFin=ST.jeuneFin||\'20:00\';ST.jeuneDate=parisDateStr();renderNut()" style="padding:5px 12px;border-radius:8px;border:none;background:#2D2D3F;color:#9CA3AF;font-size:11px;font-weight:700">Démarrer un jeûne</button>';
-    h += '</div>';
-    return h;
+// Bandeau global affiché en haut de chaque onglet quand jeûne actif
+function renderJeuneBandeau(){
+  if(!ST.jeuneActif) return '';
+  var info = calcJeuneInfo();
+  var nom = ST.jeuneNom || 'Jeûne';
+  if(info.termine){
+    return '<div style="background:linear-gradient(135deg,#10B981,#065F46);padding:10px 14px;border-radius:12px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">'
+      +'<div><div style="font-size:12px;font-weight:800;color:#fff">🕍 '+nom+' — terminé</div>'
+      +'<div style="font-size:10px;color:#A7F3D0">Bonne rupture du jeûne ! צום קל ✨</div></div>'
+      +'<button onclick="stopJeune()" style="padding:4px 10px;border-radius:7px;border:none;background:#065F46;color:#6EE7B7;font-size:10px;font-weight:700">Fermer</button>'
+      +'</div>';
   }
+  if(info.enCours){
+    var pctStr = info.pct.toFixed(0);
+    return '<div style="background:linear-gradient(135deg,#1E1035,#2D1B69);border:1px solid #8B5CF660;padding:10px 14px;border-radius:12px;margin-bottom:10px">'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
+      +'<div><div style="font-size:12px;font-weight:800;color:#C4B5FD">🕍 '+nom+'</div>'
+      +'<div style="font-size:10px;color:#A78BFA">Rupture à '+ST.jeuneFin+' · il reste <b style="color:#fff">'+fmtDuree(info.restantMin)+'</b></div></div>'
+      +'<button onclick="stopJeune()" style="padding:4px 10px;border-radius:7px;border:none;background:#2D1B69;color:#A78BFA;font-size:10px;font-weight:700">Arrêter</button>'
+      +'</div>'
+      +'<div style="background:#2D1B69;border-radius:4px;height:5px;overflow:hidden">'
+      +'<div style="height:100%;width:'+pctStr+'%;background:linear-gradient(90deg,#8B5CF6,#C4B5FD);border-radius:4px;transition:width 1s"></div>'
+      +'</div>'
+      +'<div style="display:flex;justify-content:space-between;margin-top:4px">'
+      +'<span style="font-size:9px;color:#6B7280">'+fmtDuree(info.ecoulMin)+' écoulé</span>'
+      +'<span style="font-size:9px;color:#6B7280">'+pctStr+'%</span>'
+      +'<span style="font-size:9px;color:#6B7280">'+fmtDuree(info.dureeMin)+' total</span>'
+      +'</div>'
+      +'</div>';
+  }
+  // Programmé mais pas encore commencé
+  return '<div style="background:#14141F;border:1px solid #F59E0B60;padding:10px 14px;border-radius:12px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">'
+    +'<div><div style="font-size:12px;font-weight:800;color:#FCD34D">🕍 '+nom+' — commence à '+ST.jeuneDebut+'</div>'
+    +'<div style="font-size:10px;color:#6B7280">Rupture prévue à '+ST.jeuneFin+'</div></div>'
+    +'<button onclick="stopJeune()" style="padding:4px 10px;border-radius:7px;border:none;background:#2D2D3F;color:#6B7280;font-size:10px">Annuler</button>'
+    +'</div>';
+}
 
-  // Carte étendue si jeûne actif
-  var borderColor = info.enCours ? '#8B5CF6' : info.termine ? '#10B981' : '#F59E0B';
-  h += '<div class="card" style="border-color:'+borderColor+'60;margin-bottom:12px">';
-  h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">';
-  h += '<div style="display:flex;align-items:center;gap:8px"><span style="font-size:18px">🕍</span>';
-  h += '<div><div style="font-size:14px;font-weight:800;color:#F1F1F5">Jeûne religieux</div>';
-  if(info.enCours) h += '<div style="font-size:10px;color:#C4B5FD">En cours</div>';
-  else if(info.termine) h += '<div style="font-size:10px;color:#10B981">Terminé — bonne rupture du jeûne !</div>';
-  else h += '<div style="font-size:10px;color:#FCD34D">Programmé</div>';
+function backToNutrition(){
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('act'));
+  document.querySelectorAll('.nbtn').forEach(x=>x.classList.remove('act'));
+  document.getElementById('t-nutrition').classList.add('act');
+  document.querySelector('.nbtn[onclick*="nutrition"]').classList.add('act');
+  ST._activeTab = 'nutrition';
+  window.scrollTo(0,0);
+  renderNut();
+}
+
+function stopJeune(){
+  ST.jeuneActif=false; ST.jeuneNom=''; ST.jeuneDebut=''; ST.jeuneFin=''; ST.jeuneDate='';
+  S.set('jeuneState', null);
+  backToNutrition();
+}
+
+// Page jeûne complète (onglet dédié accessible via nav)
+function renderJeunePage(){
+  var h = '<button onclick="backToNutrition()" style="display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:9px;border:1px solid #2D2D3F;background:#14141F;color:#9CA3AF;font-size:11px;font-weight:700;margin-bottom:12px">← Retour à Nutrition</button>';
+  h += '<div class="card"><div class="slbl">🕍 Jeûne religieux juif</div>';
+  h += '<div style="font-size:11px;color:#9CA3AF;margin-bottom:14px;line-height:1.6">Sélectionne un jeûne, je récupère automatiquement les horaires de coucher du soleil et de nuit tombée pour ta ville.</div>';
+
+  // Ville
+  h += '<div style="margin-bottom:10px"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Ville</div>';
+  h += '<div style="display:flex;gap:7px">';
+  h += '<input type="text" id="jeune-ville" value="'+(ST.jeuneVille||'Paris')+'" oninput="ST.jeuneVille=this.value" style="flex:1;padding:8px;border-radius:8px;border:1px solid #2D2D3F;background:#14141F;color:#F1F1F5;font-size:13px">';
   h += '</div></div>';
-  h += '<button onclick="ST.jeuneActif=false;renderNut()" style="padding:5px 10px;border-radius:8px;border:1px solid #4B5563;background:none;color:#6B7280;font-size:10px">Terminer</button>';
-  h += '</div>';
 
-  // Réglage horaires
-  h += '<div style="display:flex;gap:8px;margin-bottom:12px">';
-  h += '<div style="flex:1"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Début du jeûne</div>';
-  h += '<input type="time" value="'+(ST.jeuneDebut||"19:00")+'" oninput="ST.jeuneDebut=this.value;ST.jeuneDate=parisDateStr();renderNut()" style="width:100%;padding:7px;border-radius:8px;border:1px solid #2D2D3F;background:#14141F;color:#F1F1F5;font-size:13px;font-weight:700;text-align:center"></div>';
-  h += '<div style="flex:1"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Rupture du jeûne</div>';
-  h += '<input type="time" value="'+(ST.jeuneFin||"20:00")+'" oninput="ST.jeuneFin=this.value;renderNut()" style="width:100%;padding:7px;border-radius:8px;border:1px solid #2D2D3F;background:#14141F;color:#F1F1F5;font-size:13px;font-weight:700;text-align:center"></div>';
-  h += '</div>';
-
-  // Durée + barre de progression
-  if(ST.jeuneDebut && ST.jeuneFin){
-    h += '<div style="margin-bottom:8px">';
-    h += '<div style="display:flex;justify-content:space-between;margin-bottom:4px">';
-    h += '<span style="font-size:10px;color:#9CA3AF">Durée totale : <b style="color:#C4B5FD">'+fmtDuree(info.dureeMin)+'</b></span>';
-    if(info.enCours) h += '<span style="font-size:10px;color:#9CA3AF">Reste : <b style="color:#C4B5FD">'+fmtDuree(info.restantMin)+'</b></span>';
-    else if(info.termine) h += '<span style="font-size:10px;color:#10B981">✓ Jeûne accompli</span>';
+  // Sélection du jeûne
+  h += '<div style="margin-bottom:12px"><div style="font-size:9px;color:#6B7280;margin-bottom:6px">Jeûne</div>';
+  JEUNES_HEBRAIQUES.forEach(function(j){
+    var sel = ST.jeuneSelected === j.id;
+    var prochDate = j.date_2026 || j.date_2025;
+    // Affiche la date la plus proche dans le futur
+    var now = parisDateStr();
+    if(j.date_2025 && j.date_2025 >= now) prochDate = j.date_2025;
+    else if(j.date_2026 && j.date_2026 >= now) prochDate = j.date_2026;
+    else prochDate = j.date_2026 || j.date_2025;
+    var dateFr = prochDate ? new Date(prochDate+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}) : '';
+    h += '<div onclick="ST.jeuneSelected=\''+j.id+'\';renderJeunePage2()" style="padding:10px 12px;border-radius:10px;border:1.5px solid '+(sel?'#8B5CF6':'#2D2D3F')+';background:'+(sel?'#1E1035':'#14141F')+';margin-bottom:6px;cursor:pointer">';
+    h += '<div style="display:flex;justify-content:space-between;align-items:center">';
+    h += '<div style="font-size:12px;font-weight:700;color:'+(sel?'#C4B5FD':'#9CA3AF')+'">'+j.nom+'</div>';
+    h += '<div style="font-size:10px;color:#F59E0B">'+j.duree+'</div>';
     h += '</div>';
-    h += '<div class="pb-bg"><div class="pb-fill" style="width:'+info.pct.toFixed(1)+'%;background:'+borderColor+'"></div></div>';
-    if(info.enCours){
-      h += '<div style="font-size:10px;color:#6B7280;text-align:center;margin-top:5px">'+fmtDuree(info.ecoulMin)+' écoulé · rupture à '+ST.jeuneFin+'</div>';
-    }
+    if(dateFr) h += '<div style="font-size:10px;color:#4B5563;margin-top:2px">'+dateFr+' · '+j.type+'</div>';
+    h += '</div>';
+  });
+  h += '</div>';
+
+  // Bouton récupérer horaires
+  h += '<button onclick="fetchJeuneHoraires()" style="width:100%;padding:12px;border-radius:11px;border:none;background:linear-gradient(135deg,#8B5CF6,#3B82F6);color:#fff;font-size:13px;font-weight:800;margin-bottom:10px">🔍 Récupérer les horaires</button>';
+
+  if(ST.jeuneLoading){
+    h += '<div style="text-align:center;padding:14px;font-size:12px;color:#9CA3AF">🔎 Recherche des horaires en cours...</div>';
+  }
+  if(ST.jeuneError){
+    h += '<div class="card" style="border-color:#EF444450"><div style="font-size:12px;color:#EF4444">⚠ '+ST.jeuneError+'</div></div>';
+  }
+
+  // Résultat horaires + activation
+  if(ST.jeuneHoraires && !ST.jeuneLoading){
+    var hr = ST.jeuneHoraires;
+    h += '<div class="card" style="border-color:#8B5CF660">';
+    h += '<div style="font-weight:800;font-size:13px;color:#C4B5FD;margin-bottom:10px">🕯️ Horaires — '+hr.ville+', '+(hr.date||'')+'</div>';
+    h += '<div style="display:flex;gap:8px;margin-bottom:10px">';
+    h += '<div class="sbox" style="flex:1"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Début du jeûne</div><div style="font-size:18px;font-weight:800;color:#F1F1F5">'+(hr.debut||'—')+'</div><div style="font-size:9px;color:#6B7280">'+(hr.debut_label||'')+'</div></div>';
+    h += '<div class="sbox" style="flex:1"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Rupture du jeûne</div><div style="font-size:18px;font-weight:800;color:#F1F1F5">'+(hr.fin||'—')+'</div><div style="font-size:9px;color:#6B7280">'+(hr.fin_label||'')+'</div></div>';
+    h += '</div>';
+    if(hr.note) h += '<div style="font-size:10px;color:#6B7280;margin-bottom:10px;line-height:1.5">ℹ️ '+hr.note+'</div>';
+    // Champs manuels si besoin de corriger
+    h += '<div style="display:flex;gap:8px;margin-bottom:10px">';
+    h += '<div style="flex:1"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Ajuster début</div>';
+    h += '<input type="time" id="jeune-debut-input" value="'+(ST.jeuneDebutOverride||hr.debut||'')+'" oninput="ST.jeuneDebutOverride=this.value" style="width:100%;padding:7px;border-radius:8px;border:1px solid #2D2D3F;background:#14141F;color:#F1F1F5;font-size:13px;font-weight:700"></div>';
+    h += '<div style="flex:1"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Ajuster rupture</div>';
+    h += '<input type="time" id="jeune-fin-input" value="'+(ST.jeuneFinOverride||hr.fin||'')+'" oninput="ST.jeuneFinOverride=this.value" style="width:100%;padding:7px;border-radius:8px;border:1px solid #2D2D3F;background:#14141F;color:#F1F1F5;font-size:13px;font-weight:700"></div>';
+    h += '</div>';
+    h += '<button onclick="activerJeune()" style="width:100%;padding:12px;border-radius:11px;border:none;background:linear-gradient(135deg,#10B981,#065F46);color:#fff;font-size:13px;font-weight:800">✓ Activer ce jeûne</button>';
     h += '</div>';
   }
 
-  // Rappels religieux courants
-  h += '<details style="margin-top:6px"><summary style="font-size:10px;color:#6B7280;cursor:pointer;list-style:none">📋 Jeûnes du calendrier hébreu ▾</summary>';
-  h += '<div style="font-size:10px;color:#6B7280;line-height:1.8;margin-top:7px;padding:8px;background:#14141F;border-radius:8px">';
-  h += '<div>• <b style="color:#C4B5FD">Yom Kippour</b> — 25h (coucher du soleil → nuit suivante)</div>';
-  h += '<div>• <b style="color:#C4B5FD">Tisha BeAv</b> — 25h</div>';
-  h += '<div>• <b style="color:#C4B5FD">Shiva Asar BeTammouz</b> — aube → nuit (≈14h)</div>';
-  h += '<div>• <b style="color:#C4B5FD">Guedalia / Esther / Guedalia</b> — aube → nuit (≈13h)</div>';
-  h += '<div>• <b style="color:#C4B5FD">Jeûne des Premiers-nés</b> — aube → nuit</div>';
-  h += '<div style="margin-top:6px;color:#4B5563">Ajuste les horaires selon le calendrier solaire de Paris pour chaque date.</div>';
-  h += '</div></details>';
+  // Si jeûne déjà actif
+  if(ST.jeuneActif){
+    var info = calcJeuneInfo();
+    h += '<div class="card" style="border-color:#10B98150;margin-top:10px">';
+    h += '<div style="font-size:12px;font-weight:700;color:#6EE7B7;margin-bottom:6px">✅ Jeûne actif : '+ST.jeuneNom+'</div>';
+    h += '<div style="font-size:11px;color:#9CA3AF">'+ST.jeuneDebut+' → '+ST.jeuneFin;
+    if(info.enCours) h += ' · reste <b style="color:#C4B5FD">'+fmtDuree(info.restantMin)+'</b>';
+    h += '</div>';
+    h += '<button onclick="stopJeune();renderJeunePage2()" style="width:100%;margin-top:8px;padding:8px;border-radius:9px;border:1px solid #EF4444;background:none;color:#EF4444;font-size:11px;font-weight:700">Arrêter le jeûne</button>';
+    h += '</div>';
+  }
 
   h += '</div>';
-  return h;
+  document.getElementById('t-jeune').innerHTML = h;
+}
+
+function renderJeunePage2(){ renderJeunePage(); }
+
+async function fetchJeuneHoraires(){
+  var jeuneId = ST.jeuneSelected;
+  if(!jeuneId){ ST.jeuneError = "Sélectionne d'abord un jeûne."; renderJeunePage(); return; }
+  var ville = (ST.jeuneVille||'Paris').trim();
+  var jeune = JEUNES_HEBRAIQUES.find(function(j){ return j.id === jeuneId; });
+  if(!jeune){ ST.jeuneError = "Jeûne introuvable."; renderJeunePage(); return; }
+
+  // Date la plus proche dans le futur
+  var now = parisDateStr();
+  var dateJeune = (jeune.date_2025 && jeune.date_2025 >= now) ? jeune.date_2025 : (jeune.date_2026 || jeune.date_2025);
+
+  ST.jeuneLoading = true; ST.jeuneError = null; ST.jeuneHoraires = null;
+  ST.jeuneDebutOverride = ''; ST.jeuneFinOverride = '';
+  renderJeunePage();
+
+  var dateFr = dateJeune ? new Date(dateJeune+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}) : 'date inconnue';
+  var prompt = "Je cherche les horaires precis du coucher du soleil et de la nuit tombee (tzet hakochavim, 3 etoiles visibles) pour le jeune juif \""+jeune.nom+"\" le "+dateFr+" a "+ville+". "
+    + "Ce jeune commence au coucher du soleil (pour les jeunes de 25h) ou a l aube/alba (pour les jeunes de jour). Il se termine a la nuit tombee (apparition des etoiles). "
+    + "Recherche les horaires solaires precis pour "+ville+" a cette date. "
+    + "Reponds UNIQUEMENT en JSON valide sans markdown : "
+    + '{"ville":"'+ville+'","date":"'+dateFr+'","debut":"HH:MM","debut_label":"ex: coucher du soleil / aube","fin":"HH:MM","fin_label":"ex: nuit tombee / 3 etoiles visibles","duree_heures": nombre,"note":"info utile en 1 phrase si necessaire"}';
+
+  try{
+    var resp = await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({
+        model:"claude-sonnet-4-6", max_tokens:600,
+        tools:[{type:"web_search_20250305",name:"web_search"}],
+        messages:[{role:"user",content:prompt}]
+      })
+    });
+    var data = await resp.json();
+    var txt = (data.content||[]).map(function(b){return b.type==='text'?b.text:'';}).filter(Boolean).join('\n');
+    var clean = txt.replace(/```json|```/g,'').trim();
+    var f = clean.indexOf('{'), l = clean.lastIndexOf('}');
+    if(f>=0 && l>f) clean = clean.slice(f,l+1);
+    var parsed = JSON.parse(clean);
+    ST.jeuneHoraires = parsed;
+    ST.jeuneError = null;
+    // Pré-remplir les overrides avec les valeurs trouvées
+    ST.jeuneDebutOverride = parsed.debut || '';
+    ST.jeuneFinOverride = parsed.fin || '';
+    // Stocker le nom du jeûne et la date sélectionnée
+    ST.jeuneSelectedNom = jeune.nom;
+    ST.jeuneSelectedDate = dateJeune;
+  }catch(e){
+    ST.jeuneError = "Impossible de récupérer les horaires. Vérifie ta connexion et réessaie.";
+    ST.jeuneHoraires = null;
+  }
+  ST.jeuneLoading = false;
+  renderJeunePage();
+}
+
+function activerJeune(){
+  var hr = ST.jeuneHoraires;
+  if(!hr) return;
+  ST.jeuneActif = true;
+  ST.jeuneNom = ST.jeuneSelectedNom || hr.nom || 'Jeûne';
+  ST.jeuneDebut = ST.jeuneDebutOverride || hr.debut || '';
+  ST.jeuneFin = ST.jeuneFinOverride || hr.fin || '';
+  ST.jeuneDate = ST.jeuneSelectedDate || parisDateStr();
+  S.set('jeuneState', JSON.stringify({
+    jeuneActif:true, jeuneNom:ST.jeuneNom,
+    jeuneDebut:ST.jeuneDebut, jeuneFin:ST.jeuneFin, jeuneDate:ST.jeuneDate
+  }));
+  renderJeunePage();
 }
 
 function renderNut(){
-
   const dayT = getDayTotals();
   const kPct = Math.min((dayT.k/getTargetKcal())*100, 100);
   const pPct = Math.min((dayT.p/TARGET_PROT)*100, 100);
+  let h = '';
+  h += renderJeuneBandeau();
 
-  let h = ``;
-
-  // ── CARTE JEÛNE ──────────────────────────────────────────────────────────────
-  h += renderJeuneCard();
-
-  // Si jeûne actif → on masque la section nutrition normale et on affiche un message
+  // Si jeûne actif ET en cours → mode pause nutrition
   if(ST.jeuneActif){
-    const jeuneInfo = calcJeuneInfo();
-    if(jeuneInfo.enCours){
-      h += `<div class="card" style="border-color:#8B5CF640;text-align:center;padding:20px">
-        <div style="font-size:28px;margin-bottom:8px">🕍</div>
+    const ji = calcJeuneInfo();
+    if(ji.enCours){
+      h += `<div class="card" style="border-color:#8B5CF640;text-align:center;padding:24px">
+        <div style="font-size:32px;margin-bottom:8px">🕍</div>
         <div style="font-size:14px;font-weight:800;color:#C4B5FD;margin-bottom:6px">Jeûne en cours</div>
-        <div style="font-size:11px;color:#9CA3AF;line-height:1.7">Le suivi nutritionnel est en pause.<br>Reste bien hydraté avec de l'eau si le jeûne le permet.</div>
+        <div style="font-size:11px;color:#9CA3AF;line-height:1.7">Le suivi nutritionnel est en pause.<br>Hydrate-toi bien si le jeûne le permet.</div>
       </div>`;
       document.getElementById('t-nutrition').innerHTML=h;
       return;
@@ -1209,10 +1358,23 @@ function renderNut(){
     ${savedDay ? `<div style="font-size:11px;color:#10B981;text-align:center">✓ Journée enregistrée — ${savedDay.totalK} kcal · ${savedDay.totalP}g prot</div>` : ''}
   </div>`;
 
+  // Bouton jeûne en bas de page
+  h += `<button onclick="openJeunePage()" style="width:100%;padding:11px;border-radius:11px;border:1px solid #2D2D3F;background:#14141F;color:#6B7280;font-size:12px;font-weight:700;margin-top:4px;margin-bottom:8px">🕍 Gérer un jeûne religieux</button>`;
+
   document.getElementById('t-nutrition').innerHTML = h;
 }
 
 function setNutSlot(s){ ST.nutSlot=s; ST.nutShowReco=null; renderNut(); }
+
+function openJeunePage(){
+  // Cache tous les tabs, affiche t-jeune
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('act'));
+  document.querySelectorAll('.nbtn').forEach(x=>x.classList.remove('act'));
+  document.getElementById('t-jeune').classList.add('act');
+  ST._activeTab = 'jeune';
+  window.scrollTo(0,0);
+  renderJeunePage();
+}
 
 function setNutDate(d){
   ST.nutDate = d;
@@ -1303,7 +1465,7 @@ function addCustomItem(slot){
   custom[name] = {k:kcal, p:prot, g:gluc, l:lip};
   S.set('customAliments', custom);
   // Add cat to list if needed
-  if(ALIMENT_CATS.indexOf('Mes aliments') < 0) ALIMENT_CATS.unshift('Mes aliments');
+  if(ALIMENT_CATS.indexOf('Mes aliments') < 0) ALIMENT_CATS.push('Mes aliments');
   // Add to current slot
   if(!ST.nutManual[slot]) ST.nutManual[slot]=[];
   ST.nutManual[slot].push({n:name, qty:100});
@@ -1352,7 +1514,8 @@ function renderSem(){
   const p=PROGS[ST.week-1];
   const tmpl=p.vacances?WEEK_VAC:WEEK;
   const j=S.get('journal')||{};
-  let h=`<div style="margin-bottom:14px"><div class="slbl">Semaine</div><div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px">`;
+  let h = renderJeuneBandeau();
+  h+=`<div style="margin-bottom:14px"><div class="slbl">Semaine</div><div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px">`;
   PROGS.forEach(wp=>{
     const cls=['wbtn',wp.week===ST.week?'act':'',wp.decharge?'decharge':wp.vacances?'vacances':''].join(' ');
     h+=`<button class="${cls}" onclick="selW(${wp.week})" style="position:relative">${wp.week}${wp.decharge?'<span style="position:absolute;top:-4px;right:-4px;font-size:8px">🔄</span>':wp.vacances?'<span style="position:absolute;top:-4px;right:-4px;font-size:8px">🏖️</span>':''}</button>`;
@@ -1494,7 +1657,8 @@ function selEcBtn(btn){
 function renderTr(){
   const wl=S.get('wLog')||[];
   const il=S.get('iLog')||[];
-  let h='<div class="pill-row">';
+  let h=renderJeuneBandeau();
+  h+='<div class="pill-row">';
   [{k:'poids',l:'Poids',e:'⚖️'},{k:'impedance',l:'Impédance',e:'📊'},{k:'gras',l:'Perte gras',e:'🔥'},{k:'conseils',l:'Conseils',e:'💡'}].forEach(function(t){
     h+='<button class="pill '+(ST.trTab===t.k?'act':'')+'" data-tab="'+t.k+'" onclick="setTTBtn(this)"><div class="pe">'+t.e+'</div><div class="pl">'+t.l+'</div></button>';
   });
@@ -1923,7 +2087,8 @@ function getWeakestMuscleGroups(priorityGroups){
 
 
 function renderEx(){
-  let h='<div style="display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap">';
+  let h=renderJeuneBandeau();
+  h+='<div style="display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap">';
   [{k:'A',l:'Séance A',s:'Bas + Tirage',c:'#3B82F6'},{k:'B',l:'Séance B',s:'Haut + Poussée',c:'#EF4444'},{k:'V',l:'Vacances',s:'Poids corps',c:'#10B981'},{k:'M',l:'🔧 Ma machine',s:'Identifier',c:'#8B5CF6'},{k:'C',l:'📓 Carnet',s:'Volume musculaire',c:'#F59E0B'}].forEach(function(t){
     h+='<button onclick="setET(\''+t.k+'\')" style="flex:1;min-width:70px;padding:9px 4px;border-radius:11px;border:1.5px solid '+(ST.exTab===t.k?t.c:'#2D2D3F')+';background:'+(ST.exTab===t.k?t.c+'22':'#1E1E2E')+';text-align:center"><div style="font-size:11px;font-weight:700;color:'+(ST.exTab===t.k?t.c:'#9CA3AF')+'">'+t.l+'</div><div style="font-size:9px;color:#6B7280">'+t.s+'</div></button>';
   });
@@ -2365,8 +2530,8 @@ function getRandomConseils(excluded, count){
 function renderJournal(){
   const journal = S.get('nutJournal') || {};
   const days = Object.values(journal).sort((a,b)=>b.date.localeCompare(a.date));
-
-  let h = `<div style="font-size:13px;color:#9CA3AF;margin-bottom:14px;line-height:1.5">
+  let h = renderJeuneBandeau();
+  h += `<div style="font-size:13px;color:#9CA3AF;margin-bottom:14px;line-height:1.5">
     Historique de tes journées alimentaires. Enregistre chaque soir depuis l'onglet Nutrition.
   </div>`;
 
@@ -2534,11 +2699,13 @@ function deleteDayBtn(btn){ deleteDay(btn.getAttribute('data-date')); }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 function render(t){
+  ST._activeTab = t;
   if(t==='semaine')renderSem();
   else if(t==='nutrition')renderNut();
   else if(t==='journal')renderJournal();
   else if(t==='tracker')renderTr();
   else if(t==='exercices')renderEx();
+  else if(t==='jeune')renderJeunePage();
 }
 
 // Load custom aliments from localStorage into ALIMENTS
@@ -2550,7 +2717,7 @@ function render(t){
   });
   // Add 'Mes aliments' to cats if not there
   if(ALIMENT_CATS.indexOf('Mes aliments') < 0 && Object.keys(custom).length > 0){
-    ALIMENT_CATS.unshift('Mes aliments');
+    ALIMENT_CATS.push('Mes aliments');
   }
 })();
 
@@ -2583,21 +2750,24 @@ function render(t){
   if(savedJeune){
     try {
       var jst = JSON.parse(savedJeune);
-      if(jst.jeuneActif){ ST.jeuneActif=jst.jeuneActif; ST.jeuneDebut=jst.jeuneDebut; ST.jeuneFin=jst.jeuneFin; ST.jeuneDate=jst.jeuneDate; }
+      if(jst.jeuneActif){ ST.jeuneActif=jst.jeuneActif; ST.jeuneNom=jst.jeuneNom||''; ST.jeuneDebut=jst.jeuneDebut; ST.jeuneFin=jst.jeuneFin; ST.jeuneDate=jst.jeuneDate; }
     } catch(e){}
   }
 })();
 
-// Timer live : rafraîchit la carte jeûne chaque minute si un jeûne est en cours
+// Timer live : rafraîchit le bandeau jeûne chaque minute si actif
 setInterval(function(){
   if(ST.jeuneActif){
-    // Sauvegarder l'état jeûne en localStorage pour persistance
-    S.set('jeuneState', JSON.stringify({jeuneActif:ST.jeuneActif, jeuneDebut:ST.jeuneDebut, jeuneFin:ST.jeuneFin, jeuneDate:ST.jeuneDate}));
-    // Rafraîchir uniquement si l'onglet nutrition est visible
-    var nutTab = document.getElementById('t-nutrition');
-    if(nutTab && nutTab.classList && nutTab.classList.contains('act')) renderNut();
+    S.set('jeuneState', JSON.stringify({jeuneActif:true, jeuneNom:ST.jeuneNom, jeuneDebut:ST.jeuneDebut, jeuneFin:ST.jeuneFin, jeuneDate:ST.jeuneDate}));
+    // Highlight bouton nav jeûne
+    var jBtn = document.getElementById('nbtn-jeune');
+    if(jBtn && !jBtn.classList.contains('act')) jBtn.style.color = '#C4B5FD';
+    // Rafraîchir l'onglet actif (bandeau mis à jour partout)
+    if(ST._activeTab) render(ST._activeTab);
   } else {
     S.set('jeuneState', null);
+    var jBtn2 = document.getElementById('nbtn-jeune');
+    if(jBtn2) jBtn2.style.color = '';
   }
 }, 60000);
 
