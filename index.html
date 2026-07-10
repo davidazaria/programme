@@ -206,6 +206,7 @@ const ALIMENTS = {
   "Hipro 160g":                 {k:85, p:15, g:5.8,l:0.2, emoji:"🥛", cat:"Laitiers", note:"portion 160g", fixed:true, abs:"L"},
   "Miel (1 cuillère)":          {k:32, p:0,  g:8.7,l:0,   emoji:"🍯", cat:"Laitiers", note:"1 càc (~10g)", fixed:true},
   "Whey protéine":              {k:380,p:75,g:8,  l:5,   emoji:"💊", cat:"Laitiers", abs:"R"},
+  "Whey Isolat Native Café (Nutri&Co)": {k:370,p:83,g:5, l:2, emoji:"☕", cat:"Laitiers", note:"dosette 30g = 25g prot, 6.2g BCAA", abs:"R"},
   "Riz cuit":                   {k:130,p:2.7,g:28,l:0.3, emoji:"🍚", cat:"Féculents", abs:"-"},
   "Pâtes cuites":               {k:158,p:5.8,g:31,l:0.9, emoji:"🍝", cat:"Féculents", abs:"-"},
   "Quinoa cuit":                {k:120,p:4.4,g:22,l:1.9, emoji:"🌾", cat:"Féculents", abs:"-"},
@@ -252,6 +253,11 @@ const ALIMENTS = {
   "Starbucks Latte Décaf Tall + protéines": {k:151,p:10.9,g:15,l:5.2,emoji:"☕", cat:"Boissons", note:"Grande 473ml — valeurs officielles Starbucks FR", abs:"R"},
   "Pita (pain)":                {k:275,p:9,  g:55, l:2,   emoji:"🫓", cat:"Féculents"},
   "Crêpe maison (90g)":         {k:162,p:6,  g:20, l:7,   emoji:"🥞", cat:"Féculents", note:"portion 90g — farine/œufs/lait/huile", fixed:true},
+  "Couscous de Chabbat (grosse assiette)": {k:650,p:32, g:65, l:22, emoji:"🍲", cat:"Féculents", note:"grosse portion ~550g, viande/légumes", fixed:true},
+  "Datte":                      {k:277,p:2,  g:75, l:0.2, emoji:"🌴", cat:"Fruits"},
+  "Thon cru":                   {k:109,p:24, g:0,  l:1,   emoji:"🐟", cat:"Protéines", abs:"M"},
+  "Tomate mozza":               {k:140,p:7,  g:4,  l:11,  emoji:"🍅", cat:"Laitiers", note:"salade tomate/mozzarella/huile d'olive"},
+  "Hipro à boire 25g":          {k:180,p:25, g:16.5,l:0,  emoji:"🥤", cat:"Laitiers", note:"bouteille ~300ml, 0% MG", fixed:true},
   "Couscous cuit":              {k:112,p:3.8,g:23, l:0.6, emoji:"🌾", cat:"Féculents"},
   "Plat de couscous (portion)": {k:380,p:18, g:40, l:14,  emoji:"🍲", cat:"Féculents", note:"~350g avec viande/légumes"},
   "Poulet pané (1 pièce)":      {k:220,p:14, g:16, l:11,  emoji:"🍗", cat:"Protéines", note:"~100g pièce", abs:"M"},
@@ -509,6 +515,7 @@ let ST={
   showGuide: false,
   conseilsShown: [],
   conseilsSeed: 0,
+  muscleConseilsShown: [],
   showEcarts: false,
   show24h: false,
   showPlanner: false,
@@ -520,7 +527,7 @@ let ST={
   nutShowReco: null,
   nutPlanOverrides: {},
   ecSel: null, ecShow: false,
-  trTab: 'poids', exTab:'A', exOpen:null
+  trTab: 'impedance', exTab:'A', exOpen:null
 };
 
 // ─── NAV ─────────────────────────────────────────────────────────────────────
@@ -1067,8 +1074,9 @@ function renderNut(){
       </div>
     </div>`;
 
-  // Liste des aliments
-  slot.items.forEach(item => {
+  // Liste des aliments — top 10 les plus consommes pour ce repas (complete avec les valeurs par defaut si historique insuffisant)
+  const displayItems = getSlotDisplayItems(ST.nutSlot);
+  displayItems.forEach(item => {
     const isSelected = sel.hasOwnProperty(item.n);
     const qty = isSelected ? sel[item.n] : item.qty;
     const m = calcMacros(item.n, qty);
@@ -1146,7 +1154,10 @@ function renderNut(){
       <div><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Glucides (g)</div><input type="number" id="custom-gluc" placeholder="ex: 8" min="0" step="0.1"></div>
       <div><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Lipides (g)</div><input type="number" id="custom-lip" placeholder="ex: 3" min="0" step="0.1"></div>
     </div>
-    <button onclick="addCustomItem('${ST.nutSlot}')" style="width:100%;padding:8px;border-radius:8px;border:none;background:#8B5CF6;color:#fff;font-size:12px;font-weight:600">Ajouter l'aliment personnalisé ✓</button>
+    <div style="display:flex;gap:6px">
+      <button onclick="addCustomItem('${ST.nutSlot}', true)" style="flex:1;padding:8px;border-radius:8px;border:none;background:#8B5CF6;color:#fff;font-size:11px;font-weight:600">💾 Enregistrer + journal</button>
+      <button onclick="addCustomItem('${ST.nutSlot}', false)" style="flex:1;padding:8px;border-radius:8px;border:1px solid #8B5CF6;background:transparent;color:#C4B5FD;font-size:11px;font-weight:600">📝 Journal seulement</button>
+    </div>
   </div>`;
 
   h += `</div>`;
@@ -1421,6 +1432,50 @@ function togFood(slot, name, defaultQty){
   renderNut();
 }
 
+// Calcule la liste des 10 aliments les plus frequemment consommes pour un repas donne,
+// a partir de l historique reel (nutJournal). Complete avec les valeurs par defaut
+// (MEAL_SLOTS) si l historique ne fournit pas encore 10 aliments distincts.
+// Recalculee a chaque ouverture de l app -> se met a jour automatiquement chaque jour.
+function getSlotDisplayItems(slotId){
+  var defaultItems = MEAL_SLOTS[slotId].items;
+  var journal = S.get('nutJournal') || {};
+  var counts = {};
+  Object.keys(journal).forEach(function(date){
+    var day = journal[date];
+    if(!day) return;
+    var sel = (day.selections && day.selections[slotId]) || {};
+    Object.keys(sel).forEach(function(name){
+      if(!counts[name]) counts[name] = {count:0, qtySum:0};
+      counts[name].count++;
+      counts[name].qtySum += parseFloat(sel[name])||0;
+    });
+    var manual = (day.manual && day.manual[slotId]) || [];
+    manual.forEach(function(mi){
+      if(!counts[mi.n]) counts[mi.n] = {count:0, qtySum:0};
+      counts[mi.n].count++;
+      counts[mi.n].qtySum += parseFloat(mi.qty)||0;
+    });
+  });
+  var ranked = Object.keys(counts).map(function(name){
+    var c = counts[name];
+    return {n:name, count:c.count, avgQty:Math.round(c.qtySum/c.count)||100};
+  });
+  ranked.sort(function(a,b){ return b.count - a.count; });
+  var top = ranked.slice(0, 10).map(function(r){ return {n:r.n, qty:r.avgQty}; });
+  // Complete avec les aliments par defaut si moins de 10 aliments dans l historique
+  if(top.length < 10){
+    var already = top.map(function(t){ return t.n; });
+    defaultItems.forEach(function(it){
+      if(top.length >= 10) return;
+      if(already.indexOf(it.n) < 0){
+        top.push({n:it.n, qty:it.qty});
+        already.push(it.n);
+      }
+    });
+  }
+  return top;
+}
+
 function updateQty(slot, name, val){
   if(!ST.nutSelections[slot]) ST.nutSelections[slot]={};
   ST.nutSelections[slot][name] = parseFloat(val)||0;
@@ -1452,21 +1507,28 @@ function removeManual(slot, idx){
 function showReco(slot, variant){ ST.nutShowReco=slot; ST.nutRecoVariant=variant||'poisson'; renderNut(); }
 function showRecoBtn(btn){ showReco(btn.getAttribute('data-slot'), btn.getAttribute('data-variant')); }
 
-function addCustomItem(slot){
+function addCustomItem(slot, save){
   var name = document.getElementById('custom-name').value.trim();
   var kcal = parseFloat(document.getElementById('custom-kcal').value);
   var prot = parseFloat(document.getElementById('custom-prot').value)||0;
   var gluc = parseFloat(document.getElementById('custom-gluc').value)||0;
   var lip  = parseFloat(document.getElementById('custom-lip').value)||0;
   if(!name || isNaN(kcal)) return;
-  // Add to ALIMENTS dynamically
-  ALIMENTS[name] = {k:kcal, p:prot, g:gluc, l:lip, emoji:'🍽️', cat:'Mes aliments'};
-  // Save to localStorage permanently
-  var custom = S.get('customAliments') || {};
-  custom[name] = {k:kcal, p:prot, g:gluc, l:lip};
-  S.set('customAliments', custom);
-  // Add cat to list if needed
-  if(ALIMENT_CATS.indexOf('Mes aliments') < 0) ALIMENT_CATS.push('Mes aliments');
+  if(save){
+    // Enregistré durablement dans "Mes aliments" (visible dans la liste déroulante)
+    ALIMENTS[name] = {k:kcal, p:prot, g:gluc, l:lip, emoji:'🍽️', cat:'Mes aliments'};
+    var custom = S.get('customAliments') || {};
+    custom[name] = {k:kcal, p:prot, g:gluc, l:lip};
+    S.set('customAliments', custom);
+    if(ALIMENT_CATS.indexOf('Mes aliments') < 0) ALIMENT_CATS.push('Mes aliments');
+  } else {
+    // Ajout ponctuel : pas dans "Mes aliments", mais gardé en arrière-plan pour que
+    // le journal (passé/futur) puisse toujours recalculer ses macros correctement
+    ALIMENTS[name] = {k:kcal, p:prot, g:gluc, l:lip, emoji:'🍽️', cat:'Journal'};
+    var journalOnly = S.get('journalOnlyAliments') || {};
+    journalOnly[name] = {k:kcal, p:prot, g:gluc, l:lip};
+    S.set('journalOnlyAliments', journalOnly);
+  }
   // Add to current slot
   if(!ST.nutManual[slot]) ST.nutManual[slot]=[];
   ST.nutManual[slot].push({n:name, qty:100});
@@ -1660,49 +1722,30 @@ function renderTr(){
   const il=S.get('iLog')||[];
   let h=renderJeuneBandeau();
   h+='<div class="pill-row">';
-  [{k:'poids',l:'Poids',e:'⚖️'},{k:'impedance',l:'Impédance',e:'📊'},{k:'gras',l:'Perte gras',e:'🔥'},{k:'conseils',l:'Conseils',e:'💡'}].forEach(function(t){
+  [{k:'impedance',l:'Impédance',e:'📊'},{k:'gras',l:'Perte gras',e:'🔥'},{k:'conseils',l:'Conseils',e:'💡'}].forEach(function(t){
     h+='<button class="pill '+(ST.trTab===t.k?'act':'')+'" data-tab="'+t.k+'" onclick="setTTBtn(this)"><div class="pe">'+t.e+'</div><div class="pl">'+t.l+'</div></button>';
   });
   h+='</div>';
 
-  // ── POIDS ──────────────────────────────────────────────────────────────────
-  if(ST.trTab==='poids'){
-    const last=wl.length?wl[wl.length-1]:null;
-    const first=wl.length>1?wl[0]:null;
-    const diff=last&&first?(last.p-first.p).toFixed(1):null;
-    h+='<div style="display:flex;gap:7px;margin-bottom:14px">';
-    h+='<div class="sbox"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Poids actuel</div><div style="font-size:22px;font-weight:800">'+( last?last.p:'—')+'<span style="font-size:12px;color:#6B7280"> kg</span></div></div>';
-    h+='<div class="sbox"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Variation</div><div style="font-size:22px;font-weight:800;color:'+(diff===null?'#6B7280':parseFloat(diff)<0?'#10B981':'#EF4444')+'">'+(diff!==null?(parseFloat(diff)<0?diff:'+'+diff):'—')+'<span style="font-size:12px;color:#6B7280"> kg</span></div></div>';
-    h+='<div class="sbox"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Objectif</div><div style="font-size:22px;font-weight:800;color:#3B82F6">−4<span style="font-size:12px;color:#6B7280"> kg</span></div></div>';
-    h+='</div>';
-    if(wl.length>1){
-      const cMax=Math.max.apply(null,wl.map(function(w){return w.p;}))+1;
-      const cMin=Math.min.apply(null,wl.map(function(w){return w.p;}))-1;
-      const tgtY=last?((cMax-(last.p-4))/(cMax-cMin))*80+5:50;
-      const pts=wl.map(function(w,i){var x=(i/(wl.length-1))*290+5,y=((cMax-w.p)/(cMax-cMin))*80+5;return x+','+y;}).join(' ');
-      const circles=wl.map(function(w,i){var x=(i/(wl.length-1))*290+5,y=((cMax-w.p)/(cMax-cMin))*80+5;return '<circle cx="'+x+'" cy="'+y+'" r="4" fill="#3B82F6" stroke="#0F0F1A" stroke-width="2"/>';}).join('');
-      h+='<div class="card"><div class="slbl">Courbe de poids</div>';
-      h+='<svg width="100%" height="100" viewBox="0 0 300 100"><line x1="0" y1="'+tgtY+'" x2="300" y2="'+tgtY+'" stroke="#10B98150" stroke-width="1" stroke-dasharray="4,3"/><polyline points="'+pts+'" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'+circles+'</svg>';
-      h+='<div style="display:flex;justify-content:space-between;margin-top:4px"><span style="font-size:9px;color:#4B5563">'+wl[0].d+'</span><span style="font-size:9px;color:#10B981">— objectif −4 kg</span><span style="font-size:9px;color:#4B5563">'+wl[wl.length-1].d+'</span></div></div>';
-    }
-    h+='<div class="card"><div class="slbl">Ajouter une mesure</div>';
-    h+='<div style="display:flex;gap:8px;margin-bottom:8px"><input type="date" id="wd" style="flex:1"><input type="number" id="wv" placeholder="kg" step="0.1" style="width:70px"></div>';
-    h+='<button class="btn-p" onclick="addW()">Ajouter ✓</button></div>';
-    if(wl.length){
-      const dow=parisDay();
-      if(dow===1||dow===5) h+='<div style="padding:9px 12px;border-radius:9px;background:#1E3A5F;border:1px solid #3B82F640;font-size:11px;color:#93C5FD;margin-bottom:10px">⚖️ <b>Rappel</b> — Aujourd-hui: jour de pesée ! Rentre ton poids ci-dessus.</div>';
-      h+='<div class="card"><div class="slbl">Historique</div>';
-      [...wl].reverse().slice(0,10).forEach(function(w){ h+='<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #2D2D3F"><span style="font-size:11px;color:#9CA3AF">'+w.d+'</span><span style="font-size:12px;font-weight:700">'+w.p+' kg</span></div>'; });
-      h+='</div>';
-    } else {
-      h+='<div class="gbox">💡 Commence le monitoring dès le lundi 22 juin — pèse-toi <b>lundi et vendredi matin</b>, à jeun, après les toilettes.</div>';
-    }
-
   // ── IMPÉDANCE ──────────────────────────────────────────────────────────────
-  } else if(ST.trTab==='impedance'){
+  if(ST.trTab==='impedance'){
+    const dow=parisDay();
+    if(dow===1||dow===5) h+='<div style="padding:9px 12px;border-radius:9px;background:#1E3A5F;border:1px solid #3B82F640;font-size:11px;color:#93C5FD;margin-bottom:10px">⚖️ <b>Rappel</b> — Aujourd-hui: jour de pesée ! Pense à ta mesure.</div>';
     if(!il.length){
       h+='<div class="gbox">💡 Commence la balance à impédance dès le 22 juin.</div>';
     } else {
+      // Courbe de poids (fenêtre dédiée)
+      if(il.length>1){
+        const cMax=Math.max.apply(null,il.map(function(r){return parseFloat(r.p)||0;}))+1;
+        const cMin=Math.min.apply(null,il.map(function(r){return parseFloat(r.p)||0;}))-1;
+        const lastPCurve=parseFloat(il[il.length-1].p)||0;
+        const tgtY=((cMax-(lastPCurve-4))/(cMax-cMin))*80+5;
+        const ptsW=il.map(function(r,i){var x=(i/(il.length-1))*290+5,y=((cMax-(parseFloat(r.p)||0))/(cMax-cMin))*80+5;return x+','+y;}).join(' ');
+        const circlesW=il.map(function(r,i){var x=(i/(il.length-1))*290+5,y=((cMax-(parseFloat(r.p)||0))/(cMax-cMin))*80+5;return '<circle cx="'+x+'" cy="'+y+'" r="4" fill="#10B981" stroke="#0F0F1A" stroke-width="2"/>';}).join('');
+        h+='<div class="card"><div class="slbl">Courbe de poids</div>';
+        h+='<svg width="100%" height="100" viewBox="0 0 300 100"><line x1="0" y1="'+tgtY+'" x2="300" y2="'+tgtY+'" stroke="#10B98150" stroke-width="1" stroke-dasharray="4,3"/><polyline points="'+ptsW+'" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'+circlesW+'</svg>';
+        h+='<div style="display:flex;justify-content:space-between;margin-top:4px"><span style="font-size:9px;color:#4B5563">'+il[0].d+'</span><span style="font-size:9px;color:#10B981">— objectif −4 kg</span><span style="font-size:9px;color:#4B5563">'+il[il.length-1].d+'</span></div></div>';
+      }
       // Dernière mesure
       const last=il[il.length-1];
       const imcCalc=last.p?(parseFloat(last.p)/(1.85*1.85)).toFixed(1):'—';
@@ -1841,8 +1884,6 @@ function renderTr(){
   } else {
     const lastI=il.length?il[il.length-1]:null;
     const firstI=il.length>1?il[0]:null;
-    const lastW=wl.length?wl[wl.length-1]:null;
-    const firstW=wl.length>1?wl[0]:null;
     var grasDiff=null,muscDiff=null,poidsTotal=null;
     if(lastI&&firstI){
       var mgKgS=(parseFloat(firstI.mg)||0)/100*(parseFloat(firstI.p)||86);
@@ -1851,8 +1892,8 @@ function renderTr(){
       var mmKgS=(parseFloat(firstI.mm)||0)/100*(parseFloat(firstI.p)||86);
       var mmKgE=(parseFloat(lastI.mm)||0)/100*(parseFloat(lastI.p)||86);
       muscDiff=(mmKgE-mmKgS).toFixed(1);
+      poidsTotal=((parseFloat(lastI.p)||0)-(parseFloat(firstI.p)||0)).toFixed(1);
     }
-    if(lastW&&firstW) poidsTotal=(lastW.p-firstW.p).toFixed(1);
     // Objectif : 3 kg de gras perdu (plus réaliste sur 10 semaines)
     var grasPct=grasDiff?Math.min(Math.abs(parseFloat(grasDiff))/4*100,100):0;
     var dashArray=grasPct*3.14;
@@ -1871,13 +1912,14 @@ function renderTr(){
 
     h+='<div style="display:flex;gap:7px;margin-bottom:12px">';
     h+='<div class="sbox" style="border:1px solid #EF444430"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Gras perdu</div><div style="font-size:20px;font-weight:800;color:#EF4444">'+(grasDiff!==null?grasDiff:'—')+'<span style="font-size:11px;color:#6B7280"> kg</span></div></div>';
-    h+='<div class="sbox" style="border:1px solid #3B82F630"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Muscle gagné</div><div style="font-size:20px;font-weight:800;color:#3B82F6">'+(muscDiff!==null?(parseFloat(muscDiff)>=0?'+':'')+muscDiff:'—')+'<span style="font-size:11px;color:#6B7280"> kg</span></div></div>';
+    h+='<div class="sbox" style="border:1px solid '+(muscDiff!==null&&parseFloat(muscDiff)<0?'#EF444430':'#3B82F630')+'"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Muscle gagné</div><div style="font-size:20px;font-weight:800;color:'+(muscDiff!==null&&parseFloat(muscDiff)<0?'#EF4444':'#3B82F6')+'">'+(muscDiff!==null?(parseFloat(muscDiff)>=0?'+':'')+muscDiff:'—')+'<span style="font-size:11px;color:#6B7280"> kg</span></div></div>';
     h+='<div class="sbox" style="border:1px solid #6B728030"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Poids total</div><div style="font-size:20px;font-weight:800;color:'+(poidsTotal===null?'#6B7280':parseFloat(poidsTotal)<0?'#10B981':'#EF4444')+'">'+(poidsTotal!==null?(parseFloat(poidsTotal)<0?poidsTotal:'+'+poidsTotal):'—')+'<span style="font-size:11px;color:#6B7280"> kg</span></div></div>';
     h+='</div>';
 
     if(grasDiff!==null){
       var msg='';
       if(parseFloat(grasDiff)<0&&parseFloat(muscDiff||0)>=0) msg='✅ <b style="color:#10B981">Recomposition en cours !</b> Tu perds du gras tout en maintenant ou gagnant du muscle.';
+      else if(parseFloat(muscDiff||0)<0) msg='⚠️ <b style="color:#EF4444">Perte de masse musculaire detectee.</b> Voir les conseils ci-dessous pour comprendre pourquoi et corriger le tir.';
       else if(parseFloat(grasDiff)<0) msg='📉 Tu perds du gras — bonne trajectoire. Surveille la masse musculaire.';
       else msg='⏳ Continue — les premières semaines sont souvent silencieuses.';
       h+='<div style="padding:10px 12px;border-radius:9px;background:#14141F;font-size:11px;color:#D1D5DB;line-height:1.7;margin-bottom:12px">'+msg+'</div>';
@@ -1885,9 +1927,26 @@ function renderTr(){
       h+='<div class="gbox" style="margin-bottom:12px">💡 Commence tes mesures le 22 juin. Le cercle se remplira au fur et à mesure.</div>';
     }
 
-
-
     h+='</div>';
+
+    // ── INDICATEUR PROBLEMATIQUE : perte de masse musculaire ──────────────────
+    if(muscDiff!==null && parseFloat(muscDiff)<0){
+      if(!ST.muscleConseilsShown || ST.muscleConseilsShown.length===0){
+        ST.muscleConseilsShown = pickMuscleConseils(5, []);
+      }
+      var mItems = MUSCLE_LOSS_CONSEILS.filter(function(c){ return ST.muscleConseilsShown.indexOf(c.id)>=0; });
+      h+='<div class="card" style="border:1px solid #EF444440">';
+      h+='<div class="slbl" style="color:#EF4444">⚠️ Pourquoi tu perds du muscle (malgré des protéines suffisantes)</div>';
+      h+='<div style="font-size:10px;color:#6B7280;margin-bottom:10px">5 pistes tirées d une base de '+MUSCLE_LOSS_CONSEILS.length+' conseils — les protéines ne sont qu un facteur parmi d autres.</div>';
+      mItems.forEach(function(c){
+        h+='<div style="background:#1E1E2E;border-radius:12px;padding:12px;margin-bottom:8px;border-left:3px solid #EF4444">';
+        h+='<div style="font-size:11px;font-weight:700;color:#F1F1F5;margin-bottom:5px">'+c.emoji+' '+c.titre+'</div>';
+        h+='<div style="font-size:10.5px;color:#9CA3AF;line-height:1.6">'+c.txt+'</div>';
+        h+='</div>';
+      });
+      h+='<button onclick="loadMuscleConseils()" style="width:100%;padding:12px;border-radius:11px;border:1.5px solid #EF444460;background:#1A1420;color:#FCA5A5;font-size:12px;font-weight:700;margin-top:4px">🔄 Nouveaux conseils</button>';
+      h+='</div>';
+    }
   }
 
   // ── CONSEILS TAB ────────────────────────────────────────────────────────
@@ -1974,6 +2033,19 @@ function loadMoreConseils(){
   });
   ST.conseilsShown = newItems;
   // On ne met PAS a jour conseilsDay — le tirage du jour reste valide jusqu a minuit
+  renderTr();
+}
+
+function pickMuscleConseils(count, excluded){
+  var pool = MUSCLE_LOSS_CONSEILS.filter(function(c){ return excluded.indexOf(c.id) < 0; });
+  if(pool.length < count) pool = MUSCLE_LOSS_CONSEILS.slice(); // repart de zero si epuise
+  var shuffled = pool.slice().sort(function(){ return Math.random() - 0.5; });
+  return shuffled.slice(0, count).map(function(c){ return c.id; });
+}
+
+function loadMuscleConseils(){
+  var current = ST.muscleConseilsShown || [];
+  ST.muscleConseilsShown = pickMuscleConseils(5, current);
   renderTr();
 }
 function setTTBtn(btn){setTT(btn.getAttribute('data-tab'));}
@@ -2475,9 +2547,229 @@ const ALL_CONSEILS = [
   // SANTE MENTALE (suite)
   {id:"sm6",cat:"Sante mentale",emoji:"🎯",titre:"Visualisation pre-seance",txt:"Avant d entrer en salle, 2 min de visualisation de ta seance (series, charges, rythme) augmentent la performance. Les athletes de haut niveau le font systematiquement. Essaie une semaine.",score:function(data){return data.hasWorkouts?5:2;}},
   {id:"sm7",cat:"Sante mentale",emoji:"🌊",titre:"Respiration 4-7-8 anti-stress",txt:"Inspire 4 sec, retiens 7 sec, expire 8 sec. Repete 3 fois. Active le systeme parasympathique, baisse le cortisol en 5 minutes. Utile avant une seance stressante ou avant de dormir.",score:function(data){return 5;}},
+  // NUTRITION (pointus)
+  {id:"n13",cat:"Nutrition",emoji:"🧬",titre:"Seuil de leucine par prise",txt:"Il faut ~2,5-3g de leucine par repas pour declencher pleinement la synthese proteique musculaire (MPS). En dessous, meme avec des proteines, le signal anabolique est partiel — vise 30g+ de proteines completes par prise.",score:function(data){return data.avgProt<160?7:3;}},
+  {id:"n14",cat:"Nutrition",emoji:"🔄",titre:"Diet break toutes les 6-8 semaines",txt:"Une semaine a l equilibre calorique (maintenance) casse l adaptation metabolique et relance la leptine. Contre-intuitif mais ca accelere la suite de la perte de gras plutot que de la freiner.",score:function(data){return data.avgKcal<2000?7:3;}},
+  {id:"n15",cat:"Nutrition",emoji:"📉",titre:"Recalcule ta depense tous les 4-5kg perdus",txt:"Ta depense energetique baisse avec le poids. Un deficit calibre a 86kg devient plus severe (et plus a risque pour le muscle) a 82kg si tu ne l ajustes pas a la baisse.",score:function(data){return data.weightLost>3?7:3;}},
+  // LIFESTYLE (pointus)
+  {id:"l11",cat:"Lifestyle",emoji:"🌙",titre:"Sommeil profond > duree totale",txt:"8h fragmentees (reveils frequents) ne valent pas 7h continues. Le sommeil profond concentre ~70% de la secretion de GH nocturne — regarde la qualite, pas juste le nombre d heures.",score:function(data){return 5;}},
+  {id:"l12",cat:"Lifestyle",emoji:"🍷",titre:"Alcool : l impact sous-estime",txt:"Meme 1-2 verres inhibent la synthese proteique de 20-30% dans les heures qui suivent et reduisent la part de sommeil profond de la nuit. La frequence compte plus que la quantite ponctuelle.",score:function(data){return 4;}},
+  {id:"l13",cat:"Lifestyle",emoji:"🩺",titre:"Bilan sanguin si stagnation prolongee",txt:"Fer, vitamine D, thyroide, testosterone : si un plateau ou une perte musculaire persiste plus de 8 semaines malgre nutrition et entrainement corrects, un dosage tranche souvent la question.",score:function(data){return 3;}},
+  // SPORT (pointus)
+  {id:"s11",cat:"Sport",emoji:"⏱️",titre:"Tempo excentrique controle",txt:"Ralentir la descente sur 3-4 secondes (au lieu de la lacher) augmente le temps sous tension sans ajouter de charge. Un levier d hypertrophie souvent neglige, surtout en fin de programme.",score:function(data){return data.hasWorkouts?6:2;}},
+  {id:"s12",cat:"Sport",emoji:"📊",titre:"Volume hebdo minimum efficace",txt:"En dessous de 8-10 series par groupe musculaire par semaine, le stimulus est souvent insuffisant pour maintenir le muscle en deficit. Compte tes series reelles sur 7 jours, pas juste par seance.",score:function(data){return data.hasWorkouts?6:3;}},
+  {id:"s13",cat:"Sport",emoji:"🚫",titre:"Cardio a jeun : limite le volume",txt:"Courir a jeun plus de 30-40 min augmente le catabolisme musculaire, surtout cumule a un deficit calorique deja marque. Un peu de proteine avant suffit a limiter l effet.",score:function(data){return data.hasWorkouts?6:3;}},
+  // SUIVI (pointus)
+  {id:"sv8",cat:"Suivi",emoji:"💪",titre:"La force en salle > la balance",txt:"Si tes charges montent seance apres seance, tu ne perds probablement pas de muscle, quoi que dise l impedance. La progression de charge est le marqueur le plus fiable — plus fiable que n importe quelle balance grand public.",score:function(data){return data.hasWorkouts?7:3;}},
+  {id:"sv9",cat:"Suivi",emoji:"📐",titre:"Tour de bras et de cuisse",txt:"Mesure au meme point chaque semaine, au metre ruban. Un signal direct et simple sur le volume musculaire, complementaire a l impedance et moins sensible aux biais d hydratation.",score:function(data){return data.impCount<3?6:3;}},
+  // CONSCIENCE (pointus)
+  {id:"c8",cat:"Conscience",emoji:"🎚️",titre:"Multifactoriel, pas un seul coupable",txt:"Une perte musculaire est presque toujours la somme de plusieurs petits facteurs (deficit, sommeil, stress, volume d entrainement) plutot qu une cause unique. Chercher LE coupable retarde souvent la vraie solution.",score:function(data){return 5;}},
 ];
 
 const CONSEIL_CATS = ["Nutrition","Lifestyle","Sport","Suivi","Conscience","Sante mentale"];
+
+const MUSCLE_LOSS_CONSEILS = [
+  {id:"m_d1",emoji:"🔻",titre:"Deficit trop agressif",txt:"Au dela de 20-25% sous ta depense totale, le corps ne fait plus la difference entre gras et muscle a economiser. Un deficit trop dur force le catabolisme meme avec 165g de proteines."},
+  {id:"m_d2",emoji:"🔻",titre:"Vise 15-20% de deficit max",txt:"Sur 86kg et une depense estimee a 2600-2800 kcal, un deficit superieur a 500-600 kcal/jour de facon prolongee augmente fortement le risque de perte musculaire."},
+  {id:"m_d3",emoji:"🔻",titre:"Le corps priorise la survie",txt:"En deficit prolonge, l organisme reduit sa depense energetique (adaptation metabolique) et peut cataboliser du muscle pour economiser de l energie, meme avec assez de proteines dans l assiette."},
+  {id:"m_d4",emoji:"🔻",titre:"Deficit variable > deficit fixe",txt:"Alterner des jours a -300 kcal et des jours a l equilibre limite l adaptation metabolique mieux qu un deficit plat tous les jours."},
+  {id:"m_d5",emoji:"🔻",titre:"Le piege du sous-comptage calorique",txt:"Une sous-estimation de 15-20% des calories ingerees (huiles, sauces, grignotage) transforme un deficit modere en deficit severe sans que tu le voies."},
+  {id:"m_d6",emoji:"🔻",titre:"Recalcule ta depense tous les 4-5kg",txt:"Ta depense calorique baisse avec le poids perdu. Un deficit calibre a 86kg devient plus severe a 82kg si tu ne l ajustes pas."},
+  {id:"m_d7",emoji:"🔻",titre:"Diet break toutes les 6-8 semaines",txt:"Une semaine a l equilibre calorique (maintenance) toutes les 6-8 semaines de deficit reduit l adaptation metabolique et protege la masse musculaire."},
+  {id:"m_d8",emoji:"🔻",titre:"Le seuil critique de graisse corporelle",txt:"Sous ~12-15% de masse grasse pour un homme, le corps devient beaucoup plus agressif a cataboliser le muscle pour puiser de l energie. Ne vise pas plus bas que necessaire."},
+  {id:"m_d9",emoji:"🔻",titre:"Refeed day strategique",txt:"Un jour a apport glucidique et calorique plus eleve chaque 10-14 jours peut relancer la leptine et limiter le catabolisme musculaire en deficit prolonge."},
+  {id:"m_d10",emoji:"🔻",titre:"Le deficit ne doit jamais depasser 1% du poids/semaine",txt:"Perdre plus de 0,8-1kg par semaine a 86kg signale presque toujours une perte de muscle en plus du gras."},
+  {id:"m_t1",emoji:"⏱️",titre:"Repartition sur la journee",txt:"165g de proteines pris en 2 gros repas est moins efficace que la meme quantite repartie sur 4-5 prises de 30-40g. La synthese proteique musculaire a un plafond par repas."},
+  {id:"m_t2",emoji:"⏱️",titre:"Seuil de leucine par repas",txt:"Il faut environ 2,5-3g de leucine par prise pour declencher pleinement la synthese proteique musculaire. Un repas trop leger en proteines, meme frequent, ne suffit pas."},
+  {id:"m_t3",emoji:"⏱️",titre:"Ne laisse jamais un trou de plus de 5h",txt:"Un intervalle trop long entre deux apports proteiques, notamment la nuit, augmente la fenetre de catabolisme musculaire net."},
+  {id:"m_t4",emoji:"⏱️",titre:"Proteine avant le coucher",txt:"30g de proteines a digestion lente (fromage blanc, skyr) avant de dormir reduit le catabolisme nocturne et soutient la synthese proteique pendant le sommeil."},
+  {id:"m_t5",emoji:"⏱️",titre:"Petit dejeuner trop leger en proteines",txt:"Si ton premier repas contient moins de 25-30g de proteines, tu demarres la journee dans un etat catabolique plus long que necessaire."},
+  {id:"m_t6",emoji:"⏱️",titre:"Le lendemain de seance compte double",txt:"Les 24-48h suivant une seance de muscu sont la fenetre ou l apport proteique regulier a le plus d impact sur la retention musculaire."},
+  {id:"m_t7",emoji:"⏱️",titre:"Trop de proteines d un coup = gaspillage partiel",txt:"Au-dela de 40-50g de proteines en une seule prise, l efficacite marginale sur la synthese proteique diminue fortement — mieux vaut etaler."},
+  {id:"m_t8",emoji:"⏱️",titre:"Proteines et sommeil decale",txt:"Si tes horaires de repas varient beaucoup (garde, urgences), les periodes de jeune involontaire de 8h+ pendant la journee favorisent le catabolisme malgre un total journalier correct."},
+  {id:"m_t9",emoji:"⏱️",titre:"Le lendemain d un jeune religieux",txt:"Apres un jeune prolonge, les 24h suivantes sont critiques pour reconstituer un apport proteique regulier — un seul gros repas ne compense pas la fenetre de jeune."},
+  {id:"m_t10",emoji:"⏱️",titre:"Verifie ta derniere prise avant la seance du matin",txt:"S entrainer a jeun depuis plus de 10-12h sans proteine recente augmente le catabolisme musculaire pendant la seance elle-meme."},
+  {id:"m_q1",emoji:"🍗",titre:"165g affiches vs 165g reels",txt:"Un aliment mal pese (a l oeil plutot qu a la balance) peut sous-estimer les proteines de 20-30%. Verifie avec une balance de cuisine sur une semaine test."},
+  {id:"m_q2",emoji:"🍗",titre:"Qualite des sources proteiques",txt:"Toutes les proteines n ont pas la meme valeur biologique. Les proteines vegetales seules (sans complementarite) ont un profil en acides amines moins complet que les proteines animales."},
+  {id:"m_q3",emoji:"🍗",titre:"Les jours de jeune font chuter la moyenne",txt:"Un jour de jeune religieux a 0g de proteines fait chuter ta moyenne hebdomadaire meme si les 6 autres jours sont a 165g pile."},
+  {id:"m_q4",emoji:"🍗",titre:"165g c est peut-etre insuffisant pour toi",txt:"A 86kg en deficit avec objectif de retention musculaire, la fourchette haute recommandee est plutot 2-2,2g/kg de poids de corps, soit jusqu a 190g — teste une hausse ponctuelle."},
+  {id:"m_q5",emoji:"🍗",titre:"Le poids de reference doit etre le poids maigre",txt:"Calculer tes besoins sur ton poids total (86kg) plutot que ta masse maigre estimee peut sous-estimer tes besoins reels si ta masse grasse est elevee."},
+  {id:"m_q6",emoji:"🍗",titre:"Verifie les proteines de tes sauces et accompagnements",txt:"Le houmous, le tahini, les sauces au yaourt comptent peu de proteines reelles malgre une impression de repas copieux — ne les compte pas comme source principale."},
+  {id:"m_q7",emoji:"🍗",titre:"Les proteines en poudre ne sont pas equivalentes",txt:"Une whey a 70% de proteines sur extrait sec (fromagere) donne moins de proteines reelles par dosette qu une whey isolat a 90%+ pour le meme volume mesure."},
+  {id:"m_q8",emoji:"🍗",titre:"Attention aux jours d ecart social",txt:"Un repas au restaurant ou en famille souvent riche en glucides/lipides mais pauvre en proteines pures peut faire chuter ta moyenne de la semaine sans que tu t en rendes compte."},
+  {id:"m_q9",emoji:"🍗",titre:"Le fromage blanc 0% n est pas neutre en volume",txt:"150g de fromage blanc 0% donnent seulement 15g de proteines — il en faut beaucoup pour atteindre 40g sur un seul repas, verifie que le volume suit."},
+  {id:"m_q10",emoji:"🍗",titre:"Track sur 7 jours glissants, pas 1 jour",txt:"Une moyenne hebdomadaire de 165g peut cacher des jours a 100g et des jours a 220g — la variabilite jour a jour compte aussi pour la retention musculaire."},
+  {id:"m_e1",emoji:"🏋️",titre:"Le stimulus est roi, pas la nutrition seule",txt:"Sans surcharge progressive (plus de charge, plus de reps, ou meilleure technique), le muscle n a aucune raison de se maintenir en deficit calorique — les proteines seules ne suffisent pas."},
+  {id:"m_e2",emoji:"🏋️",titre:"2 seances/semaine peut etre le facteur limitant",txt:"Pour maximiser la retention musculaire en deficit, 2 seances par semaine par groupe musculaire est un minimum — verifie que chaque groupe est stimule au moins 2x/semaine."},
+  {id:"m_e3",emoji:"🏋️",titre:"Le volume doit suivre le deficit, pas chuter avec lui",txt:"Beaucoup reduisent involontairement leur volume d entrainement en deficit calorique (moins d energie) — c est souvent le vrai coupable de la perte musculaire, pas les proteines."},
+  {id:"m_e4",emoji:"🏋️",titre:"Es-tu proche de l echec sur tes dernieres series ?",txt:"Un stimulus insuffisant (arreter loin de l echec, RIR 4-5 systematique) ne declenche pas assez de tension mecanique pour justifier le maintien musculaire."},
+  {id:"m_e5",emoji:"🏋️",titre:"La regle des 2 pour 2",txt:"Si tu reussis toutes tes reps cibles sur 2 seances consecutives, augmente la charge. Stagner sur les charges pendant plusieurs semaines = signal d alerte."},
+  {id:"m_e6",emoji:"🏋️",titre:"Le detraining commence vite",txt:"A partir de 10-14 jours sans stimulus sur un groupe musculaire, la perte de force et de volume commence. Verifie qu aucun groupe n est neglige plus de 2 semaines."},
+  {id:"m_e7",emoji:"🏋️",titre:"Fatigue chronique = moins bonnes seances",txt:"Si tu es fatigue (travail, sommeil), tes seances perdent en qualite sans que tu le remarques consciemment — le poids souleve baisse progressivement, invisible seance apres seance."},
+  {id:"m_e8",emoji:"🏋️",titre:"Le nombre de series hebdomadaires compte",txt:"En dessous de 8-10 series hebdomadaires par groupe musculaire, le stimulus est souvent insuffisant pour maintenir le muscle en deficit calorique."},
+  {id:"m_e9",emoji:"🏋️",titre:"As-tu recemment change de programme ?",txt:"Un changement d exercices trop frequent empeche de suivre la progression de charge et peut masquer une stagnation reelle du stimulus."},
+  {id:"m_e10",emoji:"🏋️",titre:"La technique se degrade sans t en rendre compte",txt:"Une amplitude qui se reduit progressivement (par fatigue ou habitude) diminue le stimulus reel meme si le poids affiche sur la barre reste identique."},
+  {id:"m_ca1",emoji:"🏃",titre:"Trop de cardio en deficit",txt:"Un volume de cardio eleve (fractionne + marche + escaliers) ajoute au deficit calorique global et augmente le risque de puiser dans le muscle si les calories ne compensent pas."},
+  {id:"m_ca2",emoji:"🏃",titre:"Cardio a jeun : attention au volume",txt:"Courir a jeun plus de 30-40 min augmente le catabolisme musculaire, surtout combine a un deficit calorique deja marque."},
+  {id:"m_ca3",emoji:"🏃",titre:"Le cardio et la musculation se disputent la recuperation",txt:"Trop de sessions cardio autour des jours de muscu limite la recuperation musculaire et peut freiner la synthese proteique post-seance."},
+  {id:"m_ca4",emoji:"🏃",titre:"Prive-toi de cardio les 24h post-muscu",txt:"Une seance cardio intense dans les 24h suivant une seance de muscu lourde peut interferer avec les signaux de recuperation musculaire (effet interference)."},
+  {id:"m_ca5",emoji:"🏃",titre:"Le fractionne est plus catabolisant que prevu",txt:"Un fractionne intense sans apport glucidique/proteique adapte peut couter plus cher en muscle qu un footing tranquille, notamment sur des jambes deja fatiguees."},
+  {id:"m_ca6",emoji:"🏃",titre:"Compense le cardio en calories, pas juste en proteines",txt:"Chaque grosse session de cardio (course, escaliers) cree un deficit supplementaire qu il faut compenser partiellement en calories totales, pas uniquement en proteines."},
+  {id:"m_ca7",emoji:"🏃",titre:"Trop de volume cardio total sur la semaine",txt:"Cumuler course + escaliers + marche intensive plusieurs fois par semaine peut representer un volume d endurance qui entre en concurrence avec les objectifs de force/hypertrophie."},
+  {id:"m_ca8",emoji:"🏃",titre:"Le cardio de recuperation ne devrait pas etre a haute intensite",txt:"Une marche ou un jogging leger favorise la recuperation ; un cardio a haute intensite les jours de repos musculaire annule l effet recuperateur recherche."},
+  {id:"m_ca9",emoji:"🏃",titre:"Verifie ta frequence cardiaque en fractionne",txt:"Un fractionne trop souvent a une intensite proche du maximum epuise le systeme nerveux central, ce qui degrade indirectement la qualite de tes seances de muscu suivantes."},
+  {id:"m_ca10",emoji:"🏃",titre:"Les escaliers ajoutent un volume excentrique sous-estime",txt:"Le travail excentrique des escaliers cree des microlesions musculaires qui necessitent des ressources de recuperation — trop frequent, ca prive le muscle de reconstruction nette."},
+  {id:"m_so1",emoji:"😴",titre:"Moins de 7h = catabolisme accru",txt:"En dessous de 7h de sommeil, la secretion d hormone de croissance chute et le cortisol reste eleve plus longtemps — combinaison ideale pour perdre du muscle."},
+  {id:"m_so2",emoji:"😴",titre:"La qualite compte autant que la duree",txt:"8h de sommeil fragmente (reveils frequents) n a pas le meme effet reparateur que 7h de sommeil profond continu. Le sommeil profond est la phase cle pour la recuperation musculaire."},
+  {id:"m_so3",emoji:"😴",titre:"Le sommeil est anabolique, pas juste reparateur",txt:"Environ 70% de la secretion quotidienne de GH (hormone de croissance) a lieu pendant le sommeil profond — un dette de sommeil chronique reduit directement le potentiel anabolique."},
+  {id:"m_so4",emoji:"😴",titre:"Dette de sommeil cumulative",txt:"Une semaine a 6h/nuit cree une dette qu un seul week-end de rattrapage ne compense pas completement niveau hormonal et recuperation musculaire."},
+  {id:"m_so5",emoji:"😴",titre:"Horaires de sommeil irreguliers",txt:"Se coucher a des heures tres variables (garde, urgences dentaires tardives) perturbe le rythme circadien et la qualite du sommeil profond, meme si la duree totale semble correcte."},
+  {id:"m_so6",emoji:"😴",titre:"Cafeine tardive et sommeil",txt:"Un cafe pris apres 15h peut reduire la proportion de sommeil profond de la nuit meme sans t empecher de t endormir — impact indirect sur la recuperation musculaire."},
+  {id:"m_so7",emoji:"😴",titre:"Le stress du lendemain perturbe le sommeil du soir",txt:"Anticiper une grosse journee de cabinet peut degrader la qualite du sommeil la veille sans que tu en aies conscience — le cortisol du soir monte."},
+  {id:"m_so8",emoji:"😴",titre:"Ecrans avant de dormir = sommeil profond reduit",txt:"La lumiere bleue retarde la secretion de melatonine et raccourcit la phase de sommeil profond ou se concentre la recuperation musculaire."},
+  {id:"m_so9",emoji:"😴",titre:"Sieste : bon complement, pas un substitut",txt:"Une sieste de 20 min compense partiellement un manque ponctuel mais ne remplace pas le sommeil profond nocturne pour la recuperation musculaire."},
+  {id:"m_so10",emoji:"😴",titre:"Alcool et sommeil profond",txt:"Meme une consommation moderee d alcool le soir reduit significativement la part de sommeil profond de la nuit, meme si tu t endors plus vite."},
+  {id:"m_st1",emoji:"🧠",titre:"Cortisol chronique = catabolisme direct",txt:"Un cortisol eleve en continu (stress professionnel, manque de sommeil) favorise activement la degradation des proteines musculaires pour liberer des acides amines vers le foie."},
+  {id:"m_st2",emoji:"🧠",titre:"Le stress du cabinet dentaire est sous-estime",txt:"Des journees intenses avec forte charge cognitive et posturale au fauteuil elevent le cortisol de facon chronique sans effort physique visible."},
+  {id:"m_st3",emoji:"🧠",titre:"Stress + deficit calorique = combo a risque",txt:"Un deficit calorique est deja un stress physiologique. Ajoute un stress psychologique chronique et le corps bascule plus facilement en mode catabolique."},
+  {id:"m_st4",emoji:"🧠",titre:"Le cortisol du matin, marqueur a surveiller",txt:"Un reveil difficile, une fatigue persistante des le matin, peuvent traduire un cortisol matinal deregle — un signe indirect de stress chronique impactant la recuperation."},
+  {id:"m_st5",emoji:"🧠",titre:"Respiration et systeme parasympathique",txt:"Quelques minutes de respiration lente (4-7-8) apres une journee stressante peuvent faire baisser le cortisol circulant avant meme le repas du soir."},
+  {id:"m_st6",emoji:"🧠",titre:"La surcharge d entrainement est aussi un stress",txt:"Trop de volume d entrainement sans recuperation suffisante ajoute au stress systemique total, cumule avec le stress professionnel — attention a la charge globale, pas juste calorique."},
+  {id:"m_st7",emoji:"🧠",titre:"Pauses actives dans la journee de travail",txt:"Des micro-pauses de quelques minutes entre les patients (marche, etirement) aident a reguler le cortisol accumule pendant les journees chargees."},
+  {id:"m_st8",emoji:"🧠",titre:"Le stress chronique affame les muscles avant le gras",txt:"En situation de stress prolonge, le corps mobilise preferentiellement les acides amines musculaires (source d energie rapide) avant les reserves de graisse."},
+  {id:"m_st9",emoji:"🧠",titre:"Identifie tes pics de stress hebdomadaires",txt:"Si certains jours de la semaine sont systematiquement plus charges (planning cabinet), anticipe un apport proteique et calorique legerement plus genereux ces jours-la."},
+  {id:"m_st10",emoji:"🧠",titre:"Le stress emotionnel compte aussi",txt:"Au-dela du stress professionnel, les tensions personnelles ou l anxiete chronique elevent le cortisol de la meme facon et impactent la retention musculaire."},
+  {id:"m_me1",emoji:"📊",titre:"Hydratation et impedance : biais majeur",txt:"Une balance a impedance surestime la masse grasse et sous-estime la masse musculaire si tu es legerement deshydrate au moment de la mesure."},
+  {id:"m_me2",emoji:"📊",titre:"Toujours la meme heure, meme condition",txt:"Une mesure prise a jeun un jour et apres un repas un autre jour n est pas comparable — la variation peut donner l illusion d une perte musculaire qui n existe pas."},
+  {id:"m_me3",emoji:"📊",titre:"Le lendemain d une seance intense fausse la mesure",txt:"L inflammation musculaire et la retention d eau post-effort intense peuvent temporairement modifier la lecture de la balance a impedance dans un sens ou l autre."},
+  {id:"m_me4",emoji:"📊",titre:"Cycle et retention d eau (le cas echeant)",txt:"Certaines variations hormonales naturelles influencent la retention d eau et donc la lecture des balances a impedance — ne pas sur-interpreter une seule mesure."},
+  {id:"m_me5",emoji:"📊",titre:"La marge d erreur des balances grand public",txt:"Les balances a impedance domestiques ont une marge d erreur de 3-5% sur la masse musculaire — une baisse de 0,5-1kg peut simplement etre du bruit de mesure, pas une vraie perte."},
+  {id:"m_me6",emoji:"📊",titre:"Regarde la tendance sur 4-6 mesures, pas 2",txt:"Une seule comparaison avant/apres est tres sensible au bruit de mesure. Compare la tendance sur plusieurs semaines pour un signal fiable."},
+  {id:"m_me7",emoji:"📊",titre:"Sport la veille = mesure faussee",txt:"Meme la consigne officielle le rappelle : une seance la veille de la mesure alterte l hydratation musculaire et peut simuler une perte de masse maigre inexistante."},
+  {id:"m_me8",emoji:"📊",titre:"Alcool ou sel la veille",txt:"Un repas sale ou un verre d alcool la veille au soir modifie la retention d eau et fausse la mesure du lendemain matin, meme a jeun."},
+  {id:"m_me9",emoji:"📊",titre:"Difference entre masse maigre et masse musculaire pure",txt:"La masse maigre inclut les organes, les os et l eau — une baisse de masse maigre n est pas forcement une baisse de muscle contractile pur."},
+  {id:"m_me10",emoji:"📊",titre:"Croise toujours avec un indicateur objectif",txt:"La force en salle (charges soulevees) est un marqueur plus fiable que l impedance seule pour juger d une vraie perte musculaire — si tes charges montent, tu ne perds probablement pas de muscle malgre la balance."},
+  {id:"m_vi1",emoji:"⚡",titre:"Vitesse de perte trop rapide",txt:"Perdre plus de 0,7-1% du poids corporel par semaine (soit plus de 600-850g/semaine a 86kg) augmente fortement la part de muscle dans la perte de poids totale."},
+  {id:"m_vi2",emoji:"⚡",titre:"Le rythme ideal est plus lent qu on ne pense",txt:"0,3-0,5kg par semaine preserve mieux la masse musculaire qu un rythme de 1kg+/semaine, meme si c est psychologiquement moins satisfaisant a court terme."},
+  {id:"m_vi3",emoji:"⚡",titre:"Une perte rapide initiale n est pas du gras",txt:"Les 1-2 premiers kilos perdus en debut de deficit sont majoritairement de l eau et du glycogene — ne pas viser ce rythme comme reference pour la suite."},
+  {id:"m_vi4",emoji:"⚡",titre:"Ralentis si la perte s accelere soudainement",txt:"Une acceleration brutale de la perte de poids sans changement de deficit peut indiquer une perte de masse musculaire plutot qu un vrai progres sur le gras."},
+  {id:"m_vi5",emoji:"⚡",titre:"Le piege du plateau puis rattrapage brutal",txt:"Apres un plateau, la tentation de couper plus fort les calories pour relancer accelere souvent la perte musculaire plus que la perte de gras."},
+  {id:"m_vi6",emoji:"⚡",titre:"Les jours de jeune religieux accelerent le rythme global",txt:"Integres a une semaine deja en deficit, les jours de jeune ajoutent un deficit ponctuel severe qui peut faire deraper le rythme hebdomadaire moyen."},
+  {id:"m_vi7",emoji:"⚡",titre:"Poids stable, gras qui baisse = bon signal, pas un echec",txt:"Si le rythme de perte de poids ralentit mais que le tour de taille continue de baisser, c est le signe d une recomposition saine — ne force pas le rythme."},
+  {id:"m_vi8",emoji:"⚡",titre:"La restriction extreme est contre-productive au long terme",txt:"Un rythme trop agressif mene souvent a un abandon ou un rebond, avec une reprise de gras superieure a la perte musculaire initiale."},
+  {id:"m_vi9",emoji:"⚡",titre:"Verifie ta perte sur 3-4 semaines, pas 1",txt:"Le poids fluctue de 1-2kg naturellement (eau, digestion, hormones) — juge le rythme reel sur une moyenne mobile de plusieurs semaines."},
+  {id:"m_vi10",emoji:"⚡",titre:"Un rythme trop lent n est pas non plus optimal",txt:"A l inverse, un deficit trop faible allonge inutilement la phase de restriction, ce qui augmente le risque cumulatif de fatigue et de perte musculaire sur la duree totale."},
+  {id:"m_re1",emoji:"🔄",titre:"48-72h entre deux seances du meme groupe",txt:"Solliciter le meme groupe musculaire avant recuperation complete degrade le stimulus net et peut favoriser un bilan proteique negatif localement."},
+  {id:"m_re2",emoji:"🔄",titre:"Les DOMS ne sont pas un indicateur fiable",txt:"L absence de courbatures ne veut pas dire recuperation complete — le systeme nerveux central peut rester fatigue plusieurs jours apres une seance lourde."},
+  {id:"m_re3",emoji:"🔄",titre:"Semaine de decharge : ne la saute jamais en deficit",txt:"En deficit calorique, la capacite de recuperation est deja reduite — sauter la semaine de decharge programmee accroit le risque de surmenage et de perte musculaire."},
+  {id:"m_re4",emoji:"🔄",titre:"Le sommeil est le facteur n1 de la recuperation",txt:"Aucune strategie nutritionnelle ne compense un deficit chronique de sommeil sur la recuperation musculaire — c est le levier prioritaire si le muscle fond."},
+  {id:"m_re5",emoji:"🔄",titre:"Recuperation active vs repos total",txt:"Une marche legere les jours de repos favorise la circulation sanguine et la recuperation, contrairement a une inactivite totale qui peut ralentir la reparation musculaire."},
+  {id:"m_re6",emoji:"🔄",titre:"Charge d entrainement cumulee sur la semaine",txt:"Ce n est pas seulement la seance du jour qui compte, mais le volume total cumule sur 7-10 jours — une charge trop dense sans jour de vrai repos epuise les reserves de recuperation."},
+  {id:"m_re7",emoji:"🔄",titre:"Les etirements et la mobilite comptent aussi",txt:"Une mauvaise recuperation articulaire et myofasciale peut limiter l amplitude de mouvement, donc le stimulus musculaire reel des seances suivantes."},
+  {id:"m_re8",emoji:"🔄",titre:"Ecoute les signaux de fatigue systemique",txt:"Frequence cardiaque au repos elevee, irritabilite, motivation en berne : ce sont des signes precoces de recuperation insuffisante avant meme la baisse de performance."},
+  {id:"m_re9",emoji:"🔄",titre:"Le froid et le chaud, en complement seulement",txt:"Douche froide ou sauna peuvent aider ponctuellement mais ne remplacent jamais le sommeil et l apport nutritionnel comme piliers de la recuperation musculaire."},
+  {id:"m_re10",emoji:"🔄",titre:"Une seance ratee vaut mieux qu une seance forcee",txt:"S entrainer a tout prix en etat de fatigue avancee degrade le stimulus et peut meme etre legerement catabolisant net comparé a un jour de repos supplementaire."},
+  {id:"m_gl1",emoji:"🍚",titre:"Les glucides protegent le muscle en deficit",txt:"Un apport glucidique trop bas prive le muscle de son carburant preferentiel a l entrainement, ce qui peut forcer le corps a puiser davantage dans les proteines pour l energie."},
+  {id:"m_gl2",emoji:"🍚",titre:"Glycogene bas = moins bonne seance = moins de stimulus",txt:"Des reserves de glycogene insuffisantes avant une seance de muscu reduisent la charge soulevable, donc le stimulus hypertrophique reel de la seance."},
+  {id:"m_gl3",emoji:"🍚",titre:"L effet epargneur de proteines des glucides",txt:"Suffisamment de glucides permet au corps d utiliser le gras et le glycogene comme carburant plutot que de degrader les proteines musculaires a des fins energetiques."},
+  {id:"m_gl4",emoji:"🍚",titre:"Glucides autour de l entrainement en priorite",txt:"Si tu dois repartir tes glucides, privilegie les 2-3h autour de la seance — c est la ou ils protegent le plus efficacement le muscle du catabolisme."},
+  {id:"m_gl5",emoji:"🍚",titre:"Un deficit trop bas en glucides ET en calories cumule les risques",txt:"Faire un double deficit — glucides bas et calories basses — est une des combinaisons les plus a risque pour la perte musculaire en phase de seche."},
+  {id:"m_gl6",emoji:"🍚",titre:"Les jours de jeune : compense les jours suivants",txt:"Apres un jeune sans glucides ni proteines, les 24-48h suivantes devraient inclure un apport glucidique legerement superieur pour reconstituer le glycogene musculaire."},
+  {id:"m_gl7",emoji:"🍚",titre:"Fatigue inhabituelle en seance = glycogene a verifier",txt:"Si tes seances deviennent difficiles sans raison apparente (sommeil et stress normaux), un manque chronique de glucides est une cause frequente et sous-estimee."},
+  {id:"m_gl8",emoji:"🍚",titre:"Le timing des glucides autour du fractionne",txt:"Un peu de glucides avant un fractionne intense preserve les reserves musculaires et reduit le recours au catabolisme proteique pendant l effort."},
+  {id:"m_gl9",emoji:"🍚",titre:"Glucides le soir : allie de la recuperation, pas un ennemi",txt:"Contrairement aux idees recues, des glucides le soir favorisent la resynthese de glycogene pendant la nuit et n ont pas d impact negatif specifique sur la perte de gras."},
+  {id:"m_gl10",emoji:"🍚",titre:"Trop peu de glucides degrade aussi le sommeil",txt:"Un apport glucidique tres bas peut perturber la production de serotonine et donc la qualite du sommeil — avec un effet indirect sur la recuperation musculaire."},
+  {id:"m_mi1",emoji:"🧬",titre:"Magnesium et recuperation musculaire",txt:"Une carence en magnesium (frequente chez les sportifs qui transpirent beaucoup) degrade la qualite du sommeil et la fonction musculaire, avec un impact indirect sur la retention de muscle."},
+  {id:"m_mi2",emoji:"🧬",titre:"Vitamine D et synthese proteique",txt:"Un faible statut en vitamine D est associe a une moins bonne fonction musculaire et une recuperation ralentie — un dosage sanguin peut valoir le coup si le probleme persiste."},
+  {id:"m_mi3",emoji:"🧬",titre:"Zinc et testosterone",txt:"Une carence en zinc peut affecter la production de testosterone, hormone anabolique cle pour le maintien musculaire, en particulier en deficit calorique prolonge."},
+  {id:"m_mi4",emoji:"🧬",titre:"Fer et fatigue chronique",txt:"Une ferritine basse (frequente sans qu on le sache) peut causer une fatigue chronique qui degrade indirectement la qualite des seances et donc le stimulus musculaire."},
+  {id:"m_mi5",emoji:"🧬",titre:"Omega-3 et inflammation",txt:"Un ratio omega-6/omega-3 desequilibre favorise une inflammation chronique de bas grade qui peut freiner la synthese proteique musculaire."},
+  {id:"m_mi6",emoji:"🧬",titre:"Les micronutriments d abord, les supplements ensuite",txt:"Avant tout complement, verifier via une prise de sang les carences reelles (fer, vitamine D, B12) est plus rentable que d empiler des supplements au hasard."},
+  {id:"m_mi7",emoji:"🧬",titre:"Restriction calorique = risque accru de carences",txt:"Plus le deficit calorique est marque, plus le risque de sous-apport en micronutriments augmente meme avec un total proteique correct — la densite nutritionnelle des aliments compte."},
+  {id:"m_mi8",emoji:"🧬",titre:"Calcium et fonction musculaire",txt:"Le calcium joue un role direct dans la contraction musculaire — un apport insuffisant (frequent en cas de faible consommation laitiere) peut affecter la performance et la recuperation."},
+  {id:"m_mi9",emoji:"🧬",titre:"B12 et energie cellulaire",txt:"Une carence en B12, meme legere, peut causer fatigue et baisse de performance a l entrainement, avec un effet indirect sur le maintien musculaire via un stimulus reduit."},
+  {id:"m_mi10",emoji:"🧬",titre:"Une prise de sang complete peut trancher",txt:"Si la perte musculaire persiste malgre nutrition et entrainement corrects, un bilan sanguin (thyroide, testosterone, ferritine, vitamine D) permet d ecarter une cause medicale sous-jacente."},
+  {id:"m_al1",emoji:"🍷",titre:"L alcool inhibe directement la synthese proteique",txt:"Meme une consommation moderee d alcool peut reduire la synthese proteique musculaire de 20-30% dans les heures qui suivent, independamment de l apport en proteines."},
+  {id:"m_al2",emoji:"🍷",titre:"Alcool et testosterone",txt:"Une consommation reguliere d alcool, meme moderee, est associee a une baisse de la testosterone circulante — hormone cle pour la retention musculaire."},
+  {id:"m_al3",emoji:"🍷",titre:"Le sommeil apres alcool est de moins bonne qualite",txt:"Meme un ou deux verres le soir reduisent la part de sommeil profond de la nuit, la phase la plus importante pour la recuperation musculaire."},
+  {id:"m_al4",emoji:"🍷",titre:"Calories vides qui deplacent les proteines",txt:"Les calories de l alcool prennent souvent la place de calories qui auraient pu etre allouees a des proteines ou glucides utiles a la recuperation."},
+  {id:"m_al5",emoji:"🍷",titre:"L alcool ralentit la recuperation post-seance",txt:"Boire le soir d une seance intense peut significativement ralentir la reparation musculaire des microlesions causees par l entrainement."},
+  {id:"m_al6",emoji:"🍷",titre:"Frequence plus importante que quantite",txt:"Un verre 3-4 fois par semaine a un impact cumulatif plus important sur la recuperation musculaire qu une consommation ponctuelle plus importante mais rare."},
+  {id:"m_al7",emoji:"🍷",titre:"Deshydratation et impedance faussee",txt:"L alcool deshydrate legerement, ce qui peut fausser une mesure d impedance le lendemain matin dans le sens d une fausse perte de masse musculaire."},
+  {id:"m_al8",emoji:"🍷",titre:"Le foie priorise l alcool sur tout le reste",txt:"Pendant que le foie metabolise l alcool, il met en pause d autres processus metaboliques, dont certains lies a la synthese proteique et au stockage du glycogene."},
+  {id:"m_al9",emoji:"🍷",titre:"Espacement recommande avec l entrainement",txt:"Si consommation il y a, l espacer le plus possible d une seance intense (pas la veille ni le soir meme) limite l impact sur la recuperation musculaire."},
+  {id:"m_al10",emoji:"🍷",titre:"Alcool et appetit du lendemain",txt:"L alcool perturbe souvent les choix alimentaires du lendemain (fringales, repas moins structures), ce qui peut indirectement faire chuter l apport proteique du jour suivant."},
+  {id:"m_hy1",emoji:"💧",titre:"Deshydratation chronique et catabolisme",txt:"Une hydratation insuffisante reduit le volume sanguin et le transport des nutriments vers les muscles, ce qui peut freiner la synthese proteique meme avec un apport correct."},
+  {id:"m_hy2",emoji:"💧",titre:"L eau intracellulaire, marqueur meconnu",txt:"Un muscle bien hydrate au niveau cellulaire est un signal anabolique pour le corps — une deshydratation chronique legere envoie un signal inverse."},
+  {id:"m_hy3",emoji:"💧",titre:"2L minimum, plus en periode de forte chaleur",txt:"En ete ou apres une seance de fractionne intense, les besoins montent a 3-3,5L — un manque chronique meme leger degrade la performance et la recuperation."},
+  {id:"m_hy4",emoji:"💧",titre:"La soif est un signal tardif",txt:"Quand la sensation de soif apparait, une deshydratation legere de 1-2% est deja installee — ne pas attendre la soif pour boire, surtout les jours de sport."},
+  {id:"m_hy5",emoji:"💧",titre:"Urine claire = bon indicateur simple",txt:"Une urine jaune fonce toute la journee est un signe fiable et simple de sous-hydratation chronique, facilement corrigeable."},
+  {id:"m_hy6",emoji:"💧",titre:"Cafe et deshydratation legere",txt:"Plusieurs cafes par jour sans compensation en eau peuvent contribuer a une deshydratation legere cumulative, meme si l effet diuretique de la cafeine est modere chez les buveurs reguliers."},
+  {id:"m_hy7",emoji:"💧",titre:"Hydratation et impedance : verifie ton protocole",txt:"Boire un grand verre d eau juste avant une mesure d impedance peut fausser temporairement la lecture — respecte toujours le meme protocole (a jeun, avant tout liquide)."},
+  {id:"m_hy8",emoji:"💧",titre:"Sel et retention hydrique musculaire",txt:"Un apport en sodium trop bas en periode de forte transpiration (course, chaleur) peut nuire a la retention d eau intramusculaire, un facteur du volume musculaire percu."},
+  {id:"m_hy9",emoji:"💧",titre:"Electrolytes apres un fractionne long",txt:"Au-dela de 45-60 min d effort intense par forte chaleur, l eau seule ne suffit pas — le manque d electrolytes peut aggraver la fatigue et la recuperation."},
+  {id:"m_hy10",emoji:"💧",titre:"L hydratation influence directement la force",txt:"Une deshydratation de seulement 2% du poids corporel peut reduire la force et l endurance musculaire de 10-20% — un facteur direct sur la qualite du stimulus d entrainement."},
+  {id:"m_ho1",emoji:"⚗️",titre:"La testosterone baisse naturellement avec l age",txt:"A partir de 30-40 ans, la testosterone diminue progressivement d environ 1% par an, rendant la retention musculaire plus difficile a effort egal qu a 25 ans."},
+  {id:"m_ho2",emoji:"⚗️",titre:"Le deficit calorique fait baisser la testosterone",txt:"Un deficit calorique prolonge, meme modere, peut faire baisser la testosterone circulante de facon mesurable — un facteur supplementaire de risque de perte musculaire."},
+  {id:"m_ho3",emoji:"⚗️",titre:"Sommeil et testosterone sont lies directement",txt:"La majorite de la testosterone quotidienne est secretee pendant le sommeil profond — un dette de sommeil chronique impacte directement les niveaux hormonaux anabolisants."},
+  {id:"m_ho4",emoji:"⚗️",titre:"Cortisol et testosterone : un equilibre a proteger",txt:"Un cortisol chronique eleve inhibe partiellement la production de testosterone — stress chronique et deficit calorique cumulent leurs effets negatifs sur cet equilibre hormonal."},
+  {id:"m_ho5",emoji:"⚗️",titre:"La thyroide, souvent negligee",txt:"Une thyroide legerement sous-active (meme infraclinique) ralentit le metabolisme et peut favoriser une perte musculaire relative en deficit — un dosage TSH peut etre utile si le doute persiste."},
+  {id:"m_ho6",emoji:"⚗️",titre:"Graisse corporelle tres basse et hormones",txt:"Descendre sous un seuil de masse grasse tres bas peut perturber la production hormonale (testosterone, thyroide) — un corps trop maigre n est pas toujours un corps plus performant."},
+  {id:"m_ho7",emoji:"⚗️",titre:"Le stress chronique du metier medical/dentaire",txt:"Les professions a forte charge mentale et posturale (comme l endodontie) sont associees a un stress chronique qui peut affecter discretement l equilibre hormonal sur le long terme."},
+  {id:"m_ho8",emoji:"⚗️",titre:"IGF-1 et recuperation musculaire",txt:"Un sommeil et une nutrition insuffisants reduisent la production d IGF-1, un acteur cle de la reparation et croissance musculaire, independamment de l apport proteique."},
+  {id:"m_ho9",emoji:"⚗️",titre:"Les variations hormonales ne sont pas lineaires",txt:"Le corps s adapte par paliers, pas de facon lineaire — une periode de stagnation ou de perte musculaire peut simplement correspondre a une phase d ajustement hormonal temporaire."},
+  {id:"m_ho10",emoji:"⚗️",titre:"Bilan hormonal si le doute persiste au-dela de 8 semaines",txt:"Si malgre nutrition, entrainement et sommeil corriges la perte musculaire persiste plus de 2 mois, un bilan sanguin complet (testosterone, cortisol, thyroide) est justifie."},
+  {id:"m_je1",emoji:"🕍",titre:"Le jeune est un catabolisme accelere ponctuel",txt:"Pendant un jeune de 24h+, l absence totale de proteines pousse le corps a puiser dans les reserves musculaires bien plus vite que dans les reserves de graisse."},
+  {id:"m_je2",emoji:"🕍",titre:"Frequence des jeunes et impact cumulatif",txt:"Plusieurs jeunes religieux rapproches dans le calendrier (periode de fetes) peuvent avoir un effet cumulatif sur la masse musculaire s ils ne sont pas compenses correctement."},
+  {id:"m_je3",emoji:"🕍",titre:"Le repas de rupture du jeune est critique",txt:"Un repas de rupture pauvre en proteines (privilegiant sucre et glucides rapides) manque l occasion de limiter le catabolisme accumule pendant le jeune."},
+  {id:"m_je4",emoji:"🕍",titre:"Charge d entrainement les jours de jeune",txt:"S entrainer intensement un jour de jeune total (sans nutrition disponible) maximise le risque de catabolisme musculaire — mieux vaut alleger la seance ces jours-la."},
+  {id:"m_je5",emoji:"🕍",titre:"Anticipe le jeune avec un surplus proteique la veille",txt:"Un repas riche en proteines avant un jeune prolonge peut legerement attenuer le catabolisme du lendemain, sans le neutraliser completement."},
+  {id:"m_je6",emoji:"🕍",titre:"Recuperation post-jeune : 24-48h cles",txt:"Les repas suivant directement la rupture du jeune devraient etre volontairement riches en proteines pour compenser rapidement le catabolisme accumule."},
+  {id:"m_je7",emoji:"🕍",titre:"Le jeune impacte aussi le sommeil",txt:"Un jeune prolonge (notamment sans eau) peut perturber le sommeil de la nuit precedente ou suivante, ajoutant un facteur de risque supplementaire pour le muscle."},
+  {id:"m_je8",emoji:"🕍",titre:"Les jeunes courts (type intermittent) sont moins a risque",txt:"Un jeune de 12-16h sans repas (contrairement a un jeune religieux de 24h+) a un impact beaucoup plus limite sur la masse musculaire s il n est pas combine a un deficit deja severe."},
+  {id:"m_je9",emoji:"🕍",titre:"Verifie ta moyenne proteique sur la semaine du jeune",txt:"Une semaine avec un jour de jeune total necessite une compensation sur les 6 autres jours pour maintenir une moyenne hebdomadaire suffisante en proteines."},
+  {id:"m_je10",emoji:"🕍",titre:"Le jeune n explique pas tout, mais compte",txt:"Un seul jeune ponctuel n a pas d impact mesurable a long terme — c est la repetition et le manque de compensation qui creent un effet cumulatif sur plusieurs mois."},
+  {id:"m_ma1",emoji:"🩺",titre:"Inflammation chronique de bas grade",txt:"Une inflammation systemique meme discrete (stress, mauvais sommeil, alimentation pro-inflammatoire) peut favoriser un environnement catabolique defavorable au muscle."},
+  {id:"m_ma2",emoji:"🩺",titre:"Une infection ou maladie recente",txt:"Meme une grippe ou infection benigne recente peut avoir un impact catabolique musculaire qui persiste plusieurs semaines apres la guerison apparente."},
+  {id:"m_ma3",emoji:"🩺",titre:"Douleurs chroniques et compensation musculaire",txt:"Une douleur chronique (dos, epaule) qui limite inconsciemment l amplitude ou l intensite des exercices reduit le stimulus musculaire reel sans que ce soit toujours perceptible."},
+  {id:"m_ma4",emoji:"🩺",titre:"Le surmenage professionnel chronique",txt:"Une charge de travail intense et continue (journees longues au cabinet) constitue un stress physiologique cumulatif qui peut favoriser le catabolisme musculaire meme sans fatigue ressentie extreme."},
+  {id:"m_ma5",emoji:"🩺",titre:"Troubles digestifs et absorption des proteines",txt:"Des troubles digestifs meme legers (ballonnements frequents, transit irregulier) peuvent reduire l absorption reelle des proteines ingerees malgre un apport theorique suffisant."},
+  {id:"m_ma6",emoji:"🩺",titre:"La maladie coeliaque ou intolerances non diagnostiquees",txt:"Une intolerance alimentaire non identifiee peut créer une inflammation intestinale chronique qui reduit l absorption des nutriments, dont les proteines."},
+  {id:"m_ma7",emoji:"🩺",titre:"Verifie ta glycemie a jeun",txt:"Une resistance a l insuline meme legere peut perturber le stockage du glycogene musculaire et favoriser un environnement plus catabolique — un dosage simple peut ecarter cette hypothese."},
+  {id:"m_ma8",emoji:"🩺",titre:"Le surentrainement est un vrai syndrome medical",txt:"Au-dela de la simple fatigue, un syndrome de surentrainement etabli implique des marqueurs hormonaux et inflammatoires mesurables qui expliquent directement une perte musculaire persistante."},
+  {id:"m_ma9",emoji:"🩺",titre:"Anemie legere et performance",txt:"Une anemie meme moderee reduit le transport d oxygene vers les muscles, diminuant la capacite a maintenir l intensite necessaire au stimulus musculaire."},
+  {id:"m_ma10",emoji:"🩺",titre:"N hesite pas a consulter si le doute persiste",txt:"Si la perte musculaire est nette, rapide et inexpliquee malgre tous les ajustements nutrition/entrainement, une consultation medicale avec bilan sanguin complet est la demarche la plus fiable."},
+  {id:"m_ex1",emoji:"🎯",titre:"Amplitude reduite = stimulus reduit",txt:"Une amplitude de mouvement qui se raccourcit progressivement (souvent inconsciemment avec la fatigue) diminue le volume de tension mecanique applique au muscle, meme a charge egale."},
+  {id:"m_ex2",emoji:"🎯",titre:"Vitesse d execution trop rapide",txt:"Une phase excentrique bacleeee (descente trop rapide) reduit le temps sous tension, un facteur cle de l hypertrophie independant du poids souleve."},
+  {id:"m_ex3",emoji:"🎯",titre:"La connexion mentale au muscle cible",txt:"Sans concentration active sur le muscle travaille, le recrutement des fibres peut etre sous-optimal meme avec une charge et un volume corrects."},
+  {id:"m_ex4",emoji:"🎯",titre:"Le meme programme depuis trop longtemps",txt:"Apres 6-8 semaines sur un programme identique, le systeme neuromusculaire s adapte et le stimulus relatif diminue meme si la charge continue d augmenter legerement."},
+  {id:"m_ex5",emoji:"🎯",titre:"Verifie ton ratio charge/repetitions reelles",txt:"Augmenter la charge en sacrifiant les dernieres repetitions completes (reps partielles non comptees comme telles) donne une fausse impression de progression."},
+  {id:"m_ex6",emoji:"🎯",titre:"Repos entre series trop court en deficit",txt:"En deficit calorique, la capacite de recuperation entre les series est reduite — un repos trop court peut degrader la qualite des series suivantes et donc le stimulus total."},
+  {id:"m_ex7",emoji:"🎯",titre:"La fatigue technique avant la fatigue musculaire",txt:"Sur des mouvements complexes (souleve de terre, tirages), la technique peut se degrader avant que le muscle cible soit reellement atteint a l echec — priorise la qualite sur la quantite."},
+  {id:"m_ex8",emoji:"🎯",titre:"Exercices unilateraux souvent negliges",txt:"Des desequilibres entre les deux cotes du corps peuvent limiter le stimulus global si seuls les mouvements bilateraux sont pratiques regulierement."},
+  {id:"m_ex9",emoji:"🎯",titre:"Le tempo controle change tout",txt:"Ralentir volontairement la phase excentrique (3-4 secondes) sur certains exercices augmente significativement le temps sous tension sans necessiter plus de charge."},
+  {id:"m_ex10",emoji:"🎯",titre:"Filme-toi occasionnellement",txt:"Une auto-evaluation visuelle periodique permet de detecter une derive technique progressive (amplitude, posture) invisible en temps reel pendant la seance."},
+  {id:"m_su1",emoji:"📈",titre:"Le poids seul ne dit rien sur le muscle",txt:"Suivre uniquement le poids sur la balance masque completement l evolution reelle de la composition corporelle — privilegie toujours impedance et force en salle en complement."},
+  {id:"m_su2",emoji:"📈",titre:"Note systematiquement tes charges en seance",txt:"Sans suivi rigoureux des charges soulevees, impossible de distinguer objectivement une vraie perte de force (signal de perte musculaire) d une simple mauvaise journee ponctuelle."},
+  {id:"m_su3",emoji:"📈",titre:"Photo de progression : le juge de paix visuel",txt:"Les changements de composition corporelle sont souvent visibles sur photo avant d etre visibles sur la balance ou meme l impedance — complete ton suivi avec une photo hebdomadaire."},
+  {id:"m_su4",emoji:"📈",titre:"Tour de bras et de cuisse, indicateurs directs",txt:"Mesurer le tour de bras et de cuisse au meme point chaque semaine donne un signal direct et simple sur le volume musculaire, complementaire a l impedance."},
+  {id:"m_su5",emoji:"📈",titre:"Compare toujours des mesures dans les memes conditions",txt:"Une comparaison entre une mesure a jeun et une mesure post-repas, ou avant/apres sport, n a aucune valeur — standardise systematiquement le protocole."},
+  {id:"m_su6",emoji:"📈",titre:"Le RPE (perception d effort) comme indicateur",txt:"Si le meme poids souleve te semble de plus en plus difficile (RPE en hausse) a volume egal, c est un signal precoce de fatigue ou de perte de capacite avant meme que la charge ne baisse objectivement."},
+  {id:"m_su7",emoji:"📈",titre:"Track ta frequence cardiaque au repos",txt:"Une hausse progressive de la frequence cardiaque au reveil peut signaler un surmenage ou une recuperation insuffisante avant que d autres symptomes n apparaissent."},
+  {id:"m_su8",emoji:"📈",titre:"Journal alimentaire : la regularite plus que la precision absolue",txt:"Un suivi regulier meme imparfait donne plus d information sur les tendances qu un suivi tres precis mais irregulier — la constance du suivi est ce qui permet de detecter les causes."},
+  {id:"m_su9",emoji:"📈",titre:"Correlation plutot que causalite isolee",txt:"Avant de conclure qu un seul facteur (les proteines) explique la perte musculaire, croise plusieurs donnees (sommeil, stress, volume d entrainement, calories) sur la meme periode."},
+  {id:"m_su10",emoji:"📈",titre:"Reevalue tous les mois, pas toutes les semaines",txt:"Les ajustements nutrition/entrainement prennent du temps a produire un effet mesurable — juger et ajuster trop frequemment (chaque semaine) empeche d identifier la vraie cause."},
+  {id:"m_my1",emoji:"💭",titre:"Mythe : plus de proteines resout toujours le probleme",txt:"Au-dela d un certain seuil (environ 2-2,2g/kg), ajouter encore plus de proteines n apporte aucun benefice supplementaire si le vrai probleme est le sommeil, le stress ou le stimulus d entrainement."},
+  {id:"m_my2",emoji:"💭",titre:"Mythe : le cardio ne fait perdre que du gras",txt:"Le cardio en exces, surtout en deficit calorique marque, peut tout a fait contribuer a une perte musculaire — ce n est pas un outil neutre pour le muscle."},
+  {id:"m_my3",emoji:"💭",titre:"Mythe : la fenetre anabolique de 30 minutes est absolue",txt:"La fenetre post-entrainement est plus large qu on ne le pensait (plusieurs heures), mais la regularite globale de l apport proteique sur la journee compte davantage que ce timing precis."},
+  {id:"m_my4",emoji:"💭",titre:"Mythe : sans courbatures, pas de progres",txt:"L absence de courbatures ne signifie pas absence de stimulus — les courbatures sont un mauvais indicateur de l efficacite d une seance sur le maintien musculaire."},
+  {id:"m_my5",emoji:"💭",titre:"Mythe : le poids qui ne bouge pas = stagnation",txt:"Un poids stable peut cacher une recomposition corporelle favorable (perte de gras + gain de muscle) — ne jamais interpreter le poids seul comme un echec ou une reussite."},
+  {id:"m_my6",emoji:"💭",titre:"Mythe : il faut souffrir pour progresser",txt:"Une seance systematiquement a l echec total ou une restriction extreme sont souvent contre-productives — la progression durable vient de la regularite, pas de l intensite maximale permanente."},
+  {id:"m_my7",emoji:"💭",titre:"Mythe : le jeune intermittent fait fondre le muscle",txt:"Un jeune intermittent court (12-16h) bien gere avec un apport proteique suffisant sur la fenetre alimentaire n a pas d impact negatif demontre sur la masse musculaire."},
+  {id:"m_my8",emoji:"💭",titre:"Mythe : les BCAA sont indispensables",txt:"Avec un apport proteique total suffisant (165g/jour reparti), les BCAA en complement n apportent generalement aucun benefice supplementaire mesurable sur la retention musculaire."},
+  {id:"m_my9",emoji:"💭",titre:"Mythe : plus de series c est toujours mieux",txt:"Au-dela d un certain volume hebdomadaire (environ 15-20 series par groupe musculaire), les series supplementaires ajoutent de la fatigue sans stimulus supplementaire net — parfois moins vaut mieux."},
+  {id:"m_my10",emoji:"💭",titre:"Mythe : un seul facteur explique tout",txt:"La perte musculaire est presque toujours multifactorielle (deficit, stimulus, sommeil, stress, hormones) — chercher une cause unique retarde souvent la vraie solution."},
+];
 
 function computeConseilsData(){
   var journal = S.get('nutJournal') || {};
@@ -2711,6 +3003,13 @@ function render(t){
 
 // Load custom aliments from localStorage into ALIMENTS
 (function loadCustomAliments(){
+  // Nettoyage unique : les anciens "Mes aliments" ont été promus dans la liste
+  // classique (Datte, Thon cru, Tomate mozza, Couscous de Chabbat, Hipro 25g...)
+  // — on vide le reste une seule fois.
+  if(!S.get('customAlimentsCleanupV1')){
+    S.set('customAliments', {});
+    S.set('customAlimentsCleanupV1', true);
+  }
   var custom = S.get('customAliments') || {};
   Object.keys(custom).forEach(function(name){
     var a = custom[name];
@@ -2720,6 +3019,15 @@ function render(t){
   if(ALIMENT_CATS.indexOf('Mes aliments') < 0 && Object.keys(custom).length > 0){
     ALIMENT_CATS.push('Mes aliments');
   }
+  // Charge aussi les aliments "journal seulement" (pas dans la liste, mais
+  // nécessaires pour recalculer les macros des journées déjà enregistrées)
+  var journalOnly = S.get('journalOnlyAliments') || {};
+  Object.keys(journalOnly).forEach(function(name){
+    if(!ALIMENTS[name]){
+      var a = journalOnly[name];
+      ALIMENTS[name] = {k:a.k, p:a.p, g:a.g, l:a.l, emoji:'🍽️', cat:'Journal'};
+    }
+  });
 })();
 
 // Auto-load today's nutrition data on startup
