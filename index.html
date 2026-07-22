@@ -117,7 +117,6 @@ textarea{background:#14141F;border:1px solid #2D2D3F;border-radius:8px;color:#F1
   <div id="t-journal" class="tab"></div>
   <div id="t-tracker" class="tab"></div>
   <div id="t-exercices" class="tab"></div>
-  <div id="t-jeune" class="tab"></div>
 </div>
 <nav class="bnav">
   <button class="nbtn act" onclick="nav('semaine',this)"><span class="nem">📅</span><span class="nlb">Semaine</span></button>
@@ -129,22 +128,6 @@ textarea{background:#14141F;border:1px solid #2D2D3F;border-radius:8px;color:#F1
 <script>
 // ─── STORAGE ──────────────────────────────────────────────────────────────────
 const S={get(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch{return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}};
-
-// ─── DATE PARIS ───────────────────────────────────────────────────────────────
-function parisDateStr(){
-  return new Date().toLocaleDateString('fr-CA',{timeZone:'Europe/Paris'});
-  // fr-CA retourne le format YYYY-MM-DD, identique a toISOString mais en heure Paris
-}
-function parisHour(){
-  return parseInt(new Date().toLocaleString('fr-FR',{timeZone:'Europe/Paris',hour:'2-digit',hour12:false}),10);
-}
-function parisDay(){
-  // 0=dimanche, 1=lundi ... 6=samedi — identique a getDay() mais en heure Paris
-  var days = ['dim','lun','mar','mer','jeu','ven','sam'];
-  var dayStr = new Date().toLocaleDateString('fr-FR',{timeZone:'Europe/Paris',weekday:'short'});
-  var idx = days.indexOf(dayStr.toLowerCase().replace('.',''));
-  return idx >= 0 ? idx : new Date().getDay();
-}
 
 // ─── SVGs ─────────────────────────────────────────────────────────────────────
 const SVG={
@@ -189,14 +172,23 @@ const SVG={
 // ─── BASE ALIMENTAIRE (pour 100g sauf indication) ─────────────────────────────
 const ALIMENTS = {
   "Poulet (blanc, cuit)":       {k:165,p:31,g:0,  l:3.6, emoji:"🍗", cat:"Protéines", abs:"M"},
+  "Dinde (blanc, cuit)":        {k:135,p:30,g:0,  l:1,   emoji:"🦃", cat:"Protéines", note:"ratio prot/kcal excellent", abs:"M"},
   "Bœuf haché 5%MG":           {k:137,p:21,g:0,  l:5,   emoji:"🥩", cat:"Protéines", abs:"M"},
+  "Steak de bœuf (grillé)":    {k:175,p:26,g:0,  l:7,   emoji:"🥩", cat:"Protéines", abs:"M"},
+  "Poulet pané (1 pièce)":      {k:220,p:14,g:16, l:11,  emoji:"🍗", cat:"Protéines", note:"~100g pièce", abs:"M"},
   "Saumon (cuit)":              {k:206,p:20,g:0,  l:13,  emoji:"🐟", cat:"Protéines", abs:"M"},
   "Thon (boîte, égoutté)":     {k:116,p:26,g:0,  l:1,   emoji:"🐟", cat:"Protéines", abs:"M"},
   "Cabillaud (cuit)":           {k:82, p:18,g:0,  l:0.7, emoji:"🐠", cat:"Protéines", abs:"M"},
   "Saumon fumé":                {k:142,p:20,g:0,  l:7,   emoji:"🐟", cat:"Protéines", abs:"M"},
-  "Jambon blanc":               {k:107,p:18,g:1,  l:3,   emoji:"🥓", cat:"Protéines", abs:"M"},
-  "Œuf entier":                 {k:155,p:13,g:1.1,l:11,  emoji:"🥚", cat:"Protéines", note:"100g ≈ 2 œufs", abs:"M"},
-  "Blancs d'œufs":              {k:52, p:11,g:0.7,l:0.2, emoji:"🥚", cat:"Protéines", note:"100g ≈ 3 blancs", abs:"R"},
+  "Colin/Lieu noir (cuit)":     {k:82, p:18,g:0,  l:0.9, emoji:"🐠", cat:"Protéines", note:"poisson maigre idéal", abs:"M"},
+  "Flétan (cuit)":              {k:110,p:23,g:0,  l:2.3, emoji:"🐠", cat:"Protéines", abs:"M"},
+  "Dorade (cuite)":             {k:128,p:21,g:0,  l:4.5, emoji:"🐠", cat:"Protéines", abs:"M"},
+  "Bar/Loup (cuit)":            {k:124,p:22,g:0,  l:3.5, emoji:"🐠", cat:"Protéines", abs:"M"},
+  "Merlan (cuit)":              {k:83, p:18,g:0,  l:1,   emoji:"🐠", cat:"Protéines", note:"très maigre", abs:"M"},
+  "Sole (cuite)":               {k:86, p:19,g:0,  l:1.2, emoji:"🐠", cat:"Protéines", abs:"M"},
+  "Œuf entier":                 {k:155,p:13,g:1.1,l:11,  emoji:"🥚", cat:"Protéines", note:"100g = 2 oeufs", abs:"M"},
+  "Blancs d'oeufs":             {k:52, p:11,g:0.7,l:0.2, emoji:"🥚", cat:"Protéines", note:"100g = 3 blancs · ratio prot/kcal top", abs:"R"},
+  "Seitan":                     {k:120,p:25,g:4,  l:2,   emoji:"🌾", cat:"Protéines", note:"protéine végétale dense", abs:"M"},
   "Skyr":                       {k:63, p:11,g:4,  l:0.2, emoji:"🥛", cat:"Laitiers", abs:"L"},
   "Fromage blanc 0%":           {k:45, p:8, g:4,  l:0.1, emoji:"🧀", cat:"Laitiers", abs:"L"},
   "Yaourt nature":              {k:61, p:5, g:5,  l:3.3, emoji:"🥛", cat:"Laitiers", abs:"L"},
@@ -204,9 +196,9 @@ const ALIMENTS = {
   "Cottage cheese 180g":        {k:176,p:19.8,g:6.1,l:7.7, emoji:"🧀", cat:"Laitiers", note:"portion 180g", abs:"L"},
   "Sveltesse 125g":             {k:109,p:5,  g:18, l:1.6, emoji:"🥛", cat:"Laitiers", note:"portion 125g", fixed:true, abs:"L"},
   "Hipro 160g":                 {k:85, p:15, g:5.8,l:0.2, emoji:"🥛", cat:"Laitiers", note:"portion 160g", fixed:true, abs:"L"},
+  "Ricotta légère":             {k:138,p:14, g:4,  l:8,   emoji:"🧀", cat:"Laitiers", abs:"L"},
   "Miel (1 cuillère)":          {k:32, p:0,  g:8.7,l:0,   emoji:"🍯", cat:"Laitiers", note:"1 càc (~10g)", fixed:true},
   "Whey protéine":              {k:380,p:75,g:8,  l:5,   emoji:"💊", cat:"Laitiers", abs:"R"},
-  "Whey Isolat Native Café (Nutri&Co)": {k:370,p:83,g:5, l:2, emoji:"☕", cat:"Laitiers", note:"dosette 30g = 25g prot, 6.2g BCAA", abs:"R"},
   "Riz cuit":                   {k:130,p:2.7,g:28,l:0.3, emoji:"🍚", cat:"Féculents", abs:"-"},
   "Pâtes cuites":               {k:158,p:5.8,g:31,l:0.9, emoji:"🍝", cat:"Féculents", abs:"-"},
   "Quinoa cuit":                {k:120,p:4.4,g:22,l:1.9, emoji:"🌾", cat:"Féculents", abs:"-"},
@@ -215,6 +207,10 @@ const ALIMENTS = {
   "Purée de pomme de terre":    {k:83, p:2, g:16, l:1.5, emoji:"🥔", cat:"Féculents", abs:"-"},
   "Pain complet":               {k:247,p:9, g:41, l:3.4, emoji:"🍞", cat:"Féculents", abs:"-"},
   "Flocons d'avoine":           {k:370,p:13,g:61, l:7,   emoji:"🌾", cat:"Féculents", abs:"-"},
+  "Challah (pain de chabbat)":  {k:320,p:9,  g:54, l:6,   emoji:"🍞", cat:"Féculents"},
+  "Pita (pain)":                {k:275,p:9,  g:55, l:2,   emoji:"🫓", cat:"Féculents"},
+  "Couscous cuit":              {k:112,p:3.8,g:23, l:0.6, emoji:"🌾", cat:"Féculents"},
+  "Plat de couscous (portion)": {k:380,p:18, g:40, l:14,  emoji:"🍲", cat:"Féculents", note:"~350g avec viande/légumes"},
   "Brocolis (cuit)":            {k:35, p:2.4,g:5, l:0.4, emoji:"🥦", cat:"Légumes", abs:"-"},
   "Haricots verts":             {k:31, p:1.8,g:5.7,l:0.1,emoji:"🫘", cat:"Légumes", abs:"-"},
   "Salade verte":               {k:15, p:1.4,g:2.2,l:0.2,emoji:"🥗", cat:"Légumes", abs:"-"},
@@ -223,9 +219,9 @@ const ALIMENTS = {
   "Courgettes":                 {k:17, p:1.2,g:3.1,l:0.3,emoji:"🥒", cat:"Légumes", abs:"-"},
   "Champignons":                {k:22, p:3.1,g:3.3,l:0.3,emoji:"🍄", cat:"Légumes", abs:"-"},
   "Lentilles cuites":           {k:116,p:9, g:20, l:0.4, emoji:"🫘", cat:"Légumes", abs:"L"},
-  "Tofu ferme":                  {k:144,p:15.5,g:3, l:8.7, emoji:"🧈", cat:"Légumes", abs:"L"},
-  "Pois chiches cuits":          {k:139,p:8.9,g:22.5,l:2.6,emoji:"🫛", cat:"Légumes", abs:"L"},
-  "Edamame":                     {k:121,p:11, g:9.9, l:5.2, emoji:"🫛", cat:"Légumes", abs:"L"},
+  "Tofu ferme":                 {k:144,p:15.5,g:3,l:8.7, emoji:"🧈", cat:"Légumes", abs:"L"},
+  "Pois chiches cuits":         {k:139,p:8.9,g:22.5,l:2.6,emoji:"🫛", cat:"Légumes", abs:"L"},
+  "Edamame":                    {k:121,p:11, g:9.9,l:5.2, emoji:"🫛", cat:"Légumes", abs:"L"},
   "Pomme":                      {k:52, p:0.3,g:14, l:0.2, emoji:"🍎", cat:"Fruits"},
   "Poire":                      {k:57, p:0.4,g:15, l:0.1, emoji:"🍐", cat:"Fruits"},
   "Banane":                     {k:89, p:1.1,g:23, l:0.3, emoji:"🍌", cat:"Fruits"},
@@ -238,38 +234,26 @@ const ALIMENTS = {
   "Mangue":                     {k:60, p:0.8,g:15, l:0.4, emoji:"🥭", cat:"Fruits"},
   "Abricot":                    {k:48, p:1.4,g:11, l:0.4, emoji:"🍑", cat:"Fruits"},
   "Pêche/Nectarine":            {k:42, p:1,  g:10, l:0.3, emoji:"🍑", cat:"Fruits"},
+  "Figues (fraîches)":          {k:74, p:0.7,g:19, l:0.3, emoji:"🍑", cat:"Fruits"},
+  "Compote de pommes":          {k:47, p:0.2,g:11, l:0.1, emoji:"🍎", cat:"Fruits", note:"sans sucre ajouté"},
   "Amandes":                    {k:579,p:21, g:22, l:50,  emoji:"🌰", cat:"Oléagineux"},
   "Noix de cajou":              {k:553,p:18, g:30, l:44,  emoji:"🌰", cat:"Oléagineux"},
   "Noix de cajou (poignée 30g)":{k:166,p:5.4,g:9,  l:13.2,emoji:"🌰", cat:"Oléagineux", note:"~30g = une poignée"},
-  "Sirop d'érable (1 càs)":    {k:52, p:0,  g:13.4,l:0,   emoji:"🍁", cat:"Plaisir", note:"1 càs = 20ml"},
-  "Figues (fraîches)":          {k:74, p:0.7,g:19, l:0.3, emoji:"🍑", cat:"Fruits"},
-  "Compote de pommes":          {k:47, p:0.2,g:11, l:0.1, emoji:"🍎", cat:"Fruits", note:"sans sucre ajouté"},
   "Avocat":                     {k:160,p:2,  g:9,  l:15,  emoji:"🥑", cat:"Légumes"},
   "Guacamole":                  {k:150,p:2,  g:8,  l:13,  emoji:"🥑", cat:"Légumes", note:"maison ~100g"},
   "Mozzarella":                 {k:280,p:18, g:2.2,l:22,  emoji:"🧀", cat:"Laitiers", abs:"L"},
-  "Challah (pain de chabbat)":  {k:320,p:9,  g:54, l:6,   emoji:"🍞", cat:"Féculents"},
-  "Saumon fumé":                {k:142,p:20, g:0,  l:7,   emoji:"🐟", cat:"Protéines"},
   "Café latte (200ml)":         {k:80, p:4,  g:8,  l:3,   emoji:"☕", cat:"Boissons", note:"200ml lait demi-écrémé"},
   "Starbucks Latte Décaf Tall + protéines": {k:151,p:10.9,g:15,l:5.2,emoji:"☕", cat:"Boissons", note:"Grande 473ml — valeurs officielles Starbucks FR", abs:"R"},
-  "Pita (pain)":                {k:275,p:9,  g:55, l:2,   emoji:"🫓", cat:"Féculents"},
-  "Crêpe maison (90g)":         {k:162,p:6,  g:20, l:7,   emoji:"🥞", cat:"Féculents", note:"portion 90g — farine/œufs/lait/huile", fixed:true},
-  "Couscous de Chabbat (grosse assiette)": {k:650,p:32, g:65, l:22, emoji:"🍲", cat:"Féculents", note:"grosse portion ~550g, viande/légumes", fixed:true},
-  "Datte":                      {k:277,p:2,  g:75, l:0.2, emoji:"🌴", cat:"Fruits"},
-  "Thon cru":                   {k:109,p:24, g:0,  l:1,   emoji:"🐟", cat:"Protéines", abs:"M"},
-  "Tomate mozza":               {k:140,p:7,  g:4,  l:11,  emoji:"🍅", cat:"Laitiers", note:"salade tomate/mozzarella/huile d'olive"},
-  "Hipro à boire 25g":          {k:180,p:25, g:16.5,l:0,  emoji:"🥤", cat:"Laitiers", note:"bouteille ~300ml, 0% MG", fixed:true},
-  "Couscous cuit":              {k:112,p:3.8,g:23, l:0.6, emoji:"🌾", cat:"Féculents"},
-  "Plat de couscous (portion)": {k:380,p:18, g:40, l:14,  emoji:"🍲", cat:"Féculents", note:"~350g avec viande/légumes"},
-  "Poulet pané (1 pièce)":      {k:220,p:14, g:16, l:11,  emoji:"🍗", cat:"Protéines", note:"~100g pièce", abs:"M"},
+  "Alpro Vanille (250ml)":      {k:113,p:3.5,g:17, l:3,   emoji:"🥛", cat:"Boissons", note:"250ml", abs:"L"},
   "Saumon mariné Picard":       {k:205,p:19, g:1,  l:14,  emoji:"🐟", cat:"Protéines", note:"émincés échalotes citron", abs:"M"},
   "Tartare saumon Picard":      {k:192,p:16, g:0.5,l:14,  emoji:"🐟", cat:"Protéines", note:"ciboulette citron — 100g", abs:"M"},
   "Siggi skyr mangue (100g)":   {k:88, p:8.9,g:8.3,l:2.2, emoji:"🥭", cat:"Laitiers", note:"pot 100g mangue-passion", abs:"L"},
-  "Sandwich pain mie beurre cacahuète confiture": {k:390,p:10,g:45,l:18, emoji:"🥜", cat:"Plaisir", note:"2 tranches pain de mie + 30g beurre cacahuète + 20g confiture"},
-  "Lindt 85% (1 carré 10g)":    {k:58, p:1.25,g:1.9,l:4.6, emoji:"🍫", cat:"Plaisir", note:"1 carré = 10g"},
-  "Alpro Vanille (250ml)":      {k:113,p:3.5,g:17, l:3,   emoji:"🥛", cat:"Boissons", note:"250ml", abs:"L"},
-  "Poulet pané (1 pièce)":      {k:220,p:14, g:16, l:11,  emoji:"🍗", cat:"Protéines", note:"~100g pièce"},
-  "California roll (pièce)":    {k:47, p:1.3,g:7.3,l:1.2, emoji:"🍣", cat:"Plaisir", note:"par pièce"},
+  "Sirop d'érable (1 càs)":    {k:52, p:0,  g:13.4,l:0,  emoji:"🍁", cat:"Plaisir", note:"1 càs = 20ml"},
+  "Fondant au chocolat":        {k:380,p:6,  g:42, l:22,  emoji:"🍫", cat:"Plaisir", note:"par pièce (~100g)"},
+  "Lindt 85% (1 carré 10g)":   {k:58, p:1.25,g:1.9,l:4.6,emoji:"🍫", cat:"Plaisir", note:"1 carré = 10g"},
+  "California roll (pièce)":   {k:47, p:1.3,g:7.3,l:1.2, emoji:"🍣", cat:"Plaisir", note:"par pièce"},
   "Navette au thon":            {k:210,p:12, g:22, l:8,   emoji:"🥖", cat:"Plaisir", note:"par pièce"},
+  "Sandwich pain mie beurre cacahouete confiture": {k:390,p:10,g:45,l:18, emoji:"🥜", cat:"Plaisir", note:"2 tranches pain de mie + 30g beurre cacahouete + 20g confiture"},
 };
 
 // Catégories dans l'ordre d'affichage
@@ -281,7 +265,6 @@ const MEAL_SLOTS = {
     lbl:"Petit déjeuner", emoji:"☀️", time:"7h–8h",
     items:[
       {n:"Œuf entier",      qty:150, unite:"g"},
-      {n:"Blancs d'œufs",   qty:150, unite:"g"},
       {n:"Skyr",            qty:150, unite:"g"},
       {n:"Fromage blanc 0%",qty:200, unite:"g"},
       {n:"Saumon fumé",     qty:80,  unite:"g"},
@@ -359,7 +342,6 @@ const MEAL_SLOTS = {
       {n:"Cabillaud (cuit)",      qty:150, unite:"g"},
       {n:"Saumon (cuit)",         qty:150, unite:"g"},
       {n:"Œuf entier",            qty:200, unite:"g"},
-      {n:"Blancs d'œufs",         qty:200, unite:"g"},
       {n:"Fromage blanc 0%",      qty:150, unite:"g"},
       {n:"Pâtes cuites",          qty:80,  unite:"g"},
       {n:"Lentilles cuites",      qty:150, unite:"g"},
@@ -412,7 +394,7 @@ const WEEK=[
   {day:"Mar",fullDay:"Mardi",type:"repos",tag:"Repos",c:"#374151",emoji:"😴",exercises:[]},
   {day:"Mer",fullDay:"Mercredi",type:"repos",tag:"Repos",c:"#374151",emoji:"😴",exercises:[]},
   {day:"Jeu",fullDay:"Jeudi",type:"salle",tag:"Séance B",c:"#EF4444",emoji:"🏋️",exercises:[
-    {name:"Développé militaire haltères",sets:"4×10",load:"10 kg/main",muscles:"Épaules · Triceps · Trapèzes",desc:"Debout, haltères à hauteur des épaules. Pousse vers le haut. Redescends lentement."},
+    {name:"Développé militaire haltères",sets:"4×10",load:"12 kg/main",muscles:"Épaules · Triceps · Trapèzes",desc:"Debout, haltères à hauteur des épaules. Pousse vers le haut. Redescends lentement."},
     {name:"Élévations latérales haltères",sets:"3×12",load:"8 kg/main",muscles:"Deltoïdes latéraux",desc:"Debout, monte les bras sur les côtés jusqu'aux épaules. Contrôle la descente."},
     {name:"Curl marteau haltères",sets:"3×12",load:"12 kg/main",muscles:"Biceps · Avant-bras",desc:"Prise neutre (paumes face à face), fléchis les coudes en alternant. Coudes collés au corps."},
     {name:"Hammer Strength Pec Deck",sets:"4×12",load:"machine",muscles:"Pectoraux · Grand dentelé",desc:"Machine Hammer Strength. Ramène les bras vers le centre en contractant les pectoraux. Reviens lentement."},
@@ -476,7 +458,7 @@ const SEANCES={
     {name:"Curl barre",         sets:"4×10", load:"30 kg", rest:"90 sec", c:"#F59E0B", muscles:"Biceps · Avant-bras", desc:"Debout, prise supination (paumes vers le haut). Fléchis les coudes vers les épaules, coudes collés au corps. Redescends lentement."},
   ],
   B:[
-    {name:"Développé militaire haltères", sets:"4×10", load:"10 kg/main", rest:"90 sec", c:"#3B82F6", muscles:"Épaules · Triceps · Trapèzes", desc:"Debout ou assis, haltères à hauteur des épaules paumes vers l'avant. Tu pousses les deux haltères vers le haut jusqu'à tendre les bras. Tu redescends lentement jusqu'aux épaules."},
+    {name:"Développé militaire haltères", sets:"4×10", load:"12 kg/main", rest:"90 sec", c:"#3B82F6", muscles:"Épaules · Triceps · Trapèzes", desc:"Debout ou assis, haltères à hauteur des épaules paumes vers l'avant. Tu pousses les deux haltères vers le haut jusqu'à tendre les bras. Tu redescends lentement jusqu'aux épaules."},
     {name:"Élévations latérales haltères", sets:"3×12", load:"8 kg/main", rest:"60 sec", c:"#06B6D4", muscles:"Deltoïdes latéraux · Épaules", desc:"Debout, haltères le long du corps. Tu montes les bras sur les côtés jusqu'à hauteur des épaules, coudes légèrement fléchis. Tu contrôles la descente. Ne balance pas le buste."},
     {name:"Curl marteau haltères", sets:"3×12", load:"12 kg/main", rest:"60 sec", c:"#F59E0B", muscles:"Biceps · Brachial · Avant-bras", desc:"Debout, haltères paumes face à face (prise neutre). Tu fléchis les coudes en alternant les bras. Le pouce pointe vers le haut. Coudes collés au corps."},
     {name:"Hammer Strength Pec Deck", sets:"4×12", load:"machine", rest:"90 sec", c:"#EF4444", muscles:"Pectoraux · Grand dentelé", desc:"Machine Hammer Strength. Assis, dos bien calé contre le dossier. Tu ramènes les bras vers le centre en contractant les pectoraux. Tu reviens lentement sans laisser les coudes partir en arrière. Amplitude complète."},
@@ -498,24 +480,9 @@ const SEANCES={
 let ST={
   week:1, day:0, jshow:false, jinp:{},
   isSportDay: true,
-  jeuneActif: false,
-  jeuneNom: '',
-  jeuneDebut: '',
-  jeuneFin: '',
-  jeuneDate: '',
-  jeuneVille: 'Paris',
-  jeuneSelected: '',
-  jeuneSelectedNom: '',
-  jeuneSelectedDate: '',
-  jeuneHoraires: null,
-  jeuneLoading: false,
-  jeuneError: null,
-  jeuneDebutOverride: '',
-  jeuneFinOverride: '',
   showGuide: false,
   conseilsShown: [],
   conseilsSeed: 0,
-  muscleConseilsShown: [],
   showEcarts: false,
   show24h: false,
   showPlanner: false,
@@ -527,7 +494,7 @@ let ST={
   nutShowReco: null,
   nutPlanOverrides: {},
   ecSel: null, ecShow: false,
-  trTab: 'impedance', exTab:'A', exOpen:null
+  trTab: 'poids', exTab:'A', exOpen:null
 };
 
 // ─── NAV ─────────────────────────────────────────────────────────────────────
@@ -537,8 +504,6 @@ function nav(t,btn){
   document.getElementById('t-'+t).classList.add('act');
   btn.classList.add('act');
   render(t);
-  // Toujours remonter en haut de page au changement d'onglet (le jour en cours est épinglé en haut du Journal)
-  window.scrollTo(0,0);
 }
 
 // ─── NUTRITION HELPERS ────────────────────────────────────────────────────────
@@ -577,9 +542,7 @@ function getDayTotals(){
   return {k: Math.round(tk), p: Math.round(tp*10)/10};
 }
 
-function genReco(slotId, variant){
-  // variant: 'poisson' | 'viande' | 'vegetal'
-  variant = variant || 'poisson';
+function genReco(slotId){
   // Calcule ce qui reste à manger après ce slot
   const slots = ['pdj','dej','gouter','snack','diner'];
   const idx = slots.indexOf(slotId);
@@ -595,374 +558,59 @@ function genReco(slotId, variant){
 
   // Génère suggestions pour chaque slot restant
   const recos = {};
-  if(nextSlots.length === 0) return {resteK, resteP, nextSlots, recos, variant};
+  if(nextSlots.length === 0) return recos;
 
   const kPerSlot = Math.round(resteK / nextSlots.length);
   const pPerSlot = Math.round(resteP / nextSlots.length);
 
-  // Templates par slot, déclinés en 3 variantes
-  const templatesByVariant = {
-    poisson: {
-      dej: (k,p) => {
-        const items = [];
-        items.push({n: p>35 ? "Saumon (cuit)" : "Cabillaud (cuit)", qty: p>35?180:200});
-        if(k > 400) items.push({n:"Riz cuit", qty:150});
-        items.push({n:"Brocolis (cuit)", qty:150});
-        items.push({n:"Yaourt nature", qty:125});
-        items.push({n:"Pomme", qty:150});
-        return items;
-      },
-      snack: (k,p) => {
-        const items = [];
-        if(p > 20) items.push({n:"Whey protéine", qty:30});
-        items.push({n:"Skyr", qty:150});
-        if(k > 200) items.push({n:"Banane", qty:120});
-        else items.push({n:"Kiwi", qty:80});
-        return items;
-      },
-      diner: (k,p) => {
-        const items = [];
-        items.push({n: p>35 ? "Saumon (cuit)" : "Cabillaud (cuit)", qty: p>35?180:170});
-        if(k > 400) items.push({n:"Pâtes cuites", qty:80});
-        items.push({n:"Haricots verts", qty:150});
-        items.push({n:"Tomates", qty:100});
-        items.push({n:"Kiwi", qty:80});
-        return items;
-      }
+  // Templates par slot
+  const templates = {
+    dej: (k,p) => {
+      const items = [];
+      if(p > 35) items.push({n:"Poulet (blanc, cuit)", qty:200});
+      else items.push({n:"Thon (boîte, égoutté)", qty:140});
+      if(k > 400) items.push({n:"Riz cuit", qty:150});
+      items.push({n:"Brocolis (cuit)", qty:150});
+      items.push({n:"Yaourt nature", qty:125});
+      items.push({n:"Pomme", qty:150});
+      return items;
     },
-    viande: {
-      // Viande sans aucun laitage : que de la viande, féculents, légumes, fruits
-      dej: (k,p) => {
-        const items = [];
-        items.push({n: p>35 ? "Bœuf haché 5%MG" : "Poulet (blanc, cuit)", qty: 200});
-        if(k > 400) items.push({n:"Riz cuit", qty:150});
-        items.push({n:"Brocolis (cuit)", qty:150});
-        items.push({n:"Pomme", qty:150});
-        items.push({n:"Orange", qty:150});
-        return items;
-      },
-      snack: (k,p) => {
-        const items = [];
-        items.push({n:"Jambon blanc", qty:80});
-        if(k > 200) items.push({n:"Banane", qty:120});
-        else items.push({n:"Kiwi", qty:80});
-        items.push({n:"Amandes", qty:20});
-        return items;
-      },
-      diner: (k,p) => {
-        const items = [];
-        items.push({n: p>35 ? "Bœuf haché 5%MG" : "Poulet (blanc, cuit)", qty: 200});
-        if(k > 400) items.push({n:"Patate douce cuite", qty:200});
-        items.push({n:"Haricots verts", qty:150});
-        items.push({n:"Tomates", qty:100});
-        items.push({n:"Kiwi", qty:80});
-        return items;
-      }
+    snack: (k,p) => {
+      const items = [];
+      if(p > 20) items.push({n:"Whey protéine", qty:30});
+      items.push({n:"Skyr", qty:150});
+      if(k > 200) items.push({n:"Banane", qty:120});
+      else items.push({n:"Kiwi", qty:80});
+      return items;
     },
-    vegetal: {
-      dej: (k,p) => {
-        const items = [];
-        items.push({n:"Tofu ferme", qty: p>30?250:180});
-        items.push({n:"Pois chiches cuits", qty:150});
-        if(k > 400) items.push({n:"Quinoa cuit", qty:150});
-        items.push({n:"Épinards", qty:120});
-        items.push({n:"Pomme", qty:150});
-        return items;
-      },
-      snack: (k,p) => {
-        const items = [];
-        items.push({n:"Edamame", qty:120});
-        if(k > 200) items.push({n:"Banane", qty:120});
-        else items.push({n:"Kiwi", qty:80});
-        items.push({n:"Amandes", qty:20});
-        return items;
-      },
-      diner: (k,p) => {
-        const items = [];
-        items.push({n:"Tofu ferme", qty: p>30?220:170});
-        items.push({n:"Lentilles cuites", qty:150});
-        if(k > 400) items.push({n:"Quinoa cuit", qty:100});
-        items.push({n:"Courgettes", qty:150});
-        items.push({n:"Kiwi", qty:80});
-        return items;
-      }
+    diner: (k,p) => {
+      const items = [];
+      if(p > 35) items.push({n:"Bœuf haché 5%MG", qty:200});
+      else if(p > 25) items.push({n:"Cabillaud (cuit)", qty:150});
+      else items.push({n:"Œuf entier", qty:200});
+      if(k > 400) items.push({n:"Pâtes cuites", qty:80});
+      items.push({n:"Brocolis (cuit)", qty:150});
+      items.push({n:"Tomates", qty:100});
+      items.push({n:"Kiwi", qty:80});
+      return items;
     }
   };
-
-  const templates = templatesByVariant[variant] || templatesByVariant.poisson;
 
   nextSlots.forEach(s => {
     const fn = templates[s];
     recos[s] = fn ? fn(kPerSlot, pPerSlot) : [];
   });
 
-  return {resteK, resteP, nextSlots, recos, variant};
+  return {resteK, resteP, nextSlots, recos};
 }
 
 // ─── NUTRITION RENDER ─────────────────────────────────────────────────────────
-// ─── JEÛNE ────────────────────────────────────────────────────────────────────
-// ─── JEÛNE ────────────────────────────────────────────────────────────────────
-// Calendrier des jeûnes hébraïques 2025-2026 (dates grégoriennes)
-const JEUNES_HEBRAIQUES = [
-  {id:"yomkippour",   nom:"Yom Kippour",              duree:"25h", debut_offset:0, fin_offset:1, type:"coucher→nuit", date_2025:"2025-10-01", date_2026:"2026-09-20"},
-  {id:"tisha_beav",   nom:"Tisha BeAv",                duree:"25h", debut_offset:0, fin_offset:1, type:"coucher→nuit", date_2025:"2025-08-12", date_2026:"2026-08-01"},
-  {id:"shiva_asar",   nom:"Shiva Asar BeTammouz",      duree:"~14h",debut_offset:0, fin_offset:0, type:"aube→nuit",   date_2025:"2025-07-13", date_2026:"2026-07-02"},
-  {id:"tsomguedalia", nom:"Jeûne de Guedalia",         duree:"~13h",debut_offset:0, fin_offset:0, type:"aube→nuit",   date_2025:"2025-10-03", date_2026:"2026-09-22"},
-  {id:"esther",       nom:"Jeûne d'Esther (Ta'anit)",  duree:"~13h",debut_offset:0, fin_offset:0, type:"aube→nuit",   date_2025:"2026-03-12", date_2026:"2027-03-01"},
-  {id:"asara_betevet",nom:"Asara BeTevet",             duree:"~12h",debut_offset:0, fin_offset:0, type:"aube→nuit",   date_2025:"2026-01-01", date_2026:"2026-12-22"},
-  {id:"bechorot",     nom:"Jeûne des Premiers-nés",    duree:"~13h",debut_offset:0, fin_offset:0, type:"aube→nuit",   date_2025:"2025-04-12", date_2026:"2026-04-01"},
-];
-
-function fmtDuree(min){
-  if(min <= 0) return '0 min';
-  var h = Math.floor(min / 60);
-  var m = min % 60;
-  if(h === 0) return m + 'min';
-  if(m === 0) return h + 'h';
-  return h + 'h' + (m < 10 ? '0' : '') + m;
-}
-
-function calcJeuneInfo(){
-  if(!ST.jeuneActif || !ST.jeuneDebut || !ST.jeuneFin) return {enCours:false, dureeMin:0, restantMin:0, pct:0, ecoulMin:0, termine:false};
-  var now = new Date();
-  var startDate = ST.jeuneDate || parisDateStr();
-  var debut = new Date(startDate + 'T' + ST.jeuneDebut + ':00');
-  var fin = new Date(startDate + 'T' + ST.jeuneFin + ':00');
-  if(fin <= debut) fin.setDate(fin.getDate() + 1);
-  var dureeMin = Math.round((fin - debut) / 60000);
-  var ecoulMin = Math.round((now - debut) / 60000);
-  var restantMin = Math.max(0, Math.round((fin - now) / 60000));
-  var pct = Math.min(Math.max((ecoulMin / dureeMin) * 100, 0), 100);
-  var enCours = now >= debut && now < fin;
-  var termine = now >= fin;
-  return {enCours, termine, dureeMin, ecoulMin, restantMin, pct, debut, fin};
-}
-
-// Bandeau global affiché en haut de chaque onglet quand jeûne actif
-function renderJeuneBandeau(){
-  if(!ST.jeuneActif) return '';
-  var info = calcJeuneInfo();
-  var nom = ST.jeuneNom || 'Jeûne';
-  if(info.termine){
-    return '<div style="background:linear-gradient(135deg,#10B981,#065F46);padding:10px 14px;border-radius:12px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">'
-      +'<div><div style="font-size:12px;font-weight:800;color:#fff">🕍 '+nom+' — terminé</div>'
-      +'<div style="font-size:10px;color:#A7F3D0">Bonne rupture du jeûne ! צום קל ✨</div></div>'
-      +'<button onclick="stopJeune()" style="padding:4px 10px;border-radius:7px;border:none;background:#065F46;color:#6EE7B7;font-size:10px;font-weight:700">Fermer</button>'
-      +'</div>';
-  }
-  if(info.enCours){
-    var pctStr = info.pct.toFixed(0);
-    return '<div style="background:linear-gradient(135deg,#1E1035,#2D1B69);border:1px solid #8B5CF660;padding:10px 14px;border-radius:12px;margin-bottom:10px">'
-      +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
-      +'<div><div style="font-size:12px;font-weight:800;color:#C4B5FD">🕍 '+nom+'</div>'
-      +'<div style="font-size:10px;color:#A78BFA">Rupture à '+ST.jeuneFin+' · il reste <b style="color:#fff">'+fmtDuree(info.restantMin)+'</b></div></div>'
-      +'<button onclick="stopJeune()" style="padding:4px 10px;border-radius:7px;border:none;background:#2D1B69;color:#A78BFA;font-size:10px;font-weight:700">Arrêter</button>'
-      +'</div>'
-      +'<div style="background:#2D1B69;border-radius:4px;height:5px;overflow:hidden">'
-      +'<div style="height:100%;width:'+pctStr+'%;background:linear-gradient(90deg,#8B5CF6,#C4B5FD);border-radius:4px;transition:width 1s"></div>'
-      +'</div>'
-      +'<div style="display:flex;justify-content:space-between;margin-top:4px">'
-      +'<span style="font-size:9px;color:#6B7280">'+fmtDuree(info.ecoulMin)+' écoulé</span>'
-      +'<span style="font-size:9px;color:#6B7280">'+pctStr+'%</span>'
-      +'<span style="font-size:9px;color:#6B7280">'+fmtDuree(info.dureeMin)+' total</span>'
-      +'</div>'
-      +'</div>';
-  }
-  // Programmé mais pas encore commencé
-  return '<div style="background:#14141F;border:1px solid #F59E0B60;padding:10px 14px;border-radius:12px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">'
-    +'<div><div style="font-size:12px;font-weight:800;color:#FCD34D">🕍 '+nom+' — commence à '+ST.jeuneDebut+'</div>'
-    +'<div style="font-size:10px;color:#6B7280">Rupture prévue à '+ST.jeuneFin+'</div></div>'
-    +'<button onclick="stopJeune()" style="padding:4px 10px;border-radius:7px;border:none;background:#2D2D3F;color:#6B7280;font-size:10px">Annuler</button>'
-    +'</div>';
-}
-
-function backToNutrition(){
-  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('act'));
-  document.querySelectorAll('.nbtn').forEach(x=>x.classList.remove('act'));
-  document.getElementById('t-nutrition').classList.add('act');
-  document.querySelector('.nbtn[onclick*="nutrition"]').classList.add('act');
-  ST._activeTab = 'nutrition';
-  window.scrollTo(0,0);
-  renderNut();
-}
-
-function stopJeune(){
-  ST.jeuneActif=false; ST.jeuneNom=''; ST.jeuneDebut=''; ST.jeuneFin=''; ST.jeuneDate='';
-  S.set('jeuneState', null);
-  backToNutrition();
-}
-
-// Page jeûne complète (onglet dédié accessible via nav)
-function renderJeunePage(){
-  var h = '<button onclick="backToNutrition()" style="display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:9px;border:1px solid #2D2D3F;background:#14141F;color:#9CA3AF;font-size:11px;font-weight:700;margin-bottom:12px">← Retour à Nutrition</button>';
-  h += '<div class="card"><div class="slbl">🕍 Jeûne religieux juif</div>';
-  h += '<div style="font-size:11px;color:#9CA3AF;margin-bottom:14px;line-height:1.6">Sélectionne un jeûne, je récupère automatiquement les horaires de coucher du soleil et de nuit tombée pour ta ville.</div>';
-
-  // Ville
-  h += '<div style="margin-bottom:10px"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Ville</div>';
-  h += '<div style="display:flex;gap:7px">';
-  h += '<input type="text" id="jeune-ville" value="'+(ST.jeuneVille||'Paris')+'" oninput="ST.jeuneVille=this.value" style="flex:1;padding:8px;border-radius:8px;border:1px solid #2D2D3F;background:#14141F;color:#F1F1F5;font-size:13px">';
-  h += '</div></div>';
-
-  // Sélection du jeûne
-  h += '<div style="margin-bottom:12px"><div style="font-size:9px;color:#6B7280;margin-bottom:6px">Jeûne</div>';
-  JEUNES_HEBRAIQUES.forEach(function(j){
-    var sel = ST.jeuneSelected === j.id;
-    var prochDate = j.date_2026 || j.date_2025;
-    // Affiche la date la plus proche dans le futur
-    var now = parisDateStr();
-    if(j.date_2025 && j.date_2025 >= now) prochDate = j.date_2025;
-    else if(j.date_2026 && j.date_2026 >= now) prochDate = j.date_2026;
-    else prochDate = j.date_2026 || j.date_2025;
-    var dateFr = prochDate ? new Date(prochDate+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}) : '';
-    h += '<div onclick="ST.jeuneSelected=\''+j.id+'\';renderJeunePage2()" style="padding:10px 12px;border-radius:10px;border:1.5px solid '+(sel?'#8B5CF6':'#2D2D3F')+';background:'+(sel?'#1E1035':'#14141F')+';margin-bottom:6px;cursor:pointer">';
-    h += '<div style="display:flex;justify-content:space-between;align-items:center">';
-    h += '<div style="font-size:12px;font-weight:700;color:'+(sel?'#C4B5FD':'#9CA3AF')+'">'+j.nom+'</div>';
-    h += '<div style="font-size:10px;color:#F59E0B">'+j.duree+'</div>';
-    h += '</div>';
-    if(dateFr) h += '<div style="font-size:10px;color:#4B5563;margin-top:2px">'+dateFr+' · '+j.type+'</div>';
-    h += '</div>';
-  });
-  h += '</div>';
-
-  // Bouton récupérer horaires
-  h += '<button onclick="fetchJeuneHoraires()" style="width:100%;padding:12px;border-radius:11px;border:none;background:linear-gradient(135deg,#8B5CF6,#3B82F6);color:#fff;font-size:13px;font-weight:800;margin-bottom:10px">🔍 Récupérer les horaires</button>';
-
-  if(ST.jeuneLoading){
-    h += '<div style="text-align:center;padding:14px;font-size:12px;color:#9CA3AF">🔎 Recherche des horaires en cours...</div>';
-  }
-  if(ST.jeuneError){
-    h += '<div class="card" style="border-color:#EF444450"><div style="font-size:12px;color:#EF4444">⚠ '+ST.jeuneError+'</div></div>';
-  }
-
-  // Résultat horaires + activation
-  if(ST.jeuneHoraires && !ST.jeuneLoading){
-    var hr = ST.jeuneHoraires;
-    h += '<div class="card" style="border-color:#8B5CF660">';
-    h += '<div style="font-weight:800;font-size:13px;color:#C4B5FD;margin-bottom:10px">🕯️ Horaires — '+hr.ville+', '+(hr.date||'')+'</div>';
-    h += '<div style="display:flex;gap:8px;margin-bottom:10px">';
-    h += '<div class="sbox" style="flex:1"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Début du jeûne</div><div style="font-size:18px;font-weight:800;color:#F1F1F5">'+(hr.debut||'—')+'</div><div style="font-size:9px;color:#6B7280">'+(hr.debut_label||'')+'</div></div>';
-    h += '<div class="sbox" style="flex:1"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Rupture du jeûne</div><div style="font-size:18px;font-weight:800;color:#F1F1F5">'+(hr.fin||'—')+'</div><div style="font-size:9px;color:#6B7280">'+(hr.fin_label||'')+'</div></div>';
-    h += '</div>';
-    if(hr.note) h += '<div style="font-size:10px;color:#6B7280;margin-bottom:10px;line-height:1.5">ℹ️ '+hr.note+'</div>';
-    // Champs manuels si besoin de corriger
-    h += '<div style="display:flex;gap:8px;margin-bottom:10px">';
-    h += '<div style="flex:1"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Ajuster début</div>';
-    h += '<input type="time" id="jeune-debut-input" value="'+(ST.jeuneDebutOverride||hr.debut||'')+'" oninput="ST.jeuneDebutOverride=this.value" style="width:100%;padding:7px;border-radius:8px;border:1px solid #2D2D3F;background:#14141F;color:#F1F1F5;font-size:13px;font-weight:700"></div>';
-    h += '<div style="flex:1"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Ajuster rupture</div>';
-    h += '<input type="time" id="jeune-fin-input" value="'+(ST.jeuneFinOverride||hr.fin||'')+'" oninput="ST.jeuneFinOverride=this.value" style="width:100%;padding:7px;border-radius:8px;border:1px solid #2D2D3F;background:#14141F;color:#F1F1F5;font-size:13px;font-weight:700"></div>';
-    h += '</div>';
-    h += '<button onclick="activerJeune()" style="width:100%;padding:12px;border-radius:11px;border:none;background:linear-gradient(135deg,#10B981,#065F46);color:#fff;font-size:13px;font-weight:800">✓ Activer ce jeûne</button>';
-    h += '</div>';
-  }
-
-  // Si jeûne déjà actif
-  if(ST.jeuneActif){
-    var info = calcJeuneInfo();
-    h += '<div class="card" style="border-color:#10B98150;margin-top:10px">';
-    h += '<div style="font-size:12px;font-weight:700;color:#6EE7B7;margin-bottom:6px">✅ Jeûne actif : '+ST.jeuneNom+'</div>';
-    h += '<div style="font-size:11px;color:#9CA3AF">'+ST.jeuneDebut+' → '+ST.jeuneFin;
-    if(info.enCours) h += ' · reste <b style="color:#C4B5FD">'+fmtDuree(info.restantMin)+'</b>';
-    h += '</div>';
-    h += '<button onclick="stopJeune();renderJeunePage2()" style="width:100%;margin-top:8px;padding:8px;border-radius:9px;border:1px solid #EF4444;background:none;color:#EF4444;font-size:11px;font-weight:700">Arrêter le jeûne</button>';
-    h += '</div>';
-  }
-
-  h += '</div>';
-  document.getElementById('t-jeune').innerHTML = h;
-}
-
-function renderJeunePage2(){ renderJeunePage(); }
-
-async function fetchJeuneHoraires(){
-  var jeuneId = ST.jeuneSelected;
-  if(!jeuneId){ ST.jeuneError = "Sélectionne d'abord un jeûne."; renderJeunePage(); return; }
-  var ville = (ST.jeuneVille||'Paris').trim();
-  var jeune = JEUNES_HEBRAIQUES.find(function(j){ return j.id === jeuneId; });
-  if(!jeune){ ST.jeuneError = "Jeûne introuvable."; renderJeunePage(); return; }
-
-  // Date la plus proche dans le futur
-  var now = parisDateStr();
-  var dateJeune = (jeune.date_2025 && jeune.date_2025 >= now) ? jeune.date_2025 : (jeune.date_2026 || jeune.date_2025);
-
-  ST.jeuneLoading = true; ST.jeuneError = null; ST.jeuneHoraires = null;
-  ST.jeuneDebutOverride = ''; ST.jeuneFinOverride = '';
-  renderJeunePage();
-
-  var dateFr = dateJeune ? new Date(dateJeune+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}) : 'date inconnue';
-  var prompt = "Je cherche les horaires precis du coucher du soleil et de la nuit tombee (tzet hakochavim, 3 etoiles visibles) pour le jeune juif \""+jeune.nom+"\" le "+dateFr+" a "+ville+". "
-    + "Ce jeune commence au coucher du soleil (pour les jeunes de 25h) ou a l aube/alba (pour les jeunes de jour). Il se termine a la nuit tombee (apparition des etoiles). "
-    + "Recherche les horaires solaires precis pour "+ville+" a cette date. "
-    + "Reponds UNIQUEMENT en JSON valide sans markdown : "
-    + '{"ville":"'+ville+'","date":"'+dateFr+'","debut":"HH:MM","debut_label":"ex: coucher du soleil / aube","fin":"HH:MM","fin_label":"ex: nuit tombee / 3 etoiles visibles","duree_heures": nombre,"note":"info utile en 1 phrase si necessaire"}';
-
-  try{
-    var resp = await fetch("https://api.anthropic.com/v1/messages",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({
-        model:"claude-sonnet-4-6", max_tokens:600,
-        tools:[{type:"web_search_20250305",name:"web_search"}],
-        messages:[{role:"user",content:prompt}]
-      })
-    });
-    var data = await resp.json();
-    var txt = (data.content||[]).map(function(b){return b.type==='text'?b.text:'';}).filter(Boolean).join('\n');
-    var clean = txt.replace(/```json|```/g,'').trim();
-    var f = clean.indexOf('{'), l = clean.lastIndexOf('}');
-    if(f>=0 && l>f) clean = clean.slice(f,l+1);
-    var parsed = JSON.parse(clean);
-    ST.jeuneHoraires = parsed;
-    ST.jeuneError = null;
-    // Pré-remplir les overrides avec les valeurs trouvées
-    ST.jeuneDebutOverride = parsed.debut || '';
-    ST.jeuneFinOverride = parsed.fin || '';
-    // Stocker le nom du jeûne et la date sélectionnée
-    ST.jeuneSelectedNom = jeune.nom;
-    ST.jeuneSelectedDate = dateJeune;
-  }catch(e){
-    ST.jeuneError = "Impossible de récupérer les horaires. Vérifie ta connexion et réessaie.";
-    ST.jeuneHoraires = null;
-  }
-  ST.jeuneLoading = false;
-  renderJeunePage();
-}
-
-function activerJeune(){
-  var hr = ST.jeuneHoraires;
-  if(!hr) return;
-  ST.jeuneActif = true;
-  ST.jeuneNom = ST.jeuneSelectedNom || hr.nom || 'Jeûne';
-  ST.jeuneDebut = ST.jeuneDebutOverride || hr.debut || '';
-  ST.jeuneFin = ST.jeuneFinOverride || hr.fin || '';
-  ST.jeuneDate = ST.jeuneSelectedDate || parisDateStr();
-  S.set('jeuneState', JSON.stringify({
-    jeuneActif:true, jeuneNom:ST.jeuneNom,
-    jeuneDebut:ST.jeuneDebut, jeuneFin:ST.jeuneFin, jeuneDate:ST.jeuneDate
-  }));
-  renderJeunePage();
-}
-
 function renderNut(){
   const dayT = getDayTotals();
   const kPct = Math.min((dayT.k/getTargetKcal())*100, 100);
   const pPct = Math.min((dayT.p/TARGET_PROT)*100, 100);
-  let h = '';
-  h += renderJeuneBandeau();
 
-  // Si jeûne actif ET en cours → mode pause nutrition
-  if(ST.jeuneActif){
-    const ji = calcJeuneInfo();
-    if(ji.enCours){
-      h += `<div class="card" style="border-color:#8B5CF640;text-align:center;padding:24px">
-        <div style="font-size:32px;margin-bottom:8px">🕍</div>
-        <div style="font-size:14px;font-weight:800;color:#C4B5FD;margin-bottom:6px">Jeûne en cours</div>
-        <div style="font-size:11px;color:#9CA3AF;line-height:1.7">Le suivi nutritionnel est en pause.<br>Hydrate-toi bien si le jeûne le permet.</div>
-      </div>`;
-      document.getElementById('t-nutrition').innerHTML=h;
-      return;
-    }
-  }
+  let h = ``;
 
   // Toggle sport/repos
   h += `<div style="display:flex;gap:8px;margin-bottom:12px">
@@ -975,7 +623,7 @@ function renderNut(){
   </div>`;
 
   // Alerte 18h protéines
-  const nowH = parisHour();
+  const nowH = new Date().getHours();
   if(nowH >= 14 && nowH < 17){
     const protMissing = Math.max(0, TARGET_PROT - dayT.p);
     if(protMissing > 20){
@@ -999,11 +647,11 @@ function renderNut(){
     <div class="slbl">📊 Total journalier</div>
     <div style="display:flex;gap:7px;margin-bottom:8px">
       <div class="macbox"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Calories</div>
-        <div class="mval" style="color:${kPct>100?'#EF4444':'#F59E0B'}">${dayT.k}<span style="font-size:11px;color:#6B7280"> / ${getTargetKcal()}</span></div>
+        <div class="mval" style="color:${kPct>100?'#EF4444':'#F59E0B'}">${dayT.k}<span style="font-size:11px;color:#6B7280"> / ${getTargetKcal()}</span><span style="font-size:12px;font-weight:800;margin-left:5px;color:${kPct>100?'#EF4444':kPct>=80?'#10B981':'#F59E0B'}">${Math.round(kPct)}%</span></div>
         <div class="pb-bg" style="margin-top:5px"><div class="pb-fill" style="width:${kPct}%;background:${kPct>100?'#EF4444':'#F59E0B'}"></div></div>
       </div>
       <div class="macbox"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Protéines</div>
-        <div class="mval" style="color:${pPct>100?'#10B981':'#3B82F6'}">${dayT.p}g<span style="font-size:11px;color:#6B7280"> / ${TARGET_PROT}</span></div>
+        <div class="mval" style="color:${pPct>100?'#10B981':'#3B82F6'}">${dayT.p}g<span style="font-size:11px;color:#6B7280"> / ${TARGET_PROT}</span><span style="font-size:12px;font-weight:800;margin-left:5px;color:${pPct>100?'#10B981':pPct>=80?'#10B981':'#3B82F6'}">${Math.round(pPct)}%</span></div>
         <div class="pb-bg" style="margin-top:5px"><div class="pb-fill" style="width:${pPct}%;background:${pPct>100?'#10B981':'#3B82F6'}"></div></div>
       </div>
     </div>
@@ -1074,9 +722,8 @@ function renderNut(){
       </div>
     </div>`;
 
-  // Liste des aliments — top 10 les plus consommes pour ce repas (complete avec les valeurs par defaut si historique insuffisant)
-  const displayItems = getSlotDisplayItems(ST.nutSlot);
-  displayItems.forEach(item => {
+  // Liste des aliments
+  slot.items.forEach(item => {
     const isSelected = sel.hasOwnProperty(item.n);
     const qty = isSelected ? sel[item.n] : item.qty;
     const m = calcMacros(item.n, qty);
@@ -1154,36 +801,24 @@ function renderNut(){
       <div><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Glucides (g)</div><input type="number" id="custom-gluc" placeholder="ex: 8" min="0" step="0.1"></div>
       <div><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Lipides (g)</div><input type="number" id="custom-lip" placeholder="ex: 3" min="0" step="0.1"></div>
     </div>
-    <div style="display:flex;gap:6px">
-      <button onclick="addCustomItem('${ST.nutSlot}', true)" style="flex:1;padding:8px;border-radius:8px;border:none;background:#8B5CF6;color:#fff;font-size:11px;font-weight:600">💾 Enregistrer + journal</button>
-      <button onclick="addCustomItem('${ST.nutSlot}', false)" style="flex:1;padding:8px;border-radius:8px;border:1px solid #8B5CF6;background:transparent;color:#C4B5FD;font-size:11px;font-weight:600">📝 Journal seulement</button>
-    </div>
+    <button onclick="addCustomItem('${ST.nutSlot}')" style="width:100%;padding:8px;border-radius:8px;border:none;background:#8B5CF6;color:#fff;font-size:12px;font-weight:600">Ajouter l'aliment personnalisé ✓</button>
   </div>`;
 
   h += `</div>`;
 
   // Boutons permanents
-  h += '<div style="margin-bottom:6px">';
-  h += '<div style="font-size:10px;color:#6B7280;margin-bottom:6px">🔄 Reconfigurer le reste de la journée :</div>';
-  h += '<div style="display:flex;gap:6px">';
-  h += '<button data-slot="'+ST.nutSlot+'" data-variant="poisson" onclick="showRecoBtn(this)" style="flex:1;padding:10px 4px;border-radius:10px;border:none;background:linear-gradient(135deg,#0EA5E9,#06B6D4);color:#fff;font-size:11px;font-weight:800">🐟 Poisson</button>';
-  h += '<button data-slot="'+ST.nutSlot+'" data-variant="viande" onclick="showRecoBtn(this)" style="flex:1;padding:10px 4px;border-radius:10px;border:none;background:linear-gradient(135deg,#EF4444,#F97316);color:#fff;font-size:11px;font-weight:800">🥩 Viande</button>';
-  h += '<button data-slot="'+ST.nutSlot+'" data-variant="vegetal" onclick="showRecoBtn(this)" style="flex:1;padding:10px 4px;border-radius:10px;border:none;background:linear-gradient(135deg,#10B981,#65A30D);color:#fff;font-size:11px;font-weight:800">🌱 Végétal</button>';
-  h += '</div></div>';
-  h += '<button onclick="showAdvice24h()" style="width:100%;padding:12px 8px;border-radius:12px;border:1.5px solid #8B5CF6;background:#14141F;color:#C4B5FD;font-size:12px;font-weight:800;margin-bottom:12px">🧠 Conseils 24h suivantes</button>';
+  h += '<div style="display:flex;gap:8px;margin-bottom:12px">';
+  h += '<button data-slot="'+ST.nutSlot+'" onclick="showRecoBtn(this)" style="flex:1;padding:12px 8px;border-radius:12px;border:none;background:linear-gradient(135deg,#10B981,#3B82F6);color:#fff;font-size:12px;font-weight:800">🔄 Reconfigurer<br><span style=\'font-size:9px;font-weight:400;opacity:.8\'>le reste de la journée</span></button>';
+  h += '<button onclick="showAdvice24h()" style="flex:1;padding:12px 8px;border-radius:12px;border:1.5px solid #8B5CF6;background:#14141F;color:#C4B5FD;font-size:12px;font-weight:800">🧠 Conseils 24h<br><span style=\'font-size:9px;font-weight:400;opacity:.8\'>suivantes</span></button>';
+  h += '</div>';
 
   // Reco affichée
   if(ST.nutShowReco === ST.nutSlot){
-    const reco = genReco(ST.nutSlot, ST.nutRecoVariant || 'poisson');
-    const variantInfo = {
-      poisson: {lbl:'Plan Poisson', emoji:'🐟', color:'#06B6D4'},
-      viande: {lbl:'Plan Viande (sans laitage)', emoji:'🥩', color:'#EF4444'},
-      vegetal: {lbl:'Plan Végétal', emoji:'🌱', color:'#10B981'}
-    }[reco.variant] || {lbl:'Plan suggéré', emoji:'💡', color:'#10B981'};
+    const reco = genReco(ST.nutSlot);
     if(reco && reco.nextSlots && reco.nextSlots.length > 0){
-      h += `<div class="reco-card" style="border-color:${variantInfo.color}40">
-        <div style="font-weight:800;font-size:13px;color:${variantInfo.color};margin-bottom:10px">
-          ${variantInfo.emoji} ${variantInfo.lbl} — reste de la journée
+      h += `<div class="reco-card">
+        <div style="font-weight:800;font-size:13px;color:#10B981;margin-bottom:10px">
+          💡 Plan suggéré pour le reste de la journée
         </div>
         <div style="font-size:11px;color:#6EE7B7;margin-bottom:10px">
           Reste à manger : <b>${reco.resteK} kcal</b> · <b>${reco.resteP}g prot</b>
@@ -1206,7 +841,7 @@ function renderNut(){
         h += '</div>';
       });
       h += `<div style="display:flex;gap:8px;margin-top:10px">
-        <button data-slot="${ST.nutSlot}" data-variant="${reco.variant}" onclick="applyRecoBtn(this)" class="btn-g" style="flex:2">Appliquer ce plan ✓</button>
+        <button onclick="applyReco('${ST.nutSlot}')" class="btn-g" style="flex:2">Appliquer ce plan ✓</button>
         <button onclick="ST.nutShowReco=null;renderNut()" class="btn-s" style="flex:1">Ignorer</button>
       </div>
       </div>`;
@@ -1355,7 +990,7 @@ function renderNut(){
   h += '</div>';
 
   // Date selector + save button
-  const today = parisDateStr();
+  const today = new Date().toISOString().split('T')[0];
   const nutDate = ST.nutDate || today;
   const savedDay = (S.get('nutJournal')||{})[nutDate];
 
@@ -1370,23 +1005,10 @@ function renderNut(){
     ${savedDay ? `<div style="font-size:11px;color:#10B981;text-align:center">✓ Journée enregistrée — ${savedDay.totalK} kcal · ${savedDay.totalP}g prot</div>` : ''}
   </div>`;
 
-  // Bouton jeûne en bas de page
-  h += `<button onclick="openJeunePage()" style="width:100%;padding:11px;border-radius:11px;border:1px solid #2D2D3F;background:#14141F;color:#6B7280;font-size:12px;font-weight:700;margin-top:4px;margin-bottom:8px">🕍 Gérer un jeûne religieux</button>`;
-
   document.getElementById('t-nutrition').innerHTML = h;
 }
 
 function setNutSlot(s){ ST.nutSlot=s; ST.nutShowReco=null; renderNut(); }
-
-function openJeunePage(){
-  // Cache tous les tabs, affiche t-jeune
-  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('act'));
-  document.querySelectorAll('.nbtn').forEach(x=>x.classList.remove('act'));
-  document.getElementById('t-jeune').classList.add('act');
-  ST._activeTab = 'jeune';
-  window.scrollTo(0,0);
-  renderJeunePage();
-}
 
 function setNutDate(d){
   ST.nutDate = d;
@@ -1403,7 +1025,7 @@ function setNutDate(d){
 }
 
 function saveDay(){
-  const date = ST.nutDate || parisDateStr();
+  const date = ST.nutDate || new Date().toISOString().split('T')[0];
   const dayT = getDayTotals();
   const journal = S.get('nutJournal') || {};
   journal[date] = {
@@ -1430,50 +1052,6 @@ function togFood(slot, name, defaultQty){
   }
   ST.nutShowReco=null;
   renderNut();
-}
-
-// Calcule la liste des 10 aliments les plus frequemment consommes pour un repas donne,
-// a partir de l historique reel (nutJournal). Complete avec les valeurs par defaut
-// (MEAL_SLOTS) si l historique ne fournit pas encore 10 aliments distincts.
-// Recalculee a chaque ouverture de l app -> se met a jour automatiquement chaque jour.
-function getSlotDisplayItems(slotId){
-  var defaultItems = MEAL_SLOTS[slotId].items;
-  var journal = S.get('nutJournal') || {};
-  var counts = {};
-  Object.keys(journal).forEach(function(date){
-    var day = journal[date];
-    if(!day) return;
-    var sel = (day.selections && day.selections[slotId]) || {};
-    Object.keys(sel).forEach(function(name){
-      if(!counts[name]) counts[name] = {count:0, qtySum:0};
-      counts[name].count++;
-      counts[name].qtySum += parseFloat(sel[name])||0;
-    });
-    var manual = (day.manual && day.manual[slotId]) || [];
-    manual.forEach(function(mi){
-      if(!counts[mi.n]) counts[mi.n] = {count:0, qtySum:0};
-      counts[mi.n].count++;
-      counts[mi.n].qtySum += parseFloat(mi.qty)||0;
-    });
-  });
-  var ranked = Object.keys(counts).map(function(name){
-    var c = counts[name];
-    return {n:name, count:c.count, avgQty:Math.round(c.qtySum/c.count)||100};
-  });
-  ranked.sort(function(a,b){ return b.count - a.count; });
-  var top = ranked.slice(0, 10).map(function(r){ return {n:r.n, qty:r.avgQty}; });
-  // Complete avec les aliments par defaut si moins de 10 aliments dans l historique
-  if(top.length < 10){
-    var already = top.map(function(t){ return t.n; });
-    defaultItems.forEach(function(it){
-      if(top.length >= 10) return;
-      if(already.indexOf(it.n) < 0){
-        top.push({n:it.n, qty:it.qty});
-        already.push(it.n);
-      }
-    });
-  }
-  return top;
 }
 
 function updateQty(slot, name, val){
@@ -1504,31 +1082,24 @@ function removeManual(slot, idx){
   renderNut();
 }
 
-function showReco(slot, variant){ ST.nutShowReco=slot; ST.nutRecoVariant=variant||'poisson'; renderNut(); }
-function showRecoBtn(btn){ showReco(btn.getAttribute('data-slot'), btn.getAttribute('data-variant')); }
+function showReco(slot){ ST.nutShowReco=slot; renderNut(); }
+function showRecoBtn(btn){ showReco(btn.getAttribute('data-slot')); }
 
-function addCustomItem(slot, save){
+function addCustomItem(slot){
   var name = document.getElementById('custom-name').value.trim();
   var kcal = parseFloat(document.getElementById('custom-kcal').value);
   var prot = parseFloat(document.getElementById('custom-prot').value)||0;
   var gluc = parseFloat(document.getElementById('custom-gluc').value)||0;
   var lip  = parseFloat(document.getElementById('custom-lip').value)||0;
   if(!name || isNaN(kcal)) return;
-  if(save){
-    // Enregistré durablement dans "Mes aliments" (visible dans la liste déroulante)
-    ALIMENTS[name] = {k:kcal, p:prot, g:gluc, l:lip, emoji:'🍽️', cat:'Mes aliments'};
-    var custom = S.get('customAliments') || {};
-    custom[name] = {k:kcal, p:prot, g:gluc, l:lip};
-    S.set('customAliments', custom);
-    if(ALIMENT_CATS.indexOf('Mes aliments') < 0) ALIMENT_CATS.push('Mes aliments');
-  } else {
-    // Ajout ponctuel : pas dans "Mes aliments", mais gardé en arrière-plan pour que
-    // le journal (passé/futur) puisse toujours recalculer ses macros correctement
-    ALIMENTS[name] = {k:kcal, p:prot, g:gluc, l:lip, emoji:'🍽️', cat:'Journal'};
-    var journalOnly = S.get('journalOnlyAliments') || {};
-    journalOnly[name] = {k:kcal, p:prot, g:gluc, l:lip};
-    S.set('journalOnlyAliments', journalOnly);
-  }
+  // Add to ALIMENTS dynamically
+  ALIMENTS[name] = {k:kcal, p:prot, g:gluc, l:lip, emoji:'🍽️', cat:'Mes aliments'};
+  // Save to localStorage permanently
+  var custom = S.get('customAliments') || {};
+  custom[name] = {k:kcal, p:prot, g:gluc, l:lip};
+  S.set('customAliments', custom);
+  // Add cat to list if needed
+  if(ALIMENT_CATS.indexOf('Mes aliments') < 0) ALIMENT_CATS.unshift('Mes aliments');
   // Add to current slot
   if(!ST.nutManual[slot]) ST.nutManual[slot]=[];
   ST.nutManual[slot].push({n:name, qty:100});
@@ -1558,8 +1129,8 @@ function showAdvice24h(){
   renderNut();
 }
 
-function applyReco(slot, variant){
-  const reco = genReco(slot, variant || 'poisson');
+function applyReco(slot){
+  const reco = genReco(slot);
   if(!reco || !reco.nextSlots) return;
   reco.nextSlots.forEach(s=>{
     if(!ST.nutSelections[s]) ST.nutSelections[s]={};
@@ -1570,15 +1141,13 @@ function applyReco(slot, variant){
   ST.nutShowReco=null;
   renderNut();
 }
-function applyRecoBtn(btn){ applyReco(btn.getAttribute('data-slot'), btn.getAttribute('data-variant')); }
 
 // ─── SEMAINE ─────────────────────────────────────────────────────────────────
 function renderSem(){
   const p=PROGS[ST.week-1];
   const tmpl=p.vacances?WEEK_VAC:WEEK;
   const j=S.get('journal')||{};
-  let h = renderJeuneBandeau();
-  h+=`<div style="margin-bottom:14px"><div class="slbl">Semaine</div><div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px">`;
+  let h=`<div style="margin-bottom:14px"><div class="slbl">Semaine</div><div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px">`;
   PROGS.forEach(wp=>{
     const cls=['wbtn',wp.week===ST.week?'act':'',wp.decharge?'decharge':wp.vacances?'vacances':''].join(' ');
     h+=`<button class="${cls}" onclick="selW(${wp.week})" style="position:relative">${wp.week}${wp.decharge?'<span style="position:absolute;top:-4px;right:-4px;font-size:8px">🔄</span>':wp.vacances?'<span style="position:absolute;top:-4px;right:-4px;font-size:8px">🏖️</span>':''}</button>`;
@@ -1720,32 +1289,50 @@ function selEcBtn(btn){
 function renderTr(){
   const wl=S.get('wLog')||[];
   const il=S.get('iLog')||[];
-  let h=renderJeuneBandeau();
-  h+='<div class="pill-row">';
-  [{k:'impedance',l:'Impédance',e:'📊'},{k:'gras',l:'Perte gras',e:'🔥'},{k:'conseils',l:'Conseils',e:'💡'}].forEach(function(t){
+  let h='<div class="pill-row">';
+  [{k:'poids',l:'Poids',e:'⚖️'},{k:'impedance',l:'Impédance',e:'📊'},{k:'gras',l:'Perte gras',e:'🔥'},{k:'conseils',l:'Conseils',e:'💡'}].forEach(function(t){
     h+='<button class="pill '+(ST.trTab===t.k?'act':'')+'" data-tab="'+t.k+'" onclick="setTTBtn(this)"><div class="pe">'+t.e+'</div><div class="pl">'+t.l+'</div></button>';
   });
   h+='</div>';
 
+  // ── POIDS ──────────────────────────────────────────────────────────────────
+  if(ST.trTab==='poids'){
+    const last=wl.length?wl[wl.length-1]:null;
+    const first=wl.length>1?wl[0]:null;
+    const diff=last&&first?(last.p-first.p).toFixed(1):null;
+    h+='<div style="display:flex;gap:7px;margin-bottom:14px">';
+    h+='<div class="sbox"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Poids actuel</div><div style="font-size:22px;font-weight:800">'+( last?last.p:'—')+'<span style="font-size:12px;color:#6B7280"> kg</span></div></div>';
+    h+='<div class="sbox"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Variation</div><div style="font-size:22px;font-weight:800;color:'+(diff===null?'#6B7280':parseFloat(diff)<0?'#10B981':'#EF4444')+'">'+(diff!==null?(parseFloat(diff)<0?diff:'+'+diff):'—')+'<span style="font-size:12px;color:#6B7280"> kg</span></div></div>';
+    h+='<div class="sbox"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Objectif</div><div style="font-size:22px;font-weight:800;color:#3B82F6">−4<span style="font-size:12px;color:#6B7280"> kg</span></div></div>';
+    h+='</div>';
+    if(wl.length>1){
+      const cMax=Math.max.apply(null,wl.map(function(w){return w.p;}))+1;
+      const cMin=Math.min.apply(null,wl.map(function(w){return w.p;}))-1;
+      const tgtY=last?((cMax-(last.p-4))/(cMax-cMin))*80+5:50;
+      const pts=wl.map(function(w,i){var x=(i/(wl.length-1))*290+5,y=((cMax-w.p)/(cMax-cMin))*80+5;return x+','+y;}).join(' ');
+      const circles=wl.map(function(w,i){var x=(i/(wl.length-1))*290+5,y=((cMax-w.p)/(cMax-cMin))*80+5;return '<circle cx="'+x+'" cy="'+y+'" r="4" fill="#3B82F6" stroke="#0F0F1A" stroke-width="2"/>';}).join('');
+      h+='<div class="card"><div class="slbl">Courbe de poids</div>';
+      h+='<svg width="100%" height="100" viewBox="0 0 300 100"><line x1="0" y1="'+tgtY+'" x2="300" y2="'+tgtY+'" stroke="#10B98150" stroke-width="1" stroke-dasharray="4,3"/><polyline points="'+pts+'" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'+circles+'</svg>';
+      h+='<div style="display:flex;justify-content:space-between;margin-top:4px"><span style="font-size:9px;color:#4B5563">'+wl[0].d+'</span><span style="font-size:9px;color:#10B981">— objectif −4 kg</span><span style="font-size:9px;color:#4B5563">'+wl[wl.length-1].d+'</span></div></div>';
+    }
+    h+='<div class="card"><div class="slbl">Ajouter une mesure</div>';
+    h+='<div style="display:flex;gap:8px;margin-bottom:8px"><input type="date" id="wd" style="flex:1"><input type="number" id="wv" placeholder="kg" step="0.1" style="width:70px"></div>';
+    h+='<button class="btn-p" onclick="addW()">Ajouter ✓</button></div>';
+    if(wl.length){
+      const dow=new Date().getDay();
+      if(dow===1||dow===5) h+='<div style="padding:9px 12px;border-radius:9px;background:#1E3A5F;border:1px solid #3B82F640;font-size:11px;color:#93C5FD;margin-bottom:10px">⚖️ <b>Rappel</b> — Aujourd-hui: jour de pesée ! Rentre ton poids ci-dessus.</div>';
+      h+='<div class="card"><div class="slbl">Historique</div>';
+      [...wl].reverse().slice(0,10).forEach(function(w){ h+='<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #2D2D3F"><span style="font-size:11px;color:#9CA3AF">'+w.d+'</span><span style="font-size:12px;font-weight:700">'+w.p+' kg</span></div>'; });
+      h+='</div>';
+    } else {
+      h+='<div class="gbox">💡 Commence le monitoring dès le lundi 22 juin — pèse-toi <b>lundi et vendredi matin</b>, à jeun, après les toilettes.</div>';
+    }
+
   // ── IMPÉDANCE ──────────────────────────────────────────────────────────────
-  if(ST.trTab==='impedance'){
-    const dow=parisDay();
-    if(dow===1||dow===5) h+='<div style="padding:9px 12px;border-radius:9px;background:#1E3A5F;border:1px solid #3B82F640;font-size:11px;color:#93C5FD;margin-bottom:10px">⚖️ <b>Rappel</b> — Aujourd-hui: jour de pesée ! Pense à ta mesure.</div>';
+  } else if(ST.trTab==='impedance'){
     if(!il.length){
       h+='<div class="gbox">💡 Commence la balance à impédance dès le 22 juin.</div>';
     } else {
-      // Courbe de poids (fenêtre dédiée)
-      if(il.length>1){
-        const cMax=Math.max.apply(null,il.map(function(r){return parseFloat(r.p)||0;}))+1;
-        const cMin=Math.min.apply(null,il.map(function(r){return parseFloat(r.p)||0;}))-1;
-        const lastPCurve=parseFloat(il[il.length-1].p)||0;
-        const tgtY=((cMax-(lastPCurve-4))/(cMax-cMin))*80+5;
-        const ptsW=il.map(function(r,i){var x=(i/(il.length-1))*290+5,y=((cMax-(parseFloat(r.p)||0))/(cMax-cMin))*80+5;return x+','+y;}).join(' ');
-        const circlesW=il.map(function(r,i){var x=(i/(il.length-1))*290+5,y=((cMax-(parseFloat(r.p)||0))/(cMax-cMin))*80+5;return '<circle cx="'+x+'" cy="'+y+'" r="4" fill="#10B981" stroke="#0F0F1A" stroke-width="2"/>';}).join('');
-        h+='<div class="card"><div class="slbl">Courbe de poids</div>';
-        h+='<svg width="100%" height="100" viewBox="0 0 300 100"><line x1="0" y1="'+tgtY+'" x2="300" y2="'+tgtY+'" stroke="#10B98150" stroke-width="1" stroke-dasharray="4,3"/><polyline points="'+ptsW+'" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'+circlesW+'</svg>';
-        h+='<div style="display:flex;justify-content:space-between;margin-top:4px"><span style="font-size:9px;color:#4B5563">'+il[0].d+'</span><span style="font-size:9px;color:#10B981">— objectif −4 kg</span><span style="font-size:9px;color:#4B5563">'+il[il.length-1].d+'</span></div></div>';
-      }
       // Dernière mesure
       const last=il[il.length-1];
       const imcCalc=last.p?(parseFloat(last.p)/(1.85*1.85)).toFixed(1):'—';
@@ -1884,6 +1471,8 @@ function renderTr(){
   } else {
     const lastI=il.length?il[il.length-1]:null;
     const firstI=il.length>1?il[0]:null;
+    const lastW=wl.length?wl[wl.length-1]:null;
+    const firstW=wl.length>1?wl[0]:null;
     var grasDiff=null,muscDiff=null,poidsTotal=null;
     if(lastI&&firstI){
       var mgKgS=(parseFloat(firstI.mg)||0)/100*(parseFloat(firstI.p)||86);
@@ -1892,8 +1481,8 @@ function renderTr(){
       var mmKgS=(parseFloat(firstI.mm)||0)/100*(parseFloat(firstI.p)||86);
       var mmKgE=(parseFloat(lastI.mm)||0)/100*(parseFloat(lastI.p)||86);
       muscDiff=(mmKgE-mmKgS).toFixed(1);
-      poidsTotal=((parseFloat(lastI.p)||0)-(parseFloat(firstI.p)||0)).toFixed(1);
     }
+    if(lastW&&firstW) poidsTotal=(lastW.p-firstW.p).toFixed(1);
     // Objectif : 3 kg de gras perdu (plus réaliste sur 10 semaines)
     var grasPct=grasDiff?Math.min(Math.abs(parseFloat(grasDiff))/4*100,100):0;
     var dashArray=grasPct*3.14;
@@ -1912,14 +1501,13 @@ function renderTr(){
 
     h+='<div style="display:flex;gap:7px;margin-bottom:12px">';
     h+='<div class="sbox" style="border:1px solid #EF444430"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Gras perdu</div><div style="font-size:20px;font-weight:800;color:#EF4444">'+(grasDiff!==null?grasDiff:'—')+'<span style="font-size:11px;color:#6B7280"> kg</span></div></div>';
-    h+='<div class="sbox" style="border:1px solid '+(muscDiff!==null&&parseFloat(muscDiff)<0?'#EF444430':'#3B82F630')+'"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Muscle gagné</div><div style="font-size:20px;font-weight:800;color:'+(muscDiff!==null&&parseFloat(muscDiff)<0?'#EF4444':'#3B82F6')+'">'+(muscDiff!==null?(parseFloat(muscDiff)>=0?'+':'')+muscDiff:'—')+'<span style="font-size:11px;color:#6B7280"> kg</span></div></div>';
+    h+='<div class="sbox" style="border:1px solid #3B82F630"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Muscle gagné</div><div style="font-size:20px;font-weight:800;color:#3B82F6">'+(muscDiff!==null?(parseFloat(muscDiff)>=0?'+':'')+muscDiff:'—')+'<span style="font-size:11px;color:#6B7280"> kg</span></div></div>';
     h+='<div class="sbox" style="border:1px solid #6B728030"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Poids total</div><div style="font-size:20px;font-weight:800;color:'+(poidsTotal===null?'#6B7280':parseFloat(poidsTotal)<0?'#10B981':'#EF4444')+'">'+(poidsTotal!==null?(parseFloat(poidsTotal)<0?poidsTotal:'+'+poidsTotal):'—')+'<span style="font-size:11px;color:#6B7280"> kg</span></div></div>';
     h+='</div>';
 
     if(grasDiff!==null){
       var msg='';
       if(parseFloat(grasDiff)<0&&parseFloat(muscDiff||0)>=0) msg='✅ <b style="color:#10B981">Recomposition en cours !</b> Tu perds du gras tout en maintenant ou gagnant du muscle.';
-      else if(parseFloat(muscDiff||0)<0) msg='⚠️ <b style="color:#EF4444">Perte de masse musculaire detectee.</b> Voir les conseils ci-dessous pour comprendre pourquoi et corriger le tir.';
       else if(parseFloat(grasDiff)<0) msg='📉 Tu perds du gras — bonne trajectoire. Surveille la masse musculaire.';
       else msg='⏳ Continue — les premières semaines sont souvent silencieuses.';
       h+='<div style="padding:10px 12px;border-radius:9px;background:#14141F;font-size:11px;color:#D1D5DB;line-height:1.7;margin-bottom:12px">'+msg+'</div>';
@@ -1927,48 +1515,18 @@ function renderTr(){
       h+='<div class="gbox" style="margin-bottom:12px">💡 Commence tes mesures le 22 juin. Le cercle se remplira au fur et à mesure.</div>';
     }
 
-    h+='</div>';
 
-    // ── INDICATEUR PROBLEMATIQUE : perte de masse musculaire ──────────────────
-    if(muscDiff!==null && parseFloat(muscDiff)<0){
-      if(!ST.muscleConseilsShown || ST.muscleConseilsShown.length===0){
-        ST.muscleConseilsShown = pickMuscleConseils(5, []);
-      }
-      var mItems = MUSCLE_LOSS_CONSEILS.filter(function(c){ return ST.muscleConseilsShown.indexOf(c.id)>=0; });
-      h+='<div class="card" style="border:1px solid #EF444440">';
-      h+='<div class="slbl" style="color:#EF4444">⚠️ Pourquoi tu perds du muscle (malgré des protéines suffisantes)</div>';
-      h+='<div style="font-size:10px;color:#6B7280;margin-bottom:10px">5 pistes tirées d une base de '+MUSCLE_LOSS_CONSEILS.length+' conseils — les protéines ne sont qu un facteur parmi d autres.</div>';
-      mItems.forEach(function(c){
-        h+='<div style="background:#1E1E2E;border-radius:12px;padding:12px;margin-bottom:8px;border-left:3px solid #EF4444">';
-        h+='<div style="font-size:11px;font-weight:700;color:#F1F1F5;margin-bottom:5px">'+c.emoji+' '+c.titre+'</div>';
-        h+='<div style="font-size:10.5px;color:#9CA3AF;line-height:1.6">'+c.txt+'</div>';
-        h+='</div>';
-      });
-      h+='<button onclick="loadMuscleConseils()" style="width:100%;padding:12px;border-radius:11px;border:1.5px solid #EF444460;background:#1A1420;color:#FCA5A5;font-size:12px;font-weight:700;margin-top:4px">🔄 Nouveaux conseils</button>';
-      h+='</div>';
-    }
+
+    h+='</div>';
   }
 
   // ── CONSEILS TAB ────────────────────────────────────────────────────────
   if(ST.trTab==='conseils'){
     var data = computeConseilsData();
-    // Rotation 24h : un conseil aleatoire par categorie, change chaque jour a minuit
-    var todayKey = parisDateStr();
-    var savedDay = S.get('conseilsDay');
-    if(!ST.conseilsShown || ST.conseilsShown.length === 0 || savedDay !== todayKey){
-      // Nouveau tirage : 1 conseil aleatoire par categorie
-      var dailyItems = [];
-      CONSEIL_CATS.forEach(function(cat){
-        var catItems = ALL_CONSEILS.filter(function(c){ return c.cat === cat; });
-        if(!catItems.length) return;
-        // Tirage pondere par score + aleatoire
-        catItems.sort(function(a,b){
-          return (b.score(data) + Math.random()*5) - (a.score(data) + Math.random()*5);
-        });
-        dailyItems.push(catItems[0].id);
-      });
-      ST.conseilsShown = dailyItems;
-      S.set('conseilsDay', todayKey);
+    // Init shown conseils if empty
+    if(!ST.conseilsShown || ST.conseilsShown.length === 0){
+      ST.conseilsShown = getTopConseils([]).map(function(c){return c.id;});
+      ST.conseilsMode = 'top'; // 'top' or 'random'
     }
     var shownItems = ALL_CONSEILS.filter(function(c){ return ST.conseilsShown.indexOf(c.id) >= 0; });
     // Sort by category order
@@ -1978,10 +1536,7 @@ function renderTr(){
 
     // Header
     h += '<div style="margin-bottom:14px">';
-    h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
-    h += '<div style="font-size:13px;color:#9CA3AF;line-height:1.5">6 conseils du jour — renouvellement automatique a minuit.</div>';
-    h += '<div style="font-size:9px;color:#4B5563;white-space:nowrap;margin-left:8px">'+ALL_CONSEILS.length+' conseils en base</div>';
-    h += '</div>';
+    h += '<div style="font-size:13px;color:#9CA3AF;line-height:1.5;margin-bottom:10px">Conseils selectionnes en fonction de ton programme, ta nutrition et ton suivi.</div>';
 
     // Context chips
     if(data.avgProt < 150) h += '<div style="display:inline-block;padding:4px 10px;border-radius:20px;background:#3B82F622;border:1px solid #3B82F640;font-size:10px;color:#93C5FD;margin-bottom:8px;margin-right:6px">⚠ Proteines moyennes basses : '+Math.round(data.avgProt)+'g</div>';
@@ -2012,40 +1567,18 @@ function renderTr(){
 }
 function setTT(t){
   ST.trTab=t;
+  if(t==='conseils' && (!ST.conseilsShown || ST.conseilsShown.length===0)){
+    ST.conseilsShown = getTopConseils([]).map(function(c){return c.id;});
+  }
   renderTr();
 }
 
 function loadMoreConseils(){
-  var data = computeConseilsData();
   var current = ST.conseilsShown || [];
-  var newItems = [];
-  CONSEIL_CATS.forEach(function(cat){
-    var catItems = ALL_CONSEILS.filter(function(c){ return c.cat === cat && current.indexOf(c.id) < 0; });
-    // Si tous les conseils de cette cat ont ete vus, reprendre depuis le debut (hors affichage courant)
-    if(!catItems.length){
-      catItems = ALL_CONSEILS.filter(function(c){ return c.cat === cat; });
-    }
-    if(!catItems.length) return;
-    catItems.sort(function(a,b){
-      return (b.score(data) + Math.random()*5) - (a.score(data) + Math.random()*5);
-    });
-    newItems.push(catItems[0].id);
-  });
-  ST.conseilsShown = newItems;
-  // On ne met PAS a jour conseilsDay — le tirage du jour reste valide jusqu a minuit
-  renderTr();
-}
-
-function pickMuscleConseils(count, excluded){
-  var pool = MUSCLE_LOSS_CONSEILS.filter(function(c){ return excluded.indexOf(c.id) < 0; });
-  if(pool.length < count) pool = MUSCLE_LOSS_CONSEILS.slice(); // repart de zero si epuise
-  var shuffled = pool.slice().sort(function(){ return Math.random() - 0.5; });
-  return shuffled.slice(0, count).map(function(c){ return c.id; });
-}
-
-function loadMuscleConseils(){
-  var current = ST.muscleConseilsShown || [];
-  ST.muscleConseilsShown = pickMuscleConseils(5, current);
+  var newItems = getRandomConseils(current, 3);
+  var newIds = newItems.map(function(c){return c.id;});
+  // Replace shown with new random ones (keep the concept fresh)
+  ST.conseilsShown = newIds;
   renderTr();
 }
 function setTTBtn(btn){setTT(btn.getAttribute('data-tab'));}
@@ -2076,108 +1609,13 @@ function delImpedance(btn){
   renderTr();
 }
 
-// ─── ANALYSE VOLUME MUSCULAIRE ─────────────────────────────────────────────────
-const MUSCLE_GROUPS_FR = ["Dos","Pectoraux","Épaules","Biceps","Triceps","Jambes","Abdos / Gainage"];
-
-// Mots-clés (FR + EN courants) -> groupe standardisé. Sert à classer un libellé musculaire libre.
-const MUSCLE_KEYWORDS = {
-  "Dos": ["dos","dorsal","dorsaux","lat","latissimus","rhomboïde","rhomboide","trapèze","trapeze","rowing","row","pulldown","traction","tirage","back"],
-  "Pectoraux": ["pectoraux","pec","chest","pectoral","développé couché","developpe couche","press"],
-  "Épaules": ["épaule","epaule","deltoïde","deltoide","shoulder","militaire","élévation","elevation"],
-  "Biceps": ["biceps","curl","brachial"],
-  "Triceps": ["triceps","dips","extension"],
-  "Jambes": ["quadriceps","quadri","ischio","fessier","mollet","jambe","squat","leg","fente","cuisse"],
-  "Abdos / Gainage": ["abdo","abdominal","gainage","transverse","planche","core","crunch"],
-};
-
-function classifyMuscleText(text){
-  if(!text) return [];
-  var lower = text.toLowerCase();
-  var found = [];
-  MUSCLE_GROUPS_FR.forEach(function(group){
-    var kws = MUSCLE_KEYWORDS[group];
-    for(var i=0;i<kws.length;i++){
-      if(lower.indexOf(kws[i]) >= 0){ found.push(group); break; }
-    }
-  });
-  return found;
-}
-
-// Récupère TOUS les exercices connus du programme (A, B, V) avec leur texte muscles
-function getProgramExerciseMuscles(){
-  var map = {};
-  ['A','B','V'].forEach(function(k){
-    (SEANCES[k]||[]).forEach(function(ex){ map[ex.name] = ex.muscles; });
-  });
-  return map;
-}
-
-// Combine journal de séance (programme) + journal libre pour calculer le volume
-// par groupe musculaire sur les N dernières semaines / jours
-function computeMuscleVolume(){
-  var progMuscles = getProgramExerciseMuscles();
-  var counts = {}; MUSCLE_GROUPS_FR.forEach(function(g){ counts[g]=0; });
-  var exerciseHits = {}; // nom exercice -> nb d'occurrences, pour debug/affichage
-
-  // 1) Journal de séance structuré (w{week}-d{day})
-  var sessionJournal = S.get('journal') || {};
-  Object.keys(sessionJournal).forEach(function(key){
-    var entry = sessionJournal[key];
-    if(!entry || !entry.done) return;
-    Object.keys(entry).forEach(function(exName){
-      if(exName==='done' || exName==='ressenti' || exName==='notes') return;
-      var muscleTxt = progMuscles[exName];
-      if(!muscleTxt) return; // pas un nom d'exercice connu
-      var groups = classifyMuscleText(muscleTxt);
-      groups.forEach(function(g){ counts[g] = (counts[g]||0) + 1; });
-      exerciseHits[exName] = (exerciseHits[exName]||0) + 1;
-    });
-  });
-
-  // 2) Journal libre (exercices hors-programme notés manuellement)
-  var freeLog = S.get('freeExLog') || [];
-  freeLog.forEach(function(e){
-    var groups = classifyMuscleText(e.muscles || e.nom || '');
-    groups.forEach(function(g){ counts[g] = (counts[g]||0) + 1; });
-    exerciseHits[e.nom] = (exerciseHits[e.nom]||0) + 1;
-  });
-
-  return {counts: counts, exerciseHits: exerciseHits, freeLogCount: freeLog.length};
-}
-
-function getWeakestMuscleGroups(priorityGroups){
-  var vol = computeMuscleVolume();
-  var arr = MUSCLE_GROUPS_FR.map(function(g){ return {group:g, count:vol.counts[g]||0}; });
-  // Priorité : Dos et haut du corps comptent double dans le tri (plus sensibles aux trous)
-  var priority = priorityGroups || ["Dos","Épaules","Pectoraux","Biceps","Triceps"];
-  arr.sort(function(a,b){
-    var aw = (priority.indexOf(a.group)>=0 ? a.count*0.7 : a.count);
-    var bw = (priority.indexOf(b.group)>=0 ? b.count*0.7 : b.count);
-    return aw - bw;
-  });
-  return {sorted: arr, raw: vol};
-}
-
-
+// ─── EXERCICES ───────────────────────────────────────────────────────────────
 function renderEx(){
-  let h=renderJeuneBandeau();
-  h+='<div style="display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap">';
-  [{k:'A',l:'Séance A',s:'Bas + Tirage',c:'#3B82F6'},{k:'B',l:'Séance B',s:'Haut + Poussée',c:'#EF4444'},{k:'V',l:'Vacances',s:'Poids corps',c:'#10B981'},{k:'M',l:'🔧 Ma machine',s:'Identifier',c:'#8B5CF6'},{k:'C',l:'📓 Carnet',s:'Volume musculaire',c:'#F59E0B'}].forEach(function(t){
-    h+='<button onclick="setET(\''+t.k+'\')" style="flex:1;min-width:70px;padding:9px 4px;border-radius:11px;border:1.5px solid '+(ST.exTab===t.k?t.c:'#2D2D3F')+';background:'+(ST.exTab===t.k?t.c+'22':'#1E1E2E')+';text-align:center"><div style="font-size:11px;font-weight:700;color:'+(ST.exTab===t.k?t.c:'#9CA3AF')+'">'+t.l+'</div><div style="font-size:9px;color:#6B7280">'+t.s+'</div></button>';
+  let h='<div style="display:flex;gap:7px;margin-bottom:14px">';
+  [{k:'A',l:'Séance A',s:'Bas + Tirage',c:'#3B82F6'},{k:'B',l:'Séance B',s:'Haut + Poussée',c:'#EF4444'},{k:'V',l:'Vacances',s:'Poids corps',c:'#10B981'}].forEach(function(t){
+    h+='<button onclick="setET(\''+t.k+'\')" style="flex:1;padding:9px 4px;border-radius:11px;border:1.5px solid '+(ST.exTab===t.k?t.c:'#2D2D3F')+';background:'+(ST.exTab===t.k?t.c+'22':'#1E1E2E')+';text-align:center"><div style="font-size:11px;font-weight:700;color:'+(ST.exTab===t.k?t.c:'#9CA3AF')+'">'+t.l+'</div><div style="font-size:9px;color:#6B7280">'+t.s+'</div></button>';
   });
   h+='</div>';
-
-  if(ST.exTab === 'M'){
-    h += renderMachineFinder();
-    document.getElementById('t-exercices').innerHTML=h;
-    return;
-  }
-
-  if(ST.exTab === 'C'){
-    h += renderCarnet();
-    document.getElementById('t-exercices').innerHTML=h;
-    return;
-  }
 
   SEANCES[ST.exTab].forEach(function(ex, gi){
     const open = ST.exOpen===gi;
@@ -2209,274 +1647,6 @@ function renderEx(){
   });
   document.getElementById('t-exercices').innerHTML=h;
 }
-// ─── MACHINE FINDER (IA) ───────────────────────────────────────────────────────
-const MACHINE_BRANDS = ["Technogym","Hammer Strength","Cybex","Life Fitness","Matrix","Panatta","Gym80","Nautilus","Precor","Star Trac","Autre / je ne sais pas"];
-
-function renderMachineFinder(){
-  var brand = ST.machBrand || '';
-  var name = ST.machName || '';
-  var h = '<div class="card">';
-  h += '<div class="slbl">🔧 Identifier une machine de salle</div>';
-  h += '<div style="font-size:11px;color:#9CA3AF;line-height:1.6;margin-bottom:12px">Indique la marque et le nom inscrit sur la machine — je cherche son rôle musculaire et te propose séries / répétitions / charge de départ adaptées à ton programme.</div>';
-
-  h += '<div style="margin-bottom:8px"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Marque</div>';
-  h += '<select id="mach-brand" onchange="ST.machBrand=this.value">';
-  h += '<option value="">Choisir une marque...</option>';
-  MACHINE_BRANDS.forEach(function(b){
-    h += '<option value="'+b+'"'+(brand===b?' selected':'')+'>'+b+'</option>';
-  });
-  h += '</select></div>';
-
-  h += '<div style="margin-bottom:10px"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Nom de la machine (tel qu écrit dessus)</div>';
-  h += '<input type="text" id="mach-name" placeholder="ex: Chest Press, Leg Press 45°, Vertical Traction..." value="'+name.replace(/"/g,'&quot;')+'" oninput="ST.machName=this.value">';
-  h += '</div>';
-
-  h += '<button onclick="identifyMachine()" id="mach-btn" style="width:100%;padding:11px;border-radius:10px;border:none;background:linear-gradient(135deg,#8B5CF6,#3B82F6);color:#fff;font-size:13px;font-weight:700">🔍 Identifier et générer le plan</button>';
-  h += '</div>';
-
-  if(ST.machLoading){
-    h += '<div class="card" style="text-align:center;padding:24px"><div style="font-size:12px;color:#9CA3AF">🔎 Recherche en cours...</div></div>';
-  }
-
-  if(ST.machError){
-    h += '<div class="card" style="border-color:#EF444450"><div style="font-size:12px;color:#EF4444">⚠ '+ST.machError+'</div></div>';
-  }
-
-  if(ST.machResult){
-    var r = ST.machResult;
-    h += '<div class="card" style="border-left:4px solid #8B5CF6">';
-    h += '<div style="font-weight:800;font-size:14px;color:#F1F1F5;margin-bottom:4px">'+(r.nom||name)+'</div>';
-    h += '<div style="font-size:10px;color:#8B5CF6;font-weight:700;margin-bottom:10px">'+(r.marque||brand)+'</div>';
-    h += '<div style="font-size:9px;color:#6B7280;margin-bottom:3px">🎯 Muscles cibles</div>';
-    h += '<div style="font-size:12px;color:#D1D5DB;margin-bottom:10px">'+(r.muscles||'—')+'</div>';
-    h += '<div style="display:flex;gap:7px;margin-bottom:10px">';
-    h += '<div class="sbox"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Séries × reps</div><div style="font-size:15px;font-weight:800;color:#8B5CF6">'+(r.sets||'—')+'</div></div>';
-    h += '<div class="sbox"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Charge de départ</div><div style="font-size:15px;font-weight:800;color:#8B5CF6">'+(r.charge||'—')+'</div></div>';
-    h += '<div class="sbox"><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Repos</div><div style="font-size:15px;font-weight:800;color:#8B5CF6">'+(r.repos||'—')+'</div></div>';
-    h += '</div>';
-    if(r.execution){
-      h += '<div style="font-size:9px;color:#6B7280;margin-bottom:3px">📋 Exécution</div>';
-      h += '<div style="font-size:11px;color:#9CA3AF;line-height:1.7;margin-bottom:10px">'+r.execution+'</div>';
-    }
-    if(r.conseil){
-      h += '<div class="gbox" style="margin-top:4px">💡 '+r.conseil+'</div>';
-    }
-    h += '</div>';
-  }
-
-  return h;
-}
-
-async function identifyMachine(){
-  var brand = ST.machBrand || '';
-  var name = (ST.machName || '').trim();
-  if(!name){
-    ST.machError = 'Indique au moins le nom de la machine.';
-    ST.machResult = null;
-    renderEx();
-    return;
-  }
-  ST.machLoading = true;
-  ST.machError = null;
-  ST.machResult = null;
-  renderEx();
-
-  var prompt = "Tu es coach de musculation. Identifie cette machine de salle de sport : marque \"" + (brand||"inconnue") + "\", nom \"" + name + "\". " +
-    "Si besoin, utilise la recherche web pour confirmer le role exact de cette machine specifique a cette marque. " +
-    "Le profil de l utilisateur : David, endodontiste, 86kg, 1m85, objectif perte de gras + maintien muscle, programme de musculation 2x/semaine en cours (seance haut du corps et seance bas du corps + tirage), niveau intermediaire. " +
-    "Reponds UNIQUEMENT en JSON valide, sans markdown, sans texte autour, avec exactement ces champs : " +
-    '{"nom": "nom complet de la machine", "marque": "marque", "muscles": "muscles cibles principaux et secondaires", "sets": "ex: 3x12", "charge": "charge de depart suggeree pour un homme intermediaire de 86kg, en kg ou en niveau machine", "repos": "ex: 90 sec", "execution": "description courte de l execution en 2-3 phrases", "conseil": "un conseil specifique a cette machine en 1 phrase"}';
-
-  try{
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 1000,
-        messages: [{ role: "user", content: prompt }],
-        tools: [{ type: "web_search_20250305", name: "web_search" }]
-      })
-    });
-    const data = await response.json();
-    var fullText = (data.content||[]).map(function(b){ return b.type==='text'?b.text:''; }).filter(Boolean).join('\n');
-    var clean = fullText.replace(/```json|```/g,'').trim();
-    var firstBrace = clean.indexOf('{');
-    var lastBrace = clean.lastIndexOf('}');
-    if(firstBrace>=0 && lastBrace>firstBrace) clean = clean.slice(firstBrace, lastBrace+1);
-    var parsed = JSON.parse(clean);
-    ST.machResult = parsed;
-    ST.machError = null;
-  }catch(err){
-    ST.machError = "Impossible d identifier cette machine pour le moment. Reessaie ou precise mieux le nom.";
-    ST.machResult = null;
-  }
-  ST.machLoading = false;
-  renderEx();
-}
-
-// ─── CARNET : journal libre + analyse de volume musculaire ─────────────────────
-function renderCarnet(){
-  var analysis = getWeakestMuscleGroups();
-  var counts = analysis.raw.counts;
-  var maxCount = Math.max.apply(null, MUSCLE_GROUPS_FR.map(function(g){return counts[g]||0;}).concat([1]));
-  var groupColors = {"Dos":"#10B981","Pectoraux":"#EF4444","Épaules":"#06B6D4","Biceps":"#F59E0B","Triceps":"#8B5CF6","Jambes":"#3B82F6","Abdos / Gainage":"#6B7280"};
-  var groupEmoji = {"Dos":"🔙","Pectoraux":"🫁","Épaules":"🤷","Biceps":"💪","Triceps":"🦾","Jambes":"🦵","Abdos / Gainage":"🧱"};
-
-  var h = '<div class="card">';
-  h += '<div class="slbl">📊 Volume par groupe musculaire</div>';
-  h += '<div style="font-size:10px;color:#6B7280;margin-bottom:10px;line-height:1.5">Calculé sur ton journal de séance (programme) + ton carnet libre. Priorité donnée au dos et au haut du corps.</div>';
-
-  MUSCLE_GROUPS_FR.forEach(function(g){
-    var c = counts[g]||0;
-    var pct = Math.round((c/maxCount)*100);
-    var isPriority = ["Dos","Épaules","Pectoraux","Biceps","Triceps"].indexOf(g)>=0;
-    h += '<div class="pb-wrap">';
-    h += '<div class="pb-lbl"><span style="font-size:11px;color:#9CA3AF">'+groupEmoji[g]+' '+g+(isPriority?' <span style="color:#F59E0B;font-size:9px">★</span>':'')+'</span><span style="font-size:10px;font-weight:700;color:'+groupColors[g]+'">'+c+' séance(s)</span></div>';
-    h += '<div class="pb-bg"><div class="pb-fill" style="width:'+Math.max(pct,3)+'%;background:'+groupColors[g]+'"></div></div>';
-    h += '</div>';
-  });
-  h += '</div>';
-
-  // Alerte groupes les plus faibles
-  var weakest = analysis.sorted.slice(0,2).filter(function(x){return x.count < 4;});
-  if(weakest.length){
-    h += '<div class="ybox">⚠ <b>'+weakest.map(function(w){return w.group;}).join(' et ')+'</b> '+(weakest.length>1?'sont':'est')+' relativement '+(weakest.length>1?'sous-travaillés':'sous-travaillé')+' par rapport au reste. Vois les suggestions ci-dessous.</div>';
-  }
-
-  // Bouton IA
-  h += '<button onclick="analyzeMuscleGaps()" style="width:100%;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#F59E0B,#EF4444);color:#fff;font-size:13px;font-weight:800;margin-bottom:14px">🧠 Demander des suggestions d exercices</button>';
-
-  if(ST.gapLoading){
-    h += '<div class="card" style="text-align:center;padding:20px"><div style="font-size:12px;color:#9CA3AF">🔎 Analyse en cours...</div></div>';
-  }
-  if(ST.gapError){
-    h += '<div class="card" style="border-color:#EF444450"><div style="font-size:12px;color:#EF4444">⚠ '+ST.gapError+'</div></div>';
-  }
-  if(ST.gapResult){
-    var r = ST.gapResult;
-    h += '<div class="card" style="border-left:4px solid #F59E0B">';
-    h += '<div style="font-weight:800;font-size:14px;color:#F1F1F5;margin-bottom:10px">🧠 Avis personnalisé</div>';
-    if(r.synthese) h += '<div style="font-size:11px;color:#D1D5DB;line-height:1.7;margin-bottom:12px">'+r.synthese+'</div>';
-    (r.suggestions||[]).forEach(function(s){
-      h += '<div style="background:#14141F;border-radius:10px;padding:11px;margin-bottom:8px">';
-      h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">';
-      h += '<div style="font-size:12px;font-weight:700;color:#F1F1F5">'+(s.exercice||'')+'</div>';
-      h += '<span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;background:#F59E0B22;color:#FCD34D">'+(s.groupe||'')+'</span>';
-      h += '</div>';
-      h += '<div style="font-size:10px;color:#9CA3AF;margin-bottom:4px">'+(s.sets||'')+(s.materiel?' · '+s.materiel:'')+'</div>';
-      if(s.pourquoi) h += '<div style="font-size:11px;color:#A1A1B5;line-height:1.5">'+s.pourquoi+'</div>';
-      h += '</div>';
-    });
-    h += '</div>';
-  }
-
-  // ── JOURNAL LIBRE ──
-  h += '<div class="card">';
-  h += '<div class="slbl">✏️ Ajouter un exercice au carnet</div>';
-  h += '<div style="font-size:10px;color:#6B7280;margin-bottom:10px">Pour les exercices faits hors du programme A/B/Vacances — ils comptent dans l analyse de volume.</div>';
-  h += '<div style="margin-bottom:7px"><input type="text" id="free-ex-name" placeholder="Nom de l exercice" value="'+(ST.freeExName||'').replace(/"/g,'&quot;')+'" oninput="ST.freeExName=this.value"></div>';
-  h += '<div style="margin-bottom:7px"><select id="free-ex-muscle" onchange="ST.freeExMuscle=this.value">';
-  h += '<option value="">Groupe musculaire principal...</option>';
-  MUSCLE_GROUPS_FR.forEach(function(g){ h += '<option value="'+g+'"'+(ST.freeExMuscle===g?' selected':'')+'>'+groupEmoji[g]+' '+g+'</option>'; });
-  h += '</select></div>';
-  h += '<div style="display:flex;gap:6px;margin-bottom:8px">';
-  h += '<input type="text" id="free-ex-charge" placeholder="Charge (ex: 20kg, poids corps)" style="flex:1" value="'+(ST.freeExCharge||'').replace(/"/g,'&quot;')+'" oninput="ST.freeExCharge=this.value">';
-  h += '<input type="text" id="free-ex-sets" placeholder="Séries×reps" style="flex:1" value="'+(ST.freeExSets||'').replace(/"/g,'&quot;')+'" oninput="ST.freeExSets=this.value">';
-  h += '</div>';
-  h += '<button onclick="addFreeExercise()" style="width:100%;padding:10px;border-radius:9px;border:none;background:#F59E0B;color:#fff;font-size:12px;font-weight:700">Ajouter au carnet ✓</button>';
-  h += '</div>';
-
-  // Historique du journal libre
-  var freeLog = (S.get('freeExLog')||[]).slice().reverse();
-  if(freeLog.length){
-    h += '<div class="card"><div class="slbl">📖 Historique du carnet ('+freeLog.length+')</div>';
-    freeLog.slice(0,15).forEach(function(e, idx){
-      var realIdx = freeLog.length - 1 - idx;
-      h += '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #2D2D3F">';
-      h += '<div><div style="font-size:12px;font-weight:700;color:#F1F1F5">'+e.nom+'</div>';
-      h += '<div style="font-size:9px;color:#6B7280">'+(e.muscles||'—')+' · '+(e.charge||'—')+' · '+(e.sets||'—')+' · '+e.date+'</div></div>';
-      h += '<button data-idx="'+realIdx+'" onclick="delFreeExerciseBtn(this)" style="background:none;border:none;color:#EF4444;font-size:13px;padding:0 4px">✕</button>';
-      h += '</div>';
-    });
-    h += '</div>';
-  }
-
-  return h;
-}
-
-function addFreeExercise(){
-  var nom = (ST.freeExName||'').trim();
-  if(!nom) return;
-  var entry = {
-    nom: nom,
-    muscles: ST.freeExMuscle || '',
-    charge: ST.freeExCharge || '',
-    sets: ST.freeExSets || '',
-    date: parisDateStr()
-  };
-  var log = S.get('freeExLog') || [];
-  log.push(entry);
-  S.set('freeExLog', log);
-  ST.freeExName=''; ST.freeExMuscle=''; ST.freeExCharge=''; ST.freeExSets='';
-  renderEx();
-}
-
-function delFreeExerciseBtn(btn){
-  var idx = parseInt(btn.getAttribute('data-idx'),10);
-  var log = S.get('freeExLog') || [];
-  log.splice(idx,1);
-  S.set('freeExLog', log);
-  renderEx();
-}
-
-async function analyzeMuscleGaps(){
-  ST.gapLoading = true;
-  ST.gapError = null;
-  ST.gapResult = null;
-  renderEx();
-
-  var analysis = getWeakestMuscleGroups();
-  var counts = analysis.raw.counts;
-  var volumeSummary = MUSCLE_GROUPS_FR.map(function(g){ return g+': '+(counts[g]||0)+' séances loggées'; }).join(', ');
-  var freeLog = S.get('freeExLog') || [];
-  var freeLogSummary = freeLog.length ? freeLog.slice(-10).map(function(e){return e.nom+' ('+(e.muscles||'?')+')';}).join(', ') : 'aucun';
-
-  var prompt = "Tu es coach de musculation pour David, endodontiste, 86kg, 1m85, objectif perte de gras + maintien/gain muscle, niveau intermediaire. " +
-    "Sa priorite absolue est le DOS et le HAUT DU CORPS. Programme actuel : Seance A (bas du corps + tirage : squat, souleve de terre roumain, leg curl, tractions assistees, rowing 1 bras, curl barre), Seance B (epaules/pecs/dos/triceps avec machines Hammer Strength), Vacances (poids du corps). " +
-    "Voici le volume d entrainement loggé par groupe musculaire sur l historique disponible : " + volumeSummary + ". " +
-    "Exercices notes dans son carnet libre (hors programme) : " + freeLogSummary + ". " +
-    "Analyse les groupes musculaires sous-travailles, en particulier sur le dos et le haut du corps qui sont sa priorite. Propose 3 a 4 exercices complementaires precis (pas deja dans son programme actuel si possible, ou des variantes) pour combler les lacunes, adaptes a une salle de sport standard avec halteres/machines/poulies. " +
-    "Reponds UNIQUEMENT en JSON valide, sans markdown, sans texte autour, avec exactement ce format : " +
-    '{"synthese": "2-3 phrases de synthese sur les groupes sous-travailles et pourquoi", "suggestions": [{"exercice": "nom", "groupe": "groupe musculaire cible", "sets": "ex: 3x12", "materiel": "ex: poulie, halteres, machine", "pourquoi": "1 phrase expliquant pourquoi cet exercice comble le manque"}]}';
-
-  try{
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 1200,
-        messages: [{ role: "user", content: prompt }]
-      })
-    });
-    const data = await response.json();
-    var fullText = (data.content||[]).map(function(b){ return b.type==='text'?b.text:''; }).filter(Boolean).join('\n');
-    var clean = fullText.replace(/```json|```/g,'').trim();
-    var firstBrace = clean.indexOf('{');
-    var lastBrace = clean.lastIndexOf('}');
-    if(firstBrace>=0 && lastBrace>firstBrace) clean = clean.slice(firstBrace, lastBrace+1);
-    var parsed = JSON.parse(clean);
-    ST.gapResult = parsed;
-    ST.gapError = null;
-  }catch(err){
-    ST.gapError = "Impossible de générer l analyse pour le moment. Réessaie dans un instant.";
-    ST.gapResult = null;
-  }
-  ST.gapLoading = false;
-  renderEx();
-}
-
 function setET(t){ST.exTab=t;ST.exOpen=null;renderEx();}
 function togEx(k){ST.exOpen=(ST.exOpen===k?null:k);renderEx();}
 
@@ -2522,254 +1692,9 @@ const ALL_CONSEILS = [
   {id:"sm3",cat:"Sante mentale",emoji:"🎵",titre:"Musique en seance",txt:"Des etudes montrent que la musique a tempo eleve (120-140 BPM) augmente les performances sportives de 15% en moyenne. Cree une playlist dediee seance — ca change vraiment.",score:function(data){return data.hasWorkouts?6:3;}},
   {id:"sm4",cat:"Sante mentale",emoji:"🌿",titre:"Nature et recuperation mentale",txt:"La route des Breguieres n est pas que du sport — c est aussi de la therapie. La marche en nature reduit le cortisol plus efficacement que la meditation interieure pour la plupart des gens.",score:function(data){return 6;}},
   {id:"sm5",cat:"Sante mentale",emoji:"😤",titre:"La frustration fait partie du process",txt:"Il y aura des semaines sans resultats, des seances ratees, des ecarts. C est normal et prevu. Ce qui distingue ceux qui reussissent : ils reprennent le lendemain sans dramatiser.",score:function(data){return 5;}},
-  // NUTRITION (suite)
-  {id:"n8",cat:"Nutrition",emoji:"🥚",titre:"Les oeufs entiers : stop a la peur du jaune",txt:"Le jaune d oeuf contient choline, vitamine D et graisses satures de qualite. 3 oeufs entiers par jour n ont aucun impact negatif prouve sur la sante cardiovasculaire pour un sportif actif.",score:function(data){return 4;}},
-  {id:"n9",cat:"Nutrition",emoji:"🍚",titre:"Glucides le soir : pas d ennemi",txt:"Manger des glucides le soir (riz, pates, patate douce) ne fait pas grossir. Ce qui compte c est le total calorique journalier. Les glucides le soir favorisent meme la production de serotonine et un meilleur sommeil.",score:function(data){return 4;}},
-  {id:"n10",cat:"Nutrition",emoji:"🧂",titre:"Sodium apres le run",txt:"Apres 1h de fractionne par forte chaleur, tu peux perdre 1 a 2g de sodium dans la sueur. Ne bois pas uniquement de l eau plate : une pincee de sel dans ta gourde ou un bouillon chaud evitent les crampes et la fatigue post-run.",score:function(data){return data.hasWorkouts?7:3;}},
-  {id:"n11",cat:"Nutrition",emoji:"🥣",titre:"Fromage blanc 0% : le hack proteines",txt:"150g de fromage blanc 0% = 15g de proteines pour 80 kcal et pratiquement zero lipide. C est l aliment le plus rentable de ta liste pour atteindre 165g de proteines sans exploser les calories.",score:function(data){return data.avgProt<155?8:3;}},
-  {id:"n12",cat:"Nutrition",emoji:"🍋",titre:"Pre-repas : le verre d eau",txt:"Boire 500ml d eau 20 min avant les repas principaux reduit l apport calorique spontane de 13% en moyenne. Simple, gratuit, efficace — surtout les jours de repos quand la satiete est plus difficile.",score:function(data){return data.avgKcal>2300?7:3;}},
-  // LIFESTYLE (suite)
-  {id:"l7",cat:"Lifestyle",emoji:"🌡",titre:"Chaleur et hydratation en ete",txt:"A 30 degres, les besoins en eau augmentent de 500ml a 1L. Ton urine doit rester claire pendant la journee. Une deshydratation de 2% du poids corporel reduit les performances cognitives et sportives de 20%.",score:function(data){return 6;}},
-  {id:"l8",cat:"Lifestyle",emoji:"☕",titre:"Cafe pre-workout : bon timing",txt:"La cafeine prise 45-60 min avant une seance augmente les performances de force et d endurance. 1 a 2 cafes suffisent. Evite apres 15h si tu as du mal a t endormir.",score:function(data){return data.hasWorkouts?5:2;}},
-  {id:"l9",cat:"Lifestyle",emoji:"🛁",titre:"Douche froide post-seance",txt:"2 min d eau froide apres l entrainement reduit l inflammation musculaire et accelere la recuperation. Ca choque au debut mais apres 3-4 fois tu ne peux plus t en passer.",score:function(data){return data.hasWorkouts?5:2;}},
-  {id:"l10",cat:"Lifestyle",emoji:"🧳",titre:"Vacances ne veut pas dire pause",txt:"A Breguieres tu as un programme adapte : circuits poids de corps + course vallonnee. Maintenir 4 seances par semaine pendant les vacances preservera 100% de tes gains musculaires.",score:function(data){return 5;}},
-  // SPORT (suite)
-  {id:"s7",cat:"Sport",emoji:"💪",titre:"Connexion neuromusculaire",txt:"Avant chaque exercice, fais 1 serie de 5 reps tres legere en te concentrant uniquement sur les muscles cibles. Cette activation mentale ameliore le recrutement des fibres et la qualite des series de travail.",score:function(data){return data.hasWorkouts?6:3;}},
-  {id:"s8",cat:"Sport",emoji:"🧊",titre:"Crampes en course : prevention",txt:"Les crampes en run par chaleur sont souvent un mix de deshydratation + manque de sodium + fatigue musculaire. Bois 400ml avec une pincee de sel 1h avant le depart. Et ne commence pas trop vite.",score:function(data){return data.hasWorkouts?6:3;}},
-  {id:"s9",cat:"Sport",emoji:"🏃",titre:"Allure fractionnee : qualite > quantite",txt:"En fractionne, les 2 min de marche ne sont pas du temps perdu — elles permettent de maintenir la qualite des efforts. Mieux vaut 5 blocs parfaits que 7 blocs ou tu baisses d allure.",score:function(data){return data.hasWorkouts?5:3;}},
-  {id:"s10",cat:"Sport",emoji:"📐",titre:"Amplitude de mouvement",txt:"Sur le squat et le soulevé de terre, une amplitude complete (cuisse parallele au sol minimum) recrute bien plus de fibres qu une amplitude partielle avec plus de charge. Reduis la charge si necessaire.",score:function(data){return data.hasWorkouts?6:3;}},
-  // SUIVI (suite)
-  {id:"sv6",cat:"Suivi",emoji:"📏",titre:"Tour de taille : un marqueur cle",txt:"Le tour de taille est un meilleur indicateur de gras visceral que le poids. Mesure chaque semaine au niveau du nombril, le matin a jeun. Une baisse de 1-2 cm sur 5 semaines = bonne trajectoire.",score:function(data){return 5;}},
-  {id:"sv7",cat:"Suivi",emoji:"🔢",titre:"Semaine de decharge : mesure le lendemain",txt:"Apres la semaine 4 de decharge, prends une mesure d impedance. La reduction du volume d entrainement + bonne nutrition = conditions ideales pour une mesure de composition corporelle fiable.",score:function(data){return data.impCount<3?7:3;}},
-  // CONSCIENCE (suite)
-  {id:"c6",cat:"Conscience",emoji:"🧪",titre:"Le corps s adapte : c est une feature",txt:"Si les seances semblent plus faciles apres 3 semaines, c est normal et voulu. L adaptation neuromusculaire precede toujours l hypertrophie. La progression de charge confirme que l adaptation a eu lieu.",score:function(data){return data.hasWorkouts?5:3;}},
-  {id:"c7",cat:"Conscience",emoji:"⚡",titre:"L effet compoundant de la consistance",txt:"3 seances par semaine sur 10 semaines = 30 seances. 30 seances serieuses transforment un corps bien plus que 50 seances inconsistantes. La regularite bat l intensite sur le long terme.",score:function(data){return 6;}},
-  // SANTE MENTALE (suite)
-  {id:"sm6",cat:"Sante mentale",emoji:"🎯",titre:"Visualisation pre-seance",txt:"Avant d entrer en salle, 2 min de visualisation de ta seance (series, charges, rythme) augmentent la performance. Les athletes de haut niveau le font systematiquement. Essaie une semaine.",score:function(data){return data.hasWorkouts?5:2;}},
-  {id:"sm7",cat:"Sante mentale",emoji:"🌊",titre:"Respiration 4-7-8 anti-stress",txt:"Inspire 4 sec, retiens 7 sec, expire 8 sec. Repete 3 fois. Active le systeme parasympathique, baisse le cortisol en 5 minutes. Utile avant une seance stressante ou avant de dormir.",score:function(data){return 5;}},
-  // NUTRITION (pointus)
-  {id:"n13",cat:"Nutrition",emoji:"🧬",titre:"Seuil de leucine par prise",txt:"Il faut ~2,5-3g de leucine par repas pour declencher pleinement la synthese proteique musculaire (MPS). En dessous, meme avec des proteines, le signal anabolique est partiel — vise 30g+ de proteines completes par prise.",score:function(data){return data.avgProt<160?7:3;}},
-  {id:"n14",cat:"Nutrition",emoji:"🔄",titre:"Diet break toutes les 6-8 semaines",txt:"Une semaine a l equilibre calorique (maintenance) casse l adaptation metabolique et relance la leptine. Contre-intuitif mais ca accelere la suite de la perte de gras plutot que de la freiner.",score:function(data){return data.avgKcal<2000?7:3;}},
-  {id:"n15",cat:"Nutrition",emoji:"📉",titre:"Recalcule ta depense tous les 4-5kg perdus",txt:"Ta depense energetique baisse avec le poids. Un deficit calibre a 86kg devient plus severe (et plus a risque pour le muscle) a 82kg si tu ne l ajustes pas a la baisse.",score:function(data){return data.weightLost>3?7:3;}},
-  // LIFESTYLE (pointus)
-  {id:"l11",cat:"Lifestyle",emoji:"🌙",titre:"Sommeil profond > duree totale",txt:"8h fragmentees (reveils frequents) ne valent pas 7h continues. Le sommeil profond concentre ~70% de la secretion de GH nocturne — regarde la qualite, pas juste le nombre d heures.",score:function(data){return 5;}},
-  {id:"l12",cat:"Lifestyle",emoji:"🍷",titre:"Alcool : l impact sous-estime",txt:"Meme 1-2 verres inhibent la synthese proteique de 20-30% dans les heures qui suivent et reduisent la part de sommeil profond de la nuit. La frequence compte plus que la quantite ponctuelle.",score:function(data){return 4;}},
-  {id:"l13",cat:"Lifestyle",emoji:"🩺",titre:"Bilan sanguin si stagnation prolongee",txt:"Fer, vitamine D, thyroide, testosterone : si un plateau ou une perte musculaire persiste plus de 8 semaines malgre nutrition et entrainement corrects, un dosage tranche souvent la question.",score:function(data){return 3;}},
-  // SPORT (pointus)
-  {id:"s11",cat:"Sport",emoji:"⏱️",titre:"Tempo excentrique controle",txt:"Ralentir la descente sur 3-4 secondes (au lieu de la lacher) augmente le temps sous tension sans ajouter de charge. Un levier d hypertrophie souvent neglige, surtout en fin de programme.",score:function(data){return data.hasWorkouts?6:2;}},
-  {id:"s12",cat:"Sport",emoji:"📊",titre:"Volume hebdo minimum efficace",txt:"En dessous de 8-10 series par groupe musculaire par semaine, le stimulus est souvent insuffisant pour maintenir le muscle en deficit. Compte tes series reelles sur 7 jours, pas juste par seance.",score:function(data){return data.hasWorkouts?6:3;}},
-  {id:"s13",cat:"Sport",emoji:"🚫",titre:"Cardio a jeun : limite le volume",txt:"Courir a jeun plus de 30-40 min augmente le catabolisme musculaire, surtout cumule a un deficit calorique deja marque. Un peu de proteine avant suffit a limiter l effet.",score:function(data){return data.hasWorkouts?6:3;}},
-  // SUIVI (pointus)
-  {id:"sv8",cat:"Suivi",emoji:"💪",titre:"La force en salle > la balance",txt:"Si tes charges montent seance apres seance, tu ne perds probablement pas de muscle, quoi que dise l impedance. La progression de charge est le marqueur le plus fiable — plus fiable que n importe quelle balance grand public.",score:function(data){return data.hasWorkouts?7:3;}},
-  {id:"sv9",cat:"Suivi",emoji:"📐",titre:"Tour de bras et de cuisse",txt:"Mesure au meme point chaque semaine, au metre ruban. Un signal direct et simple sur le volume musculaire, complementaire a l impedance et moins sensible aux biais d hydratation.",score:function(data){return data.impCount<3?6:3;}},
-  // CONSCIENCE (pointus)
-  {id:"c8",cat:"Conscience",emoji:"🎚️",titre:"Multifactoriel, pas un seul coupable",txt:"Une perte musculaire est presque toujours la somme de plusieurs petits facteurs (deficit, sommeil, stress, volume d entrainement) plutot qu une cause unique. Chercher LE coupable retarde souvent la vraie solution.",score:function(data){return 5;}},
 ];
 
 const CONSEIL_CATS = ["Nutrition","Lifestyle","Sport","Suivi","Conscience","Sante mentale"];
-
-const MUSCLE_LOSS_CONSEILS = [
-  {id:"m_d1",emoji:"🔻",titre:"Deficit trop agressif",txt:"Au dela de 20-25% sous ta depense totale, le corps ne fait plus la difference entre gras et muscle a economiser. Un deficit trop dur force le catabolisme meme avec 165g de proteines."},
-  {id:"m_d2",emoji:"🔻",titre:"Vise 15-20% de deficit max",txt:"Sur 86kg et une depense estimee a 2600-2800 kcal, un deficit superieur a 500-600 kcal/jour de facon prolongee augmente fortement le risque de perte musculaire."},
-  {id:"m_d3",emoji:"🔻",titre:"Le corps priorise la survie",txt:"En deficit prolonge, l organisme reduit sa depense energetique (adaptation metabolique) et peut cataboliser du muscle pour economiser de l energie, meme avec assez de proteines dans l assiette."},
-  {id:"m_d4",emoji:"🔻",titre:"Deficit variable > deficit fixe",txt:"Alterner des jours a -300 kcal et des jours a l equilibre limite l adaptation metabolique mieux qu un deficit plat tous les jours."},
-  {id:"m_d5",emoji:"🔻",titre:"Le piege du sous-comptage calorique",txt:"Une sous-estimation de 15-20% des calories ingerees (huiles, sauces, grignotage) transforme un deficit modere en deficit severe sans que tu le voies."},
-  {id:"m_d6",emoji:"🔻",titre:"Recalcule ta depense tous les 4-5kg",txt:"Ta depense calorique baisse avec le poids perdu. Un deficit calibre a 86kg devient plus severe a 82kg si tu ne l ajustes pas."},
-  {id:"m_d7",emoji:"🔻",titre:"Diet break toutes les 6-8 semaines",txt:"Une semaine a l equilibre calorique (maintenance) toutes les 6-8 semaines de deficit reduit l adaptation metabolique et protege la masse musculaire."},
-  {id:"m_d8",emoji:"🔻",titre:"Le seuil critique de graisse corporelle",txt:"Sous ~12-15% de masse grasse pour un homme, le corps devient beaucoup plus agressif a cataboliser le muscle pour puiser de l energie. Ne vise pas plus bas que necessaire."},
-  {id:"m_d9",emoji:"🔻",titre:"Refeed day strategique",txt:"Un jour a apport glucidique et calorique plus eleve chaque 10-14 jours peut relancer la leptine et limiter le catabolisme musculaire en deficit prolonge."},
-  {id:"m_d10",emoji:"🔻",titre:"Le deficit ne doit jamais depasser 1% du poids/semaine",txt:"Perdre plus de 0,8-1kg par semaine a 86kg signale presque toujours une perte de muscle en plus du gras."},
-  {id:"m_t1",emoji:"⏱️",titre:"Repartition sur la journee",txt:"165g de proteines pris en 2 gros repas est moins efficace que la meme quantite repartie sur 4-5 prises de 30-40g. La synthese proteique musculaire a un plafond par repas."},
-  {id:"m_t2",emoji:"⏱️",titre:"Seuil de leucine par repas",txt:"Il faut environ 2,5-3g de leucine par prise pour declencher pleinement la synthese proteique musculaire. Un repas trop leger en proteines, meme frequent, ne suffit pas."},
-  {id:"m_t3",emoji:"⏱️",titre:"Ne laisse jamais un trou de plus de 5h",txt:"Un intervalle trop long entre deux apports proteiques, notamment la nuit, augmente la fenetre de catabolisme musculaire net."},
-  {id:"m_t4",emoji:"⏱️",titre:"Proteine avant le coucher",txt:"30g de proteines a digestion lente (fromage blanc, skyr) avant de dormir reduit le catabolisme nocturne et soutient la synthese proteique pendant le sommeil."},
-  {id:"m_t5",emoji:"⏱️",titre:"Petit dejeuner trop leger en proteines",txt:"Si ton premier repas contient moins de 25-30g de proteines, tu demarres la journee dans un etat catabolique plus long que necessaire."},
-  {id:"m_t6",emoji:"⏱️",titre:"Le lendemain de seance compte double",txt:"Les 24-48h suivant une seance de muscu sont la fenetre ou l apport proteique regulier a le plus d impact sur la retention musculaire."},
-  {id:"m_t7",emoji:"⏱️",titre:"Trop de proteines d un coup = gaspillage partiel",txt:"Au-dela de 40-50g de proteines en une seule prise, l efficacite marginale sur la synthese proteique diminue fortement — mieux vaut etaler."},
-  {id:"m_t8",emoji:"⏱️",titre:"Proteines et sommeil decale",txt:"Si tes horaires de repas varient beaucoup (garde, urgences), les periodes de jeune involontaire de 8h+ pendant la journee favorisent le catabolisme malgre un total journalier correct."},
-  {id:"m_t9",emoji:"⏱️",titre:"Le lendemain d un jeune religieux",txt:"Apres un jeune prolonge, les 24h suivantes sont critiques pour reconstituer un apport proteique regulier — un seul gros repas ne compense pas la fenetre de jeune."},
-  {id:"m_t10",emoji:"⏱️",titre:"Verifie ta derniere prise avant la seance du matin",txt:"S entrainer a jeun depuis plus de 10-12h sans proteine recente augmente le catabolisme musculaire pendant la seance elle-meme."},
-  {id:"m_q1",emoji:"🍗",titre:"165g affiches vs 165g reels",txt:"Un aliment mal pese (a l oeil plutot qu a la balance) peut sous-estimer les proteines de 20-30%. Verifie avec une balance de cuisine sur une semaine test."},
-  {id:"m_q2",emoji:"🍗",titre:"Qualite des sources proteiques",txt:"Toutes les proteines n ont pas la meme valeur biologique. Les proteines vegetales seules (sans complementarite) ont un profil en acides amines moins complet que les proteines animales."},
-  {id:"m_q3",emoji:"🍗",titre:"Les jours de jeune font chuter la moyenne",txt:"Un jour de jeune religieux a 0g de proteines fait chuter ta moyenne hebdomadaire meme si les 6 autres jours sont a 165g pile."},
-  {id:"m_q4",emoji:"🍗",titre:"165g c est peut-etre insuffisant pour toi",txt:"A 86kg en deficit avec objectif de retention musculaire, la fourchette haute recommandee est plutot 2-2,2g/kg de poids de corps, soit jusqu a 190g — teste une hausse ponctuelle."},
-  {id:"m_q5",emoji:"🍗",titre:"Le poids de reference doit etre le poids maigre",txt:"Calculer tes besoins sur ton poids total (86kg) plutot que ta masse maigre estimee peut sous-estimer tes besoins reels si ta masse grasse est elevee."},
-  {id:"m_q6",emoji:"🍗",titre:"Verifie les proteines de tes sauces et accompagnements",txt:"Le houmous, le tahini, les sauces au yaourt comptent peu de proteines reelles malgre une impression de repas copieux — ne les compte pas comme source principale."},
-  {id:"m_q7",emoji:"🍗",titre:"Les proteines en poudre ne sont pas equivalentes",txt:"Une whey a 70% de proteines sur extrait sec (fromagere) donne moins de proteines reelles par dosette qu une whey isolat a 90%+ pour le meme volume mesure."},
-  {id:"m_q8",emoji:"🍗",titre:"Attention aux jours d ecart social",txt:"Un repas au restaurant ou en famille souvent riche en glucides/lipides mais pauvre en proteines pures peut faire chuter ta moyenne de la semaine sans que tu t en rendes compte."},
-  {id:"m_q9",emoji:"🍗",titre:"Le fromage blanc 0% n est pas neutre en volume",txt:"150g de fromage blanc 0% donnent seulement 15g de proteines — il en faut beaucoup pour atteindre 40g sur un seul repas, verifie que le volume suit."},
-  {id:"m_q10",emoji:"🍗",titre:"Track sur 7 jours glissants, pas 1 jour",txt:"Une moyenne hebdomadaire de 165g peut cacher des jours a 100g et des jours a 220g — la variabilite jour a jour compte aussi pour la retention musculaire."},
-  {id:"m_e1",emoji:"🏋️",titre:"Le stimulus est roi, pas la nutrition seule",txt:"Sans surcharge progressive (plus de charge, plus de reps, ou meilleure technique), le muscle n a aucune raison de se maintenir en deficit calorique — les proteines seules ne suffisent pas."},
-  {id:"m_e2",emoji:"🏋️",titre:"2 seances/semaine peut etre le facteur limitant",txt:"Pour maximiser la retention musculaire en deficit, 2 seances par semaine par groupe musculaire est un minimum — verifie que chaque groupe est stimule au moins 2x/semaine."},
-  {id:"m_e3",emoji:"🏋️",titre:"Le volume doit suivre le deficit, pas chuter avec lui",txt:"Beaucoup reduisent involontairement leur volume d entrainement en deficit calorique (moins d energie) — c est souvent le vrai coupable de la perte musculaire, pas les proteines."},
-  {id:"m_e4",emoji:"🏋️",titre:"Es-tu proche de l echec sur tes dernieres series ?",txt:"Un stimulus insuffisant (arreter loin de l echec, RIR 4-5 systematique) ne declenche pas assez de tension mecanique pour justifier le maintien musculaire."},
-  {id:"m_e5",emoji:"🏋️",titre:"La regle des 2 pour 2",txt:"Si tu reussis toutes tes reps cibles sur 2 seances consecutives, augmente la charge. Stagner sur les charges pendant plusieurs semaines = signal d alerte."},
-  {id:"m_e6",emoji:"🏋️",titre:"Le detraining commence vite",txt:"A partir de 10-14 jours sans stimulus sur un groupe musculaire, la perte de force et de volume commence. Verifie qu aucun groupe n est neglige plus de 2 semaines."},
-  {id:"m_e7",emoji:"🏋️",titre:"Fatigue chronique = moins bonnes seances",txt:"Si tu es fatigue (travail, sommeil), tes seances perdent en qualite sans que tu le remarques consciemment — le poids souleve baisse progressivement, invisible seance apres seance."},
-  {id:"m_e8",emoji:"🏋️",titre:"Le nombre de series hebdomadaires compte",txt:"En dessous de 8-10 series hebdomadaires par groupe musculaire, le stimulus est souvent insuffisant pour maintenir le muscle en deficit calorique."},
-  {id:"m_e9",emoji:"🏋️",titre:"As-tu recemment change de programme ?",txt:"Un changement d exercices trop frequent empeche de suivre la progression de charge et peut masquer une stagnation reelle du stimulus."},
-  {id:"m_e10",emoji:"🏋️",titre:"La technique se degrade sans t en rendre compte",txt:"Une amplitude qui se reduit progressivement (par fatigue ou habitude) diminue le stimulus reel meme si le poids affiche sur la barre reste identique."},
-  {id:"m_ca1",emoji:"🏃",titre:"Trop de cardio en deficit",txt:"Un volume de cardio eleve (fractionne + marche + escaliers) ajoute au deficit calorique global et augmente le risque de puiser dans le muscle si les calories ne compensent pas."},
-  {id:"m_ca2",emoji:"🏃",titre:"Cardio a jeun : attention au volume",txt:"Courir a jeun plus de 30-40 min augmente le catabolisme musculaire, surtout combine a un deficit calorique deja marque."},
-  {id:"m_ca3",emoji:"🏃",titre:"Le cardio et la musculation se disputent la recuperation",txt:"Trop de sessions cardio autour des jours de muscu limite la recuperation musculaire et peut freiner la synthese proteique post-seance."},
-  {id:"m_ca4",emoji:"🏃",titre:"Prive-toi de cardio les 24h post-muscu",txt:"Une seance cardio intense dans les 24h suivant une seance de muscu lourde peut interferer avec les signaux de recuperation musculaire (effet interference)."},
-  {id:"m_ca5",emoji:"🏃",titre:"Le fractionne est plus catabolisant que prevu",txt:"Un fractionne intense sans apport glucidique/proteique adapte peut couter plus cher en muscle qu un footing tranquille, notamment sur des jambes deja fatiguees."},
-  {id:"m_ca6",emoji:"🏃",titre:"Compense le cardio en calories, pas juste en proteines",txt:"Chaque grosse session de cardio (course, escaliers) cree un deficit supplementaire qu il faut compenser partiellement en calories totales, pas uniquement en proteines."},
-  {id:"m_ca7",emoji:"🏃",titre:"Trop de volume cardio total sur la semaine",txt:"Cumuler course + escaliers + marche intensive plusieurs fois par semaine peut representer un volume d endurance qui entre en concurrence avec les objectifs de force/hypertrophie."},
-  {id:"m_ca8",emoji:"🏃",titre:"Le cardio de recuperation ne devrait pas etre a haute intensite",txt:"Une marche ou un jogging leger favorise la recuperation ; un cardio a haute intensite les jours de repos musculaire annule l effet recuperateur recherche."},
-  {id:"m_ca9",emoji:"🏃",titre:"Verifie ta frequence cardiaque en fractionne",txt:"Un fractionne trop souvent a une intensite proche du maximum epuise le systeme nerveux central, ce qui degrade indirectement la qualite de tes seances de muscu suivantes."},
-  {id:"m_ca10",emoji:"🏃",titre:"Les escaliers ajoutent un volume excentrique sous-estime",txt:"Le travail excentrique des escaliers cree des microlesions musculaires qui necessitent des ressources de recuperation — trop frequent, ca prive le muscle de reconstruction nette."},
-  {id:"m_so1",emoji:"😴",titre:"Moins de 7h = catabolisme accru",txt:"En dessous de 7h de sommeil, la secretion d hormone de croissance chute et le cortisol reste eleve plus longtemps — combinaison ideale pour perdre du muscle."},
-  {id:"m_so2",emoji:"😴",titre:"La qualite compte autant que la duree",txt:"8h de sommeil fragmente (reveils frequents) n a pas le meme effet reparateur que 7h de sommeil profond continu. Le sommeil profond est la phase cle pour la recuperation musculaire."},
-  {id:"m_so3",emoji:"😴",titre:"Le sommeil est anabolique, pas juste reparateur",txt:"Environ 70% de la secretion quotidienne de GH (hormone de croissance) a lieu pendant le sommeil profond — un dette de sommeil chronique reduit directement le potentiel anabolique."},
-  {id:"m_so4",emoji:"😴",titre:"Dette de sommeil cumulative",txt:"Une semaine a 6h/nuit cree une dette qu un seul week-end de rattrapage ne compense pas completement niveau hormonal et recuperation musculaire."},
-  {id:"m_so5",emoji:"😴",titre:"Horaires de sommeil irreguliers",txt:"Se coucher a des heures tres variables (garde, urgences dentaires tardives) perturbe le rythme circadien et la qualite du sommeil profond, meme si la duree totale semble correcte."},
-  {id:"m_so6",emoji:"😴",titre:"Cafeine tardive et sommeil",txt:"Un cafe pris apres 15h peut reduire la proportion de sommeil profond de la nuit meme sans t empecher de t endormir — impact indirect sur la recuperation musculaire."},
-  {id:"m_so7",emoji:"😴",titre:"Le stress du lendemain perturbe le sommeil du soir",txt:"Anticiper une grosse journee de cabinet peut degrader la qualite du sommeil la veille sans que tu en aies conscience — le cortisol du soir monte."},
-  {id:"m_so8",emoji:"😴",titre:"Ecrans avant de dormir = sommeil profond reduit",txt:"La lumiere bleue retarde la secretion de melatonine et raccourcit la phase de sommeil profond ou se concentre la recuperation musculaire."},
-  {id:"m_so9",emoji:"😴",titre:"Sieste : bon complement, pas un substitut",txt:"Une sieste de 20 min compense partiellement un manque ponctuel mais ne remplace pas le sommeil profond nocturne pour la recuperation musculaire."},
-  {id:"m_so10",emoji:"😴",titre:"Alcool et sommeil profond",txt:"Meme une consommation moderee d alcool le soir reduit significativement la part de sommeil profond de la nuit, meme si tu t endors plus vite."},
-  {id:"m_st1",emoji:"🧠",titre:"Cortisol chronique = catabolisme direct",txt:"Un cortisol eleve en continu (stress professionnel, manque de sommeil) favorise activement la degradation des proteines musculaires pour liberer des acides amines vers le foie."},
-  {id:"m_st2",emoji:"🧠",titre:"Le stress du cabinet dentaire est sous-estime",txt:"Des journees intenses avec forte charge cognitive et posturale au fauteuil elevent le cortisol de facon chronique sans effort physique visible."},
-  {id:"m_st3",emoji:"🧠",titre:"Stress + deficit calorique = combo a risque",txt:"Un deficit calorique est deja un stress physiologique. Ajoute un stress psychologique chronique et le corps bascule plus facilement en mode catabolique."},
-  {id:"m_st4",emoji:"🧠",titre:"Le cortisol du matin, marqueur a surveiller",txt:"Un reveil difficile, une fatigue persistante des le matin, peuvent traduire un cortisol matinal deregle — un signe indirect de stress chronique impactant la recuperation."},
-  {id:"m_st5",emoji:"🧠",titre:"Respiration et systeme parasympathique",txt:"Quelques minutes de respiration lente (4-7-8) apres une journee stressante peuvent faire baisser le cortisol circulant avant meme le repas du soir."},
-  {id:"m_st6",emoji:"🧠",titre:"La surcharge d entrainement est aussi un stress",txt:"Trop de volume d entrainement sans recuperation suffisante ajoute au stress systemique total, cumule avec le stress professionnel — attention a la charge globale, pas juste calorique."},
-  {id:"m_st7",emoji:"🧠",titre:"Pauses actives dans la journee de travail",txt:"Des micro-pauses de quelques minutes entre les patients (marche, etirement) aident a reguler le cortisol accumule pendant les journees chargees."},
-  {id:"m_st8",emoji:"🧠",titre:"Le stress chronique affame les muscles avant le gras",txt:"En situation de stress prolonge, le corps mobilise preferentiellement les acides amines musculaires (source d energie rapide) avant les reserves de graisse."},
-  {id:"m_st9",emoji:"🧠",titre:"Identifie tes pics de stress hebdomadaires",txt:"Si certains jours de la semaine sont systematiquement plus charges (planning cabinet), anticipe un apport proteique et calorique legerement plus genereux ces jours-la."},
-  {id:"m_st10",emoji:"🧠",titre:"Le stress emotionnel compte aussi",txt:"Au-dela du stress professionnel, les tensions personnelles ou l anxiete chronique elevent le cortisol de la meme facon et impactent la retention musculaire."},
-  {id:"m_me1",emoji:"📊",titre:"Hydratation et impedance : biais majeur",txt:"Une balance a impedance surestime la masse grasse et sous-estime la masse musculaire si tu es legerement deshydrate au moment de la mesure."},
-  {id:"m_me2",emoji:"📊",titre:"Toujours la meme heure, meme condition",txt:"Une mesure prise a jeun un jour et apres un repas un autre jour n est pas comparable — la variation peut donner l illusion d une perte musculaire qui n existe pas."},
-  {id:"m_me3",emoji:"📊",titre:"Le lendemain d une seance intense fausse la mesure",txt:"L inflammation musculaire et la retention d eau post-effort intense peuvent temporairement modifier la lecture de la balance a impedance dans un sens ou l autre."},
-  {id:"m_me4",emoji:"📊",titre:"Cycle et retention d eau (le cas echeant)",txt:"Certaines variations hormonales naturelles influencent la retention d eau et donc la lecture des balances a impedance — ne pas sur-interpreter une seule mesure."},
-  {id:"m_me5",emoji:"📊",titre:"La marge d erreur des balances grand public",txt:"Les balances a impedance domestiques ont une marge d erreur de 3-5% sur la masse musculaire — une baisse de 0,5-1kg peut simplement etre du bruit de mesure, pas une vraie perte."},
-  {id:"m_me6",emoji:"📊",titre:"Regarde la tendance sur 4-6 mesures, pas 2",txt:"Une seule comparaison avant/apres est tres sensible au bruit de mesure. Compare la tendance sur plusieurs semaines pour un signal fiable."},
-  {id:"m_me7",emoji:"📊",titre:"Sport la veille = mesure faussee",txt:"Meme la consigne officielle le rappelle : une seance la veille de la mesure alterte l hydratation musculaire et peut simuler une perte de masse maigre inexistante."},
-  {id:"m_me8",emoji:"📊",titre:"Alcool ou sel la veille",txt:"Un repas sale ou un verre d alcool la veille au soir modifie la retention d eau et fausse la mesure du lendemain matin, meme a jeun."},
-  {id:"m_me9",emoji:"📊",titre:"Difference entre masse maigre et masse musculaire pure",txt:"La masse maigre inclut les organes, les os et l eau — une baisse de masse maigre n est pas forcement une baisse de muscle contractile pur."},
-  {id:"m_me10",emoji:"📊",titre:"Croise toujours avec un indicateur objectif",txt:"La force en salle (charges soulevees) est un marqueur plus fiable que l impedance seule pour juger d une vraie perte musculaire — si tes charges montent, tu ne perds probablement pas de muscle malgre la balance."},
-  {id:"m_vi1",emoji:"⚡",titre:"Vitesse de perte trop rapide",txt:"Perdre plus de 0,7-1% du poids corporel par semaine (soit plus de 600-850g/semaine a 86kg) augmente fortement la part de muscle dans la perte de poids totale."},
-  {id:"m_vi2",emoji:"⚡",titre:"Le rythme ideal est plus lent qu on ne pense",txt:"0,3-0,5kg par semaine preserve mieux la masse musculaire qu un rythme de 1kg+/semaine, meme si c est psychologiquement moins satisfaisant a court terme."},
-  {id:"m_vi3",emoji:"⚡",titre:"Une perte rapide initiale n est pas du gras",txt:"Les 1-2 premiers kilos perdus en debut de deficit sont majoritairement de l eau et du glycogene — ne pas viser ce rythme comme reference pour la suite."},
-  {id:"m_vi4",emoji:"⚡",titre:"Ralentis si la perte s accelere soudainement",txt:"Une acceleration brutale de la perte de poids sans changement de deficit peut indiquer une perte de masse musculaire plutot qu un vrai progres sur le gras."},
-  {id:"m_vi5",emoji:"⚡",titre:"Le piege du plateau puis rattrapage brutal",txt:"Apres un plateau, la tentation de couper plus fort les calories pour relancer accelere souvent la perte musculaire plus que la perte de gras."},
-  {id:"m_vi6",emoji:"⚡",titre:"Les jours de jeune religieux accelerent le rythme global",txt:"Integres a une semaine deja en deficit, les jours de jeune ajoutent un deficit ponctuel severe qui peut faire deraper le rythme hebdomadaire moyen."},
-  {id:"m_vi7",emoji:"⚡",titre:"Poids stable, gras qui baisse = bon signal, pas un echec",txt:"Si le rythme de perte de poids ralentit mais que le tour de taille continue de baisser, c est le signe d une recomposition saine — ne force pas le rythme."},
-  {id:"m_vi8",emoji:"⚡",titre:"La restriction extreme est contre-productive au long terme",txt:"Un rythme trop agressif mene souvent a un abandon ou un rebond, avec une reprise de gras superieure a la perte musculaire initiale."},
-  {id:"m_vi9",emoji:"⚡",titre:"Verifie ta perte sur 3-4 semaines, pas 1",txt:"Le poids fluctue de 1-2kg naturellement (eau, digestion, hormones) — juge le rythme reel sur une moyenne mobile de plusieurs semaines."},
-  {id:"m_vi10",emoji:"⚡",titre:"Un rythme trop lent n est pas non plus optimal",txt:"A l inverse, un deficit trop faible allonge inutilement la phase de restriction, ce qui augmente le risque cumulatif de fatigue et de perte musculaire sur la duree totale."},
-  {id:"m_re1",emoji:"🔄",titre:"48-72h entre deux seances du meme groupe",txt:"Solliciter le meme groupe musculaire avant recuperation complete degrade le stimulus net et peut favoriser un bilan proteique negatif localement."},
-  {id:"m_re2",emoji:"🔄",titre:"Les DOMS ne sont pas un indicateur fiable",txt:"L absence de courbatures ne veut pas dire recuperation complete — le systeme nerveux central peut rester fatigue plusieurs jours apres une seance lourde."},
-  {id:"m_re3",emoji:"🔄",titre:"Semaine de decharge : ne la saute jamais en deficit",txt:"En deficit calorique, la capacite de recuperation est deja reduite — sauter la semaine de decharge programmee accroit le risque de surmenage et de perte musculaire."},
-  {id:"m_re4",emoji:"🔄",titre:"Le sommeil est le facteur n1 de la recuperation",txt:"Aucune strategie nutritionnelle ne compense un deficit chronique de sommeil sur la recuperation musculaire — c est le levier prioritaire si le muscle fond."},
-  {id:"m_re5",emoji:"🔄",titre:"Recuperation active vs repos total",txt:"Une marche legere les jours de repos favorise la circulation sanguine et la recuperation, contrairement a une inactivite totale qui peut ralentir la reparation musculaire."},
-  {id:"m_re6",emoji:"🔄",titre:"Charge d entrainement cumulee sur la semaine",txt:"Ce n est pas seulement la seance du jour qui compte, mais le volume total cumule sur 7-10 jours — une charge trop dense sans jour de vrai repos epuise les reserves de recuperation."},
-  {id:"m_re7",emoji:"🔄",titre:"Les etirements et la mobilite comptent aussi",txt:"Une mauvaise recuperation articulaire et myofasciale peut limiter l amplitude de mouvement, donc le stimulus musculaire reel des seances suivantes."},
-  {id:"m_re8",emoji:"🔄",titre:"Ecoute les signaux de fatigue systemique",txt:"Frequence cardiaque au repos elevee, irritabilite, motivation en berne : ce sont des signes precoces de recuperation insuffisante avant meme la baisse de performance."},
-  {id:"m_re9",emoji:"🔄",titre:"Le froid et le chaud, en complement seulement",txt:"Douche froide ou sauna peuvent aider ponctuellement mais ne remplacent jamais le sommeil et l apport nutritionnel comme piliers de la recuperation musculaire."},
-  {id:"m_re10",emoji:"🔄",titre:"Une seance ratee vaut mieux qu une seance forcee",txt:"S entrainer a tout prix en etat de fatigue avancee degrade le stimulus et peut meme etre legerement catabolisant net comparé a un jour de repos supplementaire."},
-  {id:"m_gl1",emoji:"🍚",titre:"Les glucides protegent le muscle en deficit",txt:"Un apport glucidique trop bas prive le muscle de son carburant preferentiel a l entrainement, ce qui peut forcer le corps a puiser davantage dans les proteines pour l energie."},
-  {id:"m_gl2",emoji:"🍚",titre:"Glycogene bas = moins bonne seance = moins de stimulus",txt:"Des reserves de glycogene insuffisantes avant une seance de muscu reduisent la charge soulevable, donc le stimulus hypertrophique reel de la seance."},
-  {id:"m_gl3",emoji:"🍚",titre:"L effet epargneur de proteines des glucides",txt:"Suffisamment de glucides permet au corps d utiliser le gras et le glycogene comme carburant plutot que de degrader les proteines musculaires a des fins energetiques."},
-  {id:"m_gl4",emoji:"🍚",titre:"Glucides autour de l entrainement en priorite",txt:"Si tu dois repartir tes glucides, privilegie les 2-3h autour de la seance — c est la ou ils protegent le plus efficacement le muscle du catabolisme."},
-  {id:"m_gl5",emoji:"🍚",titre:"Un deficit trop bas en glucides ET en calories cumule les risques",txt:"Faire un double deficit — glucides bas et calories basses — est une des combinaisons les plus a risque pour la perte musculaire en phase de seche."},
-  {id:"m_gl6",emoji:"🍚",titre:"Les jours de jeune : compense les jours suivants",txt:"Apres un jeune sans glucides ni proteines, les 24-48h suivantes devraient inclure un apport glucidique legerement superieur pour reconstituer le glycogene musculaire."},
-  {id:"m_gl7",emoji:"🍚",titre:"Fatigue inhabituelle en seance = glycogene a verifier",txt:"Si tes seances deviennent difficiles sans raison apparente (sommeil et stress normaux), un manque chronique de glucides est une cause frequente et sous-estimee."},
-  {id:"m_gl8",emoji:"🍚",titre:"Le timing des glucides autour du fractionne",txt:"Un peu de glucides avant un fractionne intense preserve les reserves musculaires et reduit le recours au catabolisme proteique pendant l effort."},
-  {id:"m_gl9",emoji:"🍚",titre:"Glucides le soir : allie de la recuperation, pas un ennemi",txt:"Contrairement aux idees recues, des glucides le soir favorisent la resynthese de glycogene pendant la nuit et n ont pas d impact negatif specifique sur la perte de gras."},
-  {id:"m_gl10",emoji:"🍚",titre:"Trop peu de glucides degrade aussi le sommeil",txt:"Un apport glucidique tres bas peut perturber la production de serotonine et donc la qualite du sommeil — avec un effet indirect sur la recuperation musculaire."},
-  {id:"m_mi1",emoji:"🧬",titre:"Magnesium et recuperation musculaire",txt:"Une carence en magnesium (frequente chez les sportifs qui transpirent beaucoup) degrade la qualite du sommeil et la fonction musculaire, avec un impact indirect sur la retention de muscle."},
-  {id:"m_mi2",emoji:"🧬",titre:"Vitamine D et synthese proteique",txt:"Un faible statut en vitamine D est associe a une moins bonne fonction musculaire et une recuperation ralentie — un dosage sanguin peut valoir le coup si le probleme persiste."},
-  {id:"m_mi3",emoji:"🧬",titre:"Zinc et testosterone",txt:"Une carence en zinc peut affecter la production de testosterone, hormone anabolique cle pour le maintien musculaire, en particulier en deficit calorique prolonge."},
-  {id:"m_mi4",emoji:"🧬",titre:"Fer et fatigue chronique",txt:"Une ferritine basse (frequente sans qu on le sache) peut causer une fatigue chronique qui degrade indirectement la qualite des seances et donc le stimulus musculaire."},
-  {id:"m_mi5",emoji:"🧬",titre:"Omega-3 et inflammation",txt:"Un ratio omega-6/omega-3 desequilibre favorise une inflammation chronique de bas grade qui peut freiner la synthese proteique musculaire."},
-  {id:"m_mi6",emoji:"🧬",titre:"Les micronutriments d abord, les supplements ensuite",txt:"Avant tout complement, verifier via une prise de sang les carences reelles (fer, vitamine D, B12) est plus rentable que d empiler des supplements au hasard."},
-  {id:"m_mi7",emoji:"🧬",titre:"Restriction calorique = risque accru de carences",txt:"Plus le deficit calorique est marque, plus le risque de sous-apport en micronutriments augmente meme avec un total proteique correct — la densite nutritionnelle des aliments compte."},
-  {id:"m_mi8",emoji:"🧬",titre:"Calcium et fonction musculaire",txt:"Le calcium joue un role direct dans la contraction musculaire — un apport insuffisant (frequent en cas de faible consommation laitiere) peut affecter la performance et la recuperation."},
-  {id:"m_mi9",emoji:"🧬",titre:"B12 et energie cellulaire",txt:"Une carence en B12, meme legere, peut causer fatigue et baisse de performance a l entrainement, avec un effet indirect sur le maintien musculaire via un stimulus reduit."},
-  {id:"m_mi10",emoji:"🧬",titre:"Une prise de sang complete peut trancher",txt:"Si la perte musculaire persiste malgre nutrition et entrainement corrects, un bilan sanguin (thyroide, testosterone, ferritine, vitamine D) permet d ecarter une cause medicale sous-jacente."},
-  {id:"m_al1",emoji:"🍷",titre:"L alcool inhibe directement la synthese proteique",txt:"Meme une consommation moderee d alcool peut reduire la synthese proteique musculaire de 20-30% dans les heures qui suivent, independamment de l apport en proteines."},
-  {id:"m_al2",emoji:"🍷",titre:"Alcool et testosterone",txt:"Une consommation reguliere d alcool, meme moderee, est associee a une baisse de la testosterone circulante — hormone cle pour la retention musculaire."},
-  {id:"m_al3",emoji:"🍷",titre:"Le sommeil apres alcool est de moins bonne qualite",txt:"Meme un ou deux verres le soir reduisent la part de sommeil profond de la nuit, la phase la plus importante pour la recuperation musculaire."},
-  {id:"m_al4",emoji:"🍷",titre:"Calories vides qui deplacent les proteines",txt:"Les calories de l alcool prennent souvent la place de calories qui auraient pu etre allouees a des proteines ou glucides utiles a la recuperation."},
-  {id:"m_al5",emoji:"🍷",titre:"L alcool ralentit la recuperation post-seance",txt:"Boire le soir d une seance intense peut significativement ralentir la reparation musculaire des microlesions causees par l entrainement."},
-  {id:"m_al6",emoji:"🍷",titre:"Frequence plus importante que quantite",txt:"Un verre 3-4 fois par semaine a un impact cumulatif plus important sur la recuperation musculaire qu une consommation ponctuelle plus importante mais rare."},
-  {id:"m_al7",emoji:"🍷",titre:"Deshydratation et impedance faussee",txt:"L alcool deshydrate legerement, ce qui peut fausser une mesure d impedance le lendemain matin dans le sens d une fausse perte de masse musculaire."},
-  {id:"m_al8",emoji:"🍷",titre:"Le foie priorise l alcool sur tout le reste",txt:"Pendant que le foie metabolise l alcool, il met en pause d autres processus metaboliques, dont certains lies a la synthese proteique et au stockage du glycogene."},
-  {id:"m_al9",emoji:"🍷",titre:"Espacement recommande avec l entrainement",txt:"Si consommation il y a, l espacer le plus possible d une seance intense (pas la veille ni le soir meme) limite l impact sur la recuperation musculaire."},
-  {id:"m_al10",emoji:"🍷",titre:"Alcool et appetit du lendemain",txt:"L alcool perturbe souvent les choix alimentaires du lendemain (fringales, repas moins structures), ce qui peut indirectement faire chuter l apport proteique du jour suivant."},
-  {id:"m_hy1",emoji:"💧",titre:"Deshydratation chronique et catabolisme",txt:"Une hydratation insuffisante reduit le volume sanguin et le transport des nutriments vers les muscles, ce qui peut freiner la synthese proteique meme avec un apport correct."},
-  {id:"m_hy2",emoji:"💧",titre:"L eau intracellulaire, marqueur meconnu",txt:"Un muscle bien hydrate au niveau cellulaire est un signal anabolique pour le corps — une deshydratation chronique legere envoie un signal inverse."},
-  {id:"m_hy3",emoji:"💧",titre:"2L minimum, plus en periode de forte chaleur",txt:"En ete ou apres une seance de fractionne intense, les besoins montent a 3-3,5L — un manque chronique meme leger degrade la performance et la recuperation."},
-  {id:"m_hy4",emoji:"💧",titre:"La soif est un signal tardif",txt:"Quand la sensation de soif apparait, une deshydratation legere de 1-2% est deja installee — ne pas attendre la soif pour boire, surtout les jours de sport."},
-  {id:"m_hy5",emoji:"💧",titre:"Urine claire = bon indicateur simple",txt:"Une urine jaune fonce toute la journee est un signe fiable et simple de sous-hydratation chronique, facilement corrigeable."},
-  {id:"m_hy6",emoji:"💧",titre:"Cafe et deshydratation legere",txt:"Plusieurs cafes par jour sans compensation en eau peuvent contribuer a une deshydratation legere cumulative, meme si l effet diuretique de la cafeine est modere chez les buveurs reguliers."},
-  {id:"m_hy7",emoji:"💧",titre:"Hydratation et impedance : verifie ton protocole",txt:"Boire un grand verre d eau juste avant une mesure d impedance peut fausser temporairement la lecture — respecte toujours le meme protocole (a jeun, avant tout liquide)."},
-  {id:"m_hy8",emoji:"💧",titre:"Sel et retention hydrique musculaire",txt:"Un apport en sodium trop bas en periode de forte transpiration (course, chaleur) peut nuire a la retention d eau intramusculaire, un facteur du volume musculaire percu."},
-  {id:"m_hy9",emoji:"💧",titre:"Electrolytes apres un fractionne long",txt:"Au-dela de 45-60 min d effort intense par forte chaleur, l eau seule ne suffit pas — le manque d electrolytes peut aggraver la fatigue et la recuperation."},
-  {id:"m_hy10",emoji:"💧",titre:"L hydratation influence directement la force",txt:"Une deshydratation de seulement 2% du poids corporel peut reduire la force et l endurance musculaire de 10-20% — un facteur direct sur la qualite du stimulus d entrainement."},
-  {id:"m_ho1",emoji:"⚗️",titre:"La testosterone baisse naturellement avec l age",txt:"A partir de 30-40 ans, la testosterone diminue progressivement d environ 1% par an, rendant la retention musculaire plus difficile a effort egal qu a 25 ans."},
-  {id:"m_ho2",emoji:"⚗️",titre:"Le deficit calorique fait baisser la testosterone",txt:"Un deficit calorique prolonge, meme modere, peut faire baisser la testosterone circulante de facon mesurable — un facteur supplementaire de risque de perte musculaire."},
-  {id:"m_ho3",emoji:"⚗️",titre:"Sommeil et testosterone sont lies directement",txt:"La majorite de la testosterone quotidienne est secretee pendant le sommeil profond — un dette de sommeil chronique impacte directement les niveaux hormonaux anabolisants."},
-  {id:"m_ho4",emoji:"⚗️",titre:"Cortisol et testosterone : un equilibre a proteger",txt:"Un cortisol chronique eleve inhibe partiellement la production de testosterone — stress chronique et deficit calorique cumulent leurs effets negatifs sur cet equilibre hormonal."},
-  {id:"m_ho5",emoji:"⚗️",titre:"La thyroide, souvent negligee",txt:"Une thyroide legerement sous-active (meme infraclinique) ralentit le metabolisme et peut favoriser une perte musculaire relative en deficit — un dosage TSH peut etre utile si le doute persiste."},
-  {id:"m_ho6",emoji:"⚗️",titre:"Graisse corporelle tres basse et hormones",txt:"Descendre sous un seuil de masse grasse tres bas peut perturber la production hormonale (testosterone, thyroide) — un corps trop maigre n est pas toujours un corps plus performant."},
-  {id:"m_ho7",emoji:"⚗️",titre:"Le stress chronique du metier medical/dentaire",txt:"Les professions a forte charge mentale et posturale (comme l endodontie) sont associees a un stress chronique qui peut affecter discretement l equilibre hormonal sur le long terme."},
-  {id:"m_ho8",emoji:"⚗️",titre:"IGF-1 et recuperation musculaire",txt:"Un sommeil et une nutrition insuffisants reduisent la production d IGF-1, un acteur cle de la reparation et croissance musculaire, independamment de l apport proteique."},
-  {id:"m_ho9",emoji:"⚗️",titre:"Les variations hormonales ne sont pas lineaires",txt:"Le corps s adapte par paliers, pas de facon lineaire — une periode de stagnation ou de perte musculaire peut simplement correspondre a une phase d ajustement hormonal temporaire."},
-  {id:"m_ho10",emoji:"⚗️",titre:"Bilan hormonal si le doute persiste au-dela de 8 semaines",txt:"Si malgre nutrition, entrainement et sommeil corriges la perte musculaire persiste plus de 2 mois, un bilan sanguin complet (testosterone, cortisol, thyroide) est justifie."},
-  {id:"m_je1",emoji:"🕍",titre:"Le jeune est un catabolisme accelere ponctuel",txt:"Pendant un jeune de 24h+, l absence totale de proteines pousse le corps a puiser dans les reserves musculaires bien plus vite que dans les reserves de graisse."},
-  {id:"m_je2",emoji:"🕍",titre:"Frequence des jeunes et impact cumulatif",txt:"Plusieurs jeunes religieux rapproches dans le calendrier (periode de fetes) peuvent avoir un effet cumulatif sur la masse musculaire s ils ne sont pas compenses correctement."},
-  {id:"m_je3",emoji:"🕍",titre:"Le repas de rupture du jeune est critique",txt:"Un repas de rupture pauvre en proteines (privilegiant sucre et glucides rapides) manque l occasion de limiter le catabolisme accumule pendant le jeune."},
-  {id:"m_je4",emoji:"🕍",titre:"Charge d entrainement les jours de jeune",txt:"S entrainer intensement un jour de jeune total (sans nutrition disponible) maximise le risque de catabolisme musculaire — mieux vaut alleger la seance ces jours-la."},
-  {id:"m_je5",emoji:"🕍",titre:"Anticipe le jeune avec un surplus proteique la veille",txt:"Un repas riche en proteines avant un jeune prolonge peut legerement attenuer le catabolisme du lendemain, sans le neutraliser completement."},
-  {id:"m_je6",emoji:"🕍",titre:"Recuperation post-jeune : 24-48h cles",txt:"Les repas suivant directement la rupture du jeune devraient etre volontairement riches en proteines pour compenser rapidement le catabolisme accumule."},
-  {id:"m_je7",emoji:"🕍",titre:"Le jeune impacte aussi le sommeil",txt:"Un jeune prolonge (notamment sans eau) peut perturber le sommeil de la nuit precedente ou suivante, ajoutant un facteur de risque supplementaire pour le muscle."},
-  {id:"m_je8",emoji:"🕍",titre:"Les jeunes courts (type intermittent) sont moins a risque",txt:"Un jeune de 12-16h sans repas (contrairement a un jeune religieux de 24h+) a un impact beaucoup plus limite sur la masse musculaire s il n est pas combine a un deficit deja severe."},
-  {id:"m_je9",emoji:"🕍",titre:"Verifie ta moyenne proteique sur la semaine du jeune",txt:"Une semaine avec un jour de jeune total necessite une compensation sur les 6 autres jours pour maintenir une moyenne hebdomadaire suffisante en proteines."},
-  {id:"m_je10",emoji:"🕍",titre:"Le jeune n explique pas tout, mais compte",txt:"Un seul jeune ponctuel n a pas d impact mesurable a long terme — c est la repetition et le manque de compensation qui creent un effet cumulatif sur plusieurs mois."},
-  {id:"m_ma1",emoji:"🩺",titre:"Inflammation chronique de bas grade",txt:"Une inflammation systemique meme discrete (stress, mauvais sommeil, alimentation pro-inflammatoire) peut favoriser un environnement catabolique defavorable au muscle."},
-  {id:"m_ma2",emoji:"🩺",titre:"Une infection ou maladie recente",txt:"Meme une grippe ou infection benigne recente peut avoir un impact catabolique musculaire qui persiste plusieurs semaines apres la guerison apparente."},
-  {id:"m_ma3",emoji:"🩺",titre:"Douleurs chroniques et compensation musculaire",txt:"Une douleur chronique (dos, epaule) qui limite inconsciemment l amplitude ou l intensite des exercices reduit le stimulus musculaire reel sans que ce soit toujours perceptible."},
-  {id:"m_ma4",emoji:"🩺",titre:"Le surmenage professionnel chronique",txt:"Une charge de travail intense et continue (journees longues au cabinet) constitue un stress physiologique cumulatif qui peut favoriser le catabolisme musculaire meme sans fatigue ressentie extreme."},
-  {id:"m_ma5",emoji:"🩺",titre:"Troubles digestifs et absorption des proteines",txt:"Des troubles digestifs meme legers (ballonnements frequents, transit irregulier) peuvent reduire l absorption reelle des proteines ingerees malgre un apport theorique suffisant."},
-  {id:"m_ma6",emoji:"🩺",titre:"La maladie coeliaque ou intolerances non diagnostiquees",txt:"Une intolerance alimentaire non identifiee peut créer une inflammation intestinale chronique qui reduit l absorption des nutriments, dont les proteines."},
-  {id:"m_ma7",emoji:"🩺",titre:"Verifie ta glycemie a jeun",txt:"Une resistance a l insuline meme legere peut perturber le stockage du glycogene musculaire et favoriser un environnement plus catabolique — un dosage simple peut ecarter cette hypothese."},
-  {id:"m_ma8",emoji:"🩺",titre:"Le surentrainement est un vrai syndrome medical",txt:"Au-dela de la simple fatigue, un syndrome de surentrainement etabli implique des marqueurs hormonaux et inflammatoires mesurables qui expliquent directement une perte musculaire persistante."},
-  {id:"m_ma9",emoji:"🩺",titre:"Anemie legere et performance",txt:"Une anemie meme moderee reduit le transport d oxygene vers les muscles, diminuant la capacite a maintenir l intensite necessaire au stimulus musculaire."},
-  {id:"m_ma10",emoji:"🩺",titre:"N hesite pas a consulter si le doute persiste",txt:"Si la perte musculaire est nette, rapide et inexpliquee malgre tous les ajustements nutrition/entrainement, une consultation medicale avec bilan sanguin complet est la demarche la plus fiable."},
-  {id:"m_ex1",emoji:"🎯",titre:"Amplitude reduite = stimulus reduit",txt:"Une amplitude de mouvement qui se raccourcit progressivement (souvent inconsciemment avec la fatigue) diminue le volume de tension mecanique applique au muscle, meme a charge egale."},
-  {id:"m_ex2",emoji:"🎯",titre:"Vitesse d execution trop rapide",txt:"Une phase excentrique bacleeee (descente trop rapide) reduit le temps sous tension, un facteur cle de l hypertrophie independant du poids souleve."},
-  {id:"m_ex3",emoji:"🎯",titre:"La connexion mentale au muscle cible",txt:"Sans concentration active sur le muscle travaille, le recrutement des fibres peut etre sous-optimal meme avec une charge et un volume corrects."},
-  {id:"m_ex4",emoji:"🎯",titre:"Le meme programme depuis trop longtemps",txt:"Apres 6-8 semaines sur un programme identique, le systeme neuromusculaire s adapte et le stimulus relatif diminue meme si la charge continue d augmenter legerement."},
-  {id:"m_ex5",emoji:"🎯",titre:"Verifie ton ratio charge/repetitions reelles",txt:"Augmenter la charge en sacrifiant les dernieres repetitions completes (reps partielles non comptees comme telles) donne une fausse impression de progression."},
-  {id:"m_ex6",emoji:"🎯",titre:"Repos entre series trop court en deficit",txt:"En deficit calorique, la capacite de recuperation entre les series est reduite — un repos trop court peut degrader la qualite des series suivantes et donc le stimulus total."},
-  {id:"m_ex7",emoji:"🎯",titre:"La fatigue technique avant la fatigue musculaire",txt:"Sur des mouvements complexes (souleve de terre, tirages), la technique peut se degrader avant que le muscle cible soit reellement atteint a l echec — priorise la qualite sur la quantite."},
-  {id:"m_ex8",emoji:"🎯",titre:"Exercices unilateraux souvent negliges",txt:"Des desequilibres entre les deux cotes du corps peuvent limiter le stimulus global si seuls les mouvements bilateraux sont pratiques regulierement."},
-  {id:"m_ex9",emoji:"🎯",titre:"Le tempo controle change tout",txt:"Ralentir volontairement la phase excentrique (3-4 secondes) sur certains exercices augmente significativement le temps sous tension sans necessiter plus de charge."},
-  {id:"m_ex10",emoji:"🎯",titre:"Filme-toi occasionnellement",txt:"Une auto-evaluation visuelle periodique permet de detecter une derive technique progressive (amplitude, posture) invisible en temps reel pendant la seance."},
-  {id:"m_su1",emoji:"📈",titre:"Le poids seul ne dit rien sur le muscle",txt:"Suivre uniquement le poids sur la balance masque completement l evolution reelle de la composition corporelle — privilegie toujours impedance et force en salle en complement."},
-  {id:"m_su2",emoji:"📈",titre:"Note systematiquement tes charges en seance",txt:"Sans suivi rigoureux des charges soulevees, impossible de distinguer objectivement une vraie perte de force (signal de perte musculaire) d une simple mauvaise journee ponctuelle."},
-  {id:"m_su3",emoji:"📈",titre:"Photo de progression : le juge de paix visuel",txt:"Les changements de composition corporelle sont souvent visibles sur photo avant d etre visibles sur la balance ou meme l impedance — complete ton suivi avec une photo hebdomadaire."},
-  {id:"m_su4",emoji:"📈",titre:"Tour de bras et de cuisse, indicateurs directs",txt:"Mesurer le tour de bras et de cuisse au meme point chaque semaine donne un signal direct et simple sur le volume musculaire, complementaire a l impedance."},
-  {id:"m_su5",emoji:"📈",titre:"Compare toujours des mesures dans les memes conditions",txt:"Une comparaison entre une mesure a jeun et une mesure post-repas, ou avant/apres sport, n a aucune valeur — standardise systematiquement le protocole."},
-  {id:"m_su6",emoji:"📈",titre:"Le RPE (perception d effort) comme indicateur",txt:"Si le meme poids souleve te semble de plus en plus difficile (RPE en hausse) a volume egal, c est un signal precoce de fatigue ou de perte de capacite avant meme que la charge ne baisse objectivement."},
-  {id:"m_su7",emoji:"📈",titre:"Track ta frequence cardiaque au repos",txt:"Une hausse progressive de la frequence cardiaque au reveil peut signaler un surmenage ou une recuperation insuffisante avant que d autres symptomes n apparaissent."},
-  {id:"m_su8",emoji:"📈",titre:"Journal alimentaire : la regularite plus que la precision absolue",txt:"Un suivi regulier meme imparfait donne plus d information sur les tendances qu un suivi tres precis mais irregulier — la constance du suivi est ce qui permet de detecter les causes."},
-  {id:"m_su9",emoji:"📈",titre:"Correlation plutot que causalite isolee",txt:"Avant de conclure qu un seul facteur (les proteines) explique la perte musculaire, croise plusieurs donnees (sommeil, stress, volume d entrainement, calories) sur la meme periode."},
-  {id:"m_su10",emoji:"📈",titre:"Reevalue tous les mois, pas toutes les semaines",txt:"Les ajustements nutrition/entrainement prennent du temps a produire un effet mesurable — juger et ajuster trop frequemment (chaque semaine) empeche d identifier la vraie cause."},
-  {id:"m_my1",emoji:"💭",titre:"Mythe : plus de proteines resout toujours le probleme",txt:"Au-dela d un certain seuil (environ 2-2,2g/kg), ajouter encore plus de proteines n apporte aucun benefice supplementaire si le vrai probleme est le sommeil, le stress ou le stimulus d entrainement."},
-  {id:"m_my2",emoji:"💭",titre:"Mythe : le cardio ne fait perdre que du gras",txt:"Le cardio en exces, surtout en deficit calorique marque, peut tout a fait contribuer a une perte musculaire — ce n est pas un outil neutre pour le muscle."},
-  {id:"m_my3",emoji:"💭",titre:"Mythe : la fenetre anabolique de 30 minutes est absolue",txt:"La fenetre post-entrainement est plus large qu on ne le pensait (plusieurs heures), mais la regularite globale de l apport proteique sur la journee compte davantage que ce timing precis."},
-  {id:"m_my4",emoji:"💭",titre:"Mythe : sans courbatures, pas de progres",txt:"L absence de courbatures ne signifie pas absence de stimulus — les courbatures sont un mauvais indicateur de l efficacite d une seance sur le maintien musculaire."},
-  {id:"m_my5",emoji:"💭",titre:"Mythe : le poids qui ne bouge pas = stagnation",txt:"Un poids stable peut cacher une recomposition corporelle favorable (perte de gras + gain de muscle) — ne jamais interpreter le poids seul comme un echec ou une reussite."},
-  {id:"m_my6",emoji:"💭",titre:"Mythe : il faut souffrir pour progresser",txt:"Une seance systematiquement a l echec total ou une restriction extreme sont souvent contre-productives — la progression durable vient de la regularite, pas de l intensite maximale permanente."},
-  {id:"m_my7",emoji:"💭",titre:"Mythe : le jeune intermittent fait fondre le muscle",txt:"Un jeune intermittent court (12-16h) bien gere avec un apport proteique suffisant sur la fenetre alimentaire n a pas d impact negatif demontre sur la masse musculaire."},
-  {id:"m_my8",emoji:"💭",titre:"Mythe : les BCAA sont indispensables",txt:"Avec un apport proteique total suffisant (165g/jour reparti), les BCAA en complement n apportent generalement aucun benefice supplementaire mesurable sur la retention musculaire."},
-  {id:"m_my9",emoji:"💭",titre:"Mythe : plus de series c est toujours mieux",txt:"Au-dela d un certain volume hebdomadaire (environ 15-20 series par groupe musculaire), les series supplementaires ajoutent de la fatigue sans stimulus supplementaire net — parfois moins vaut mieux."},
-  {id:"m_my10",emoji:"💭",titre:"Mythe : un seul facteur explique tout",txt:"La perte musculaire est presque toujours multifactorielle (deficit, stimulus, sommeil, stress, hormones) — chercher une cause unique retarde souvent la vraie solution."},
-];
 
 function computeConseilsData(){
   var journal = S.get('nutJournal') || {};
@@ -2823,12 +1748,12 @@ function getRandomConseils(excluded, count){
 function renderJournal(){
   const journal = S.get('nutJournal') || {};
   const days = Object.values(journal).sort((a,b)=>b.date.localeCompare(a.date));
-  let h = renderJeuneBandeau();
-  h += `<div style="font-size:13px;color:#9CA3AF;margin-bottom:14px;line-height:1.5">
+
+  let h = `<div style="font-size:13px;color:#9CA3AF;margin-bottom:14px;line-height:1.5">
     Historique de tes journées alimentaires. Enregistre chaque soir depuis l'onglet Nutrition.
   </div>`;
 
-  const todayStr = parisDateStr();
+  const todayStr = new Date().toISOString().split('T')[0];
   const todayData = (S.get('nutJournal')||{})[todayStr];
 
   // Today pinned at top
@@ -2895,8 +1820,8 @@ function renderJournal(){
 
   // Rappel dimanche 22h
   const now = new Date();
-  const isSunday = parisDay() === 0;
-  const isEvening = parisHour() >= 20;
+  const isSunday = now.getDay() === 0;
+  const isEvening = now.getHours() >= 20;
   if(isSunday && isEvening){
     h += `<div class="ybox">📋 Dimanche soir — récap de ta semaine ci-dessous !</div>`;
   }
@@ -2992,24 +1917,15 @@ function deleteDayBtn(btn){ deleteDay(btn.getAttribute('data-date')); }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 function render(t){
-  ST._activeTab = t;
   if(t==='semaine')renderSem();
   else if(t==='nutrition')renderNut();
   else if(t==='journal')renderJournal();
   else if(t==='tracker')renderTr();
   else if(t==='exercices')renderEx();
-  else if(t==='jeune')renderJeunePage();
 }
 
 // Load custom aliments from localStorage into ALIMENTS
 (function loadCustomAliments(){
-  // Nettoyage unique : les anciens "Mes aliments" ont été promus dans la liste
-  // classique (Datte, Thon cru, Tomate mozza, Couscous de Chabbat, Hipro 25g...)
-  // — on vide le reste une seule fois.
-  if(!S.get('customAlimentsCleanupV1')){
-    S.set('customAliments', {});
-    S.set('customAlimentsCleanupV1', true);
-  }
   var custom = S.get('customAliments') || {};
   Object.keys(custom).forEach(function(name){
     var a = custom[name];
@@ -3017,22 +1933,13 @@ function render(t){
   });
   // Add 'Mes aliments' to cats if not there
   if(ALIMENT_CATS.indexOf('Mes aliments') < 0 && Object.keys(custom).length > 0){
-    ALIMENT_CATS.push('Mes aliments');
+    ALIMENT_CATS.unshift('Mes aliments');
   }
-  // Charge aussi les aliments "journal seulement" (pas dans la liste, mais
-  // nécessaires pour recalculer les macros des journées déjà enregistrées)
-  var journalOnly = S.get('journalOnlyAliments') || {};
-  Object.keys(journalOnly).forEach(function(name){
-    if(!ALIMENTS[name]){
-      var a = journalOnly[name];
-      ALIMENTS[name] = {k:a.k, p:a.p, g:a.g, l:a.l, emoji:'🍽️', cat:'Journal'};
-    }
-  });
 })();
 
 // Auto-load today's nutrition data on startup
 (function initNutrition(){
-  const today = parisDateStr();
+  const today = new Date().toISOString().split('T')[0];
   // Restore last selected week
   var savedWeek = S.get('lastWeek');
   if(savedWeek && savedWeek >= 1 && savedWeek <= 10) ST.week = savedWeek;
@@ -3045,40 +1952,15 @@ function render(t){
   }
   // Purge entries older than 7 days
   const journal = S.get('nutJournal')||{};
-  const cutoffDate = new Date();
-  cutoffDate.setDate(cutoffDate.getDate()-7);
-  const cutoffStr = cutoffDate.toLocaleDateString('fr-CA',{timeZone:'Europe/Paris'});
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate()-7);
+  const cutoffStr = cutoff.toISOString().split('T')[0];
   let purged = false;
   Object.keys(journal).forEach(function(d){
     if(d < cutoffStr){ delete journal[d]; purged=true; }
   });
   if(purged) S.set('nutJournal', journal);
-
-  // Restaurer l'état jeûne depuis localStorage s'il était actif
-  var savedJeune = S.get('jeuneState');
-  if(savedJeune){
-    try {
-      var jst = JSON.parse(savedJeune);
-      if(jst.jeuneActif){ ST.jeuneActif=jst.jeuneActif; ST.jeuneNom=jst.jeuneNom||''; ST.jeuneDebut=jst.jeuneDebut; ST.jeuneFin=jst.jeuneFin; ST.jeuneDate=jst.jeuneDate; }
-    } catch(e){}
-  }
 })();
-
-// Timer live : rafraîchit le bandeau jeûne chaque minute si actif
-setInterval(function(){
-  if(ST.jeuneActif){
-    S.set('jeuneState', JSON.stringify({jeuneActif:true, jeuneNom:ST.jeuneNom, jeuneDebut:ST.jeuneDebut, jeuneFin:ST.jeuneFin, jeuneDate:ST.jeuneDate}));
-    // Highlight bouton nav jeûne
-    var jBtn = document.getElementById('nbtn-jeune');
-    if(jBtn && !jBtn.classList.contains('act')) jBtn.style.color = '#C4B5FD';
-    // Rafraîchir l'onglet actif (bandeau mis à jour partout)
-    if(ST._activeTab) render(ST._activeTab);
-  } else {
-    S.set('jeuneState', null);
-    var jBtn2 = document.getElementById('nbtn-jeune');
-    if(jBtn2) jBtn2.style.color = '';
-  }
-}, 60000);
 
 renderSem();
 </script>
