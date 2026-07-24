@@ -258,7 +258,7 @@ const ALIMENTS = {
 };
 
 // Catégories dans l'ordre d'affichage
-const ALIMENT_CATS = ["Protéines","Laitiers","Féculents","Légumes","Fruits","Oléagineux","Boissons","Plaisir"];
+const ALIMENT_CATS = ["Laitiers","Féculents","Fruits","Protéines","Légumes","Oléagineux","Boissons","Plaisir"];
 
 // ─── REPAS PRÉDÉFINIS PAR SLOT ────────────────────────────────────────────────
 const MEAL_SLOTS = {
@@ -802,7 +802,10 @@ function renderNut(){
       <div><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Glucides (g)</div><input type="number" id="custom-gluc" placeholder="ex: 8" min="0" step="0.1"></div>
       <div><div style="font-size:9px;color:#6B7280;margin-bottom:3px">Lipides (g)</div><input type="number" id="custom-lip" placeholder="ex: 3" min="0" step="0.1"></div>
     </div>
-    <button onclick="addCustomItem('${ST.nutSlot}')" style="width:100%;padding:8px;border-radius:8px;border:none;background:#8B5CF6;color:#fff;font-size:12px;font-weight:600">Ajouter l'aliment personnalisé ✓</button>
+    <div style="display:flex;gap:6px">
+      <button onclick="addCustomItemJournalOnly('${ST.nutSlot}')" style="flex:1;padding:8px 4px;border-radius:8px;border:1.5px solid #8B5CF6;background:none;color:#C4B5FD;font-size:11px;font-weight:600">📓 Journal<br><span style="font-size:9px;opacity:.8">uniquement</span></button>
+      <button onclick="addCustomItem('${ST.nutSlot}')" style="flex:1;padding:8px 4px;border-radius:8px;border:none;background:#8B5CF6;color:#fff;font-size:11px;font-weight:600">💾 Ajouter et<br><span style="font-size:9px;opacity:.8">enregistrer</span></button>
+    </div>
   </div>`;
 
   h += `</div>`;
@@ -1085,6 +1088,22 @@ function removeManual(slot, idx){
 
 function showReco(slot){ ST.nutShowReco=slot; renderNut(); }
 function showRecoBtn(btn){ showReco(btn.getAttribute('data-slot')); }
+
+function addCustomItemJournalOnly(slot){
+  var name = document.getElementById('custom-name').value.trim();
+  var kcal = parseFloat(document.getElementById('custom-kcal').value);
+  var prot = parseFloat(document.getElementById('custom-prot').value)||0;
+  var gluc = parseFloat(document.getElementById('custom-gluc').value)||0;
+  var lip  = parseFloat(document.getElementById('custom-lip').value)||0;
+  if(!name || isNaN(kcal)) return;
+  // Ajoute dans ALIMENTS en mémoire uniquement (pas localStorage)
+  ALIMENTS[name] = {k:kcal, p:prot, g:gluc, l:lip, emoji:'🍽️', cat:'Mes aliments'};
+  // Ajoute au slot courant
+  if(!ST.nutManual[slot]) ST.nutManual[slot]=[];
+  ST.nutManual[slot].push({n:name, qty:100});
+  ST.nutShowReco=null;
+  renderNut();
+}
 
 function addCustomItem(slot){
   var name = document.getElementById('custom-name').value.trim();
